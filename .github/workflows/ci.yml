@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- SETUP: JAVA 17 (Für Java-Server & Kotlin-Client) ---
+      # --- SETUP ---
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -23,7 +23,6 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      # --- SETUP: PYTHON 3.11 (Für Berechnungs-Service/FastAPI) ---
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -32,26 +31,41 @@ jobs:
       # --- TESTS: PYTHON SERVICE ---
       - name: Test Python Calculation Service
         run: |
-          if [ -d calculation_service ]; then
-            cd calculation_service
+          if [ ! -d "python_service" ]; then
+            echo "::warning title=Python Missing::Ordner 'python_service' nicht gefunden. Überspringe Tests."
+          elif [ ! -f "python_service/requirements.txt" ]; then
+            echo "::error title=Python Error::Ordner vorhanden, aber requirements.txt fehlt!"
+            exit 1
+          else
+            cd python_service
             pip install -r requirements.txt
             pytest
           fi
 
-      # --- TESTS: JAVA SERVER (Spring Boot) ---
-      - name: Build & Test Spring Boot Server
+      # --- TESTS: JAVA SERVER ---
+      - name: Build & Test Java Server
         run: |
-          if [ -d java_server ]; then
+          if [ ! -d "java_server" ]; then
+            echo "::warning title=Java Missing::Ordner 'java_server' nicht gefunden. Überspringe."
+          elif [ ! -f "java_server/gradlew" ]; then
+            echo "::error title=Java Error::Java-Ordner da, aber gradlew (Wrapper) fehlt!"
+            exit 1
+          else
             cd java_server
             chmod +x gradlew
             ./gradlew test
           fi
 
-      # --- TESTS: KOTLIN CLIENT (Android) ---
+      # --- TESTS: KOTLIN CLIENT ---
       - name: Build & Test Kotlin Android Client
         run: |
-          if [ -d android_client ]; then
+          if [ ! -d "android_client" ]; then
+            echo "::warning title=Kotlin Missing::Ordner 'android_client' nicht gefunden. Überspringe."
+          elif [ ! -f "android_client/gradlew" ]; then
+            echo "::error title=Kotlin Error::Android-Ordner da, aber gradlew fehlt!"
+            exit 1
+          else
             cd android_client
             chmod +x gradlew
-            ./gradlew test # Führt Unit-Tests aus
+            ./gradlew test
           fi
