@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15
+
+
+  java-server:
+    build: ./java-server
+    container_name: oys-java-server
+    ports:
+      - "8080:8080"  # Macht den Server unter localhost:8080 erreichbar
+    environment:
+      # Diese Variablen überschreiben die Werte in application.properties
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:-studydb}
+      - SPRING_DATASOURCE_USERNAME==${DB_USER:-admin}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - db  # Wartet, bis der Datenbank-Container gestartet ist
+    networks:
+      - oys-network
+
+
+  python-microservice:
+    build: ./python-microservice
+
+networks:
+  oys-network:
+    driver: bridge
