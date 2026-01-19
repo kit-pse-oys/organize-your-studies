@@ -1,0 +1,80 @@
+{
+  "horizon": 2016,
+  "current_slot": 120,
+  "blocked_days": [5, 6],
+  "preference_time": "vormittags, nachmittags, abends",
+  "fixed_blocks": [
+    {"start": 144, "duration": 12},
+    {"start": 720, "duration": 12},
+    {"start": 1296, "duration": 12},
+    {"start": 504, "duration": 24}
+  ],
+  "tasks": [
+    {
+      "id": "mathe-unit-1",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 228, "c": -50 }]
+    },
+    {
+      "id": "mathe-unit-2",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 228, "c": -50 }]
+    },
+    {
+      "id": "mathe-unit-3",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 228, "c": -50 }]
+    },
+    {
+      "id": "mathe-unit-4",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 228, "c": -50 }]
+    },
+    {
+      "id": "englisch-unit-1",
+      "duration": 27,
+      "deadline": 792,
+      "costs": [{ "t": 468, "c": -30 }]
+    },
+    {
+      "id": "englisch-unit-2",
+      "duration": 27,
+      "deadline": 792,
+      "costs": [{ "t": 468, "c": -30 }]
+    },
+    {
+      "id": "englisch-unit-3",
+      "duration": 27,
+      "deadline": 792,
+      "costs": [{ "t": 468, "c": -30 }]
+    },
+    {
+      "id": "deutsch-unit-1",
+      "duration": 27,
+      "deadline": 1296,
+      "costs": [{ "t": 804, "c": -60 }]
+    },
+    {
+      "id": "deutsch-unit-2",
+      "duration": 27,
+      "deadline": 1296,
+      "costs": [{ "t": 804, "c": -60 }]
+    },
+    {
+      "id": "bio-unit-1",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 1086, "c": -20 }]
+    },
+    {
+      "id": "bio-unit-2",
+      "duration": 27,
+      "deadline": 2016,
+      "costs": [{ "t": 1086, "c": -20 }]
+    }
+  ]
+}
