@@ -18,12 +18,15 @@ jobs:
           python-version: '3.11'
       - name: Run Python Tests
         run: |
-          if [ -d "python_service" ]; then
-            cd python_service
-            pip install -r requirements.txt || echo "Keine requirements gefunden"
-            pytest || echo "Keine Tests gefunden"
+          if [ -d "python-microservice" ]; then
+            cd python-microservice
+            # Nur installieren, wenn requirements existieren
+            [ -f requirements.txt ] && pip install -r requirements.txt || echo "Keine requirements"
+            # Nur pytest starten, wenn der Befehl verfügbar ist
+            command -v pytest >/dev/null 2>&1 && pytest || echo "Keine Tests gefunden"
           else
-            echo "Ordner fehlt, überspringe..."
+            echo "Ordner python-microservice fehlt!"
+            exit 1
           fi
 
   # --- JOB 2: JAVA SERVER ---
@@ -38,12 +41,17 @@ jobs:
           distribution: 'temurin'
       - name: Build & Test Java
         run: |
-          if [ -d "java_server" ] && [ -f "java_server/gradlew" ]; then
-            cd java_server
-            chmod +x gradlew
-            ./gradlew test
+          if [ -d "java-server" ]; then
+            cd java-server
+            if [ -f "gradlew" ]; then
+              chmod +x gradlew
+              ./gradlew test
+            else
+              echo "Kein Gradle Wrapper gefunden, überspringe Build..."
+            fi
           else
-            echo "Überspringe..."
+            echo "Ordner java-server fehlt!"
+            exit 1
           fi
 
   # --- JOB 3: KOTLIN CLIENT ---
@@ -58,10 +66,15 @@ jobs:
           distribution: 'temurin'
       - name: Build & Test Kotlin
         run: |
-          if [ -d "android_client" ] && [ -f "android_client/gradlew" ]; then
-            cd android_client
-            chmod +x gradlew
-            ./gradlew test
+          if [ -d "kotlin-client" ]; then
+            cd kotlin-client
+            if [ -f "gradlew" ]; then
+              chmod +x gradlew
+              ./gradlew test
+            else
+              echo "Kein Gradle Wrapper gefunden, überspringe Build..."
+            fi
           else
-            echo "Überspringe..."
+            echo "Ordner kotlin-client fehlt!"
+            exit 1
           fi
