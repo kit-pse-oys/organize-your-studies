@@ -1,0 +1,58 @@
+###########################################
+## Java & Kotlin (Maven / Gradle)
+###########################################
+# Build Artefakte
+bin/
+build/
+target/
+out/
+.gradle/
+.kjars/
+*.class
+*.jar
+*.war
+*.ear
+
+# Gradle Wrapper (optional, manche checken ihn ein, aber meistens ist 'build/' das Problem)
+.gradletasknamecache
+
+###########################################
+## Python
+###########################################
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+
+###########################################
+## IDEs & Editoren (Wichtig für das Team)
+###########################################
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Betriebssysteme
+.DS_Store
+Thumbs.db
+
+###########################################
+## CI/CD & Logs
+###########################################
+*.log
+.github/local_settings
