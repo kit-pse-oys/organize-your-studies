@@ -20,10 +20,8 @@ jobs:
         run: |
           if [ -d "python-microservice" ]; then
             cd python-microservice
-            # Nur installieren, wenn requirements existieren
             [ -f requirements.txt ] && pip install -r requirements.txt || echo "Keine requirements"
-            # Nur pytest starten, wenn der Befehl verfügbar ist
-            command -v pytest >/dev/null 2>&1 && pytest || echo "Keine Tests gefunden"
+            python -m unittest discover -s . -p "test_*.py"
           else
             echo "Ordner python-microservice fehlt!"
             exit 1
