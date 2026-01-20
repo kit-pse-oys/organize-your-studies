@@ -1,22 +1,26 @@
 package de.pse.oys;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 /**
- * ${NAME} – TODO: Beschreibung ergänzen
+ * Main – Die Hauptklasse der Spring Boot Anwendung.
+ * Diese Klasse enthält die main-Methode zum Starten der Anwendung.
  *
  * @author uhupo
  * @version 1.0
- *///TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+ */
+
+@SpringBootApplication
 public class Main {
+    /**
+     * Hauptmethode zum Starten der Spring Boot Anwendung.
+     * @param args Kommandozeilenargumente (ignoriert)
+     */
     public static void main(String[] args) {
         //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
         // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
-
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+        System.out.printf("Spring Boot Application started with args: %s%n", String.join(", ", args));
+        SpringApplication.run(Main.class, args);
     }
 }
