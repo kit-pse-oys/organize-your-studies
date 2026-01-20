@@ -10,11 +10,12 @@ Der Service stellt eine REST-API bereit und er berücksichtigt Deadlines, Nachtr
 __author__ = "Nardi Hyseni"
 __copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni", "Dav Debler"]
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 __email__ = "uhxch@student.kit.edu"
 
 import json
-from flask import Flask, request, jsonify
+import uvicorn
+from fastapi import FastAPI, Request, Body
 import os
 from ortools.sat.python import cp_model
 
@@ -239,48 +240,32 @@ class COPSolver:
 
 
 
-
-# --- Flask App ---
-app = Flask(__name__)
+app = FastAPI(title="Microservice Organize Your Studies")
 
 
-app.json.sort_keys = False
-
-
-app.json.compact = False
-
-@app.route('/optimize', methods=['POST'])
-def handle_calculation_request():
+@app.post("/optimize")
+async def optimize(data: dict = Body(...)):
     """
-    API-Endpunkt für die Optimierungsanfrage.
-
-    Method: POST
-    URL: /optimize
-    Body: JSON mit Task-Daten und Constraints.
+    Empfängt die Daten als JSON-Body (dafür sorgt 'Body(...)').
     """
-    try:
-        input_data = request.get_json()
-        if not input_data:
-            return jsonify({"error": "Empty body"}), 400
+    # Die Zeile 'data = await request.json()' BRAUCHEN WIR NICHT MEHR!
+    # 'data' ist jetzt automatisch schon das fertige Dictionary.
 
-        print(f"\n--> DEBUG: Neue Anfrage empfangen! ({len(input_data.get('tasks', []))} Tasks)")
+    print(f"--> DEBUG: Neue Anfrage empfangen! ({len(data.get('tasks', []))} Tasks)")
 
-        solver = COPSolver(input_data)
-        solver.build_model()
-        cp_solver = solver.solve()
+    solver_instance = COPSolver(data)
+    solver_instance.build_model()
+    solution = solver_instance.solve()
 
-        if cp_solver:
-            result = DataTransformer.format_solution(cp_solver, solver.solution_map)
-            print(f"--> DEBUG: Lösung gefunden, sende {len(result)} Einträge zurück.")
-            return jsonify(result), 200
-        else:
-            print("--> DEBUG: Keine Lösung (Infeasible)")
-            return jsonify([]), 200
+    if solution:
+        result = DataTransformer.format_solution(solution, solver_instance.solution_map)
+        print(f"--> DEBUG: Lösung gefunden, sende {len(result)} Einträge zurück.")
+        return result
+    else:
+        print("--> DEBUG: Keine Lösung möglich.")
+        return []
 
-    except Exception as e:
-        print(f" {e}")
-        return jsonify({"error": str(e)}), 500
-
+# --- 4. Server Starten ---
 if __name__ == '__main__':
-
-    app.run(host='0.0.0.0', port=5001)
+    # FastAPI braucht Uvicorn als Server
+    uvicorn.run(app, host="0.0.0.0", port=5001)

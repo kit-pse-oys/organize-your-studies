@@ -21,7 +21,7 @@ services:
 
 
   python-microservice:
-    build: ./python-microservice
+    build: python-microservice
 
 networks:
   oys-network:
