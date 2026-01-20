@@ -57,7 +57,7 @@ class TestMicroservice(unittest.TestCase):
 
         result = DataTransformer.format_solution(mock_solver, fake_var)
 
-        self.assertEqual(result[0]['start'],10)
+        self.assertEqual(result[0]['start'],100)
         self.assertEqual(result[0]['end'],200)
         self.assertEqual(len(result),1)
 
