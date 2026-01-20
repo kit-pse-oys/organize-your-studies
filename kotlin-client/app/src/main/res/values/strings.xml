@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">OrganizeYourStudies</string>
+    <string name="username_field">Username</string>
+    <string name="confirm_password_field">Confirm password</string>
+    <string name="password_field">Password</string>
+    <string name="register_button">Register</string>
+    <string name="login_button">Login</string>
+    <string name="login_account_yes">Already have an account?</string>
+    <string name="login_account_no">Don\'t have an account yet?</string>
+    <string name="login_header">Login</string>
+    <string name="register_header">Register</string>
+    <string name="welcome_header">Welcome to</string>
+    <string name="welcome_name">Organize Your Studies</string>
+    <string name="welcome_explanation">Please answersome questions, so that we can create your optimal learning plan!</string>
+    <string name="welcome_start">Start!</string>
+    <string name="welcome_hint">(You can change your answers at any time in the menu)</string>
+    <string name="questionnaire_header">Questionnaire</string>
+    <string name="question_header">Question %1$d</string>
+    <string name="questionnaire_commit">Save answers</string>
+    <string name="menu_header">Menu</string>
+    <string name="darkmode_disabled">Always light</string>
+    <string name="darkmode_enabled">Always dark</string>
+    <string name="darkmode_system">Follow system</string>
+    <string name="my_modules_button">My Modules</string>
+    <string name="my_tasks_button">My Tasks</string>
+    <string name="my_free_times_button">My Freetimes</string>
+    <string name="edit_questionnaire_button">Edit Questionnaire</string>
+    <string name="account_settings_button">Account Settings</string>
+    <string name="update_plan_button">Update Plan</string>
+    <string name="manage_account_header">Manage Account</string>
+    <string name="logout_button">Logout</string>
+    <string name="delete_account_button">Delete Account</string>
+    <string name="delete_account_confirm_header">Do you really want to delete your account?</string>
+    <string name="delete_account_confirm_body">All your saved data will be permanently lost!</string>
+    <string name="confirm_yes">Yes</string>
+    <string name="confirm_no">No</string>
+</resources>
