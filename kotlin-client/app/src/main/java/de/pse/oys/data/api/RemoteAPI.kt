@@ -16,6 +16,7 @@ import kotlin.uuid.Uuid
 data class Response<T>(val response: T?, val status: Int)
 
 interface RemoteAPI {
+    val isLoggedIn: Boolean
     suspend fun login(credentials: Credentials): Response<Unit>
     suspend fun register(credentials: Credentials): Response<Unit>
 

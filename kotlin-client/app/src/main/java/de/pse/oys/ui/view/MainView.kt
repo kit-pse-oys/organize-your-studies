@@ -5,6 +5,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
+import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.additions
+import de.pse.oys.ui.navigation.availableRatings
+import de.pse.oys.ui.navigation.menu
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
@@ -46,4 +53,56 @@ interface IMainViewModel {
     fun navigateToMenu()
     fun navigateToAdditions()
     fun navigateToUnitRating()
+}
+
+class MainViewModel(private val api: RemoteAPI, private val model: ModelFacade, private val navController: NavController) : ViewModel(), IMainViewModel {
+    override val unitsToday: List<PlannedUnit>
+        get() = TODO("Not yet implemented")
+    override val unitsTomorrow: List<PlannedUnit>
+        get() = TODO("Not yet implemented")
+    override val freeTimesToday: List<PlannedFreeTime>
+        get() = TODO("Not yet implemented")
+
+    override fun unitsFor(day: DayOfWeek): StateFlow<List<PlannedUnit>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun freeTimesFor(day: DayOfWeek): StateFlow<List<PlannedFreeTime>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun moveUnitToday(
+        unit: PlannedUnit,
+        newStart: LocalTime
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun moveUnit(
+        unit: PlannedUnit,
+        newDay: DayOfWeek,
+        newStart: LocalTime
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun moveUnitAutomatically(unit: PlannedUnit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun marksAsFinished(unit: PlannedUnit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun navigateToMenu() {
+        navController.menu()
+    }
+
+    override fun navigateToAdditions() {
+        navController.additions()
+    }
+
+    override fun navigateToUnitRating() {
+        navController.availableRatings()
+    }
 }

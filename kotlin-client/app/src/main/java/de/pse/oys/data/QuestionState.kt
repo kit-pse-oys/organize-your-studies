@@ -4,13 +4,31 @@ val Questions: List<Question> = listOf(
     TODO()
 )
 
-class QuestionState {
+class QuestionState(
+    val answers: Array<BooleanArray> = Array(Questions.size) {
+        BooleanArray(Questions[it].answers.size)
+    }
+) {
     fun selected(question: Question, answer: Answer): Boolean {
-        TODO()
+        return answers[question.index][question % answer]
     }
 
     fun select(question: Question, answer: Answer) {
-        TODO()
+        val answers = answers[question.index]
+        if (question.isMultipleChoice) {
+            answers[question % answer] = !answers[question % answer]
+        } else {
+            answers.fill(false)
+            answers[question % answer] = true
+        }
+    }
+
+    private val Question.index: Int
+        get() = Questions.indexOf(this)
+
+
+    private operator fun Question.rem(answer: Answer): Int {
+        return answers.indexOf(answer)
     }
 }
 
