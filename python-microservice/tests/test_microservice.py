@@ -87,7 +87,7 @@ class TestMicroservice(unittest.TestCase):
 
         # Logik-Korrektur: Task 1 endet vor Task 2 ODER Task 2 endet vor Task 1
         no_overlap = (start_1 + 50 <= start_2) or (start_2 + 50 <= start_1)
-        self.assertTrue(no_overlap, "Aufgaben ueberlappen sich")
+        self.assertTrue(no_overlap, "Aufgaben uberlappen sich")
 
 
     def test_assertImpossibleDeadline(self):
