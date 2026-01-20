@@ -6,7 +6,7 @@ Diese Komponente testet den Microservice und dessen funktionen/Klassen
 """
 
 __author__ = "Nardi Hyseni"
-__copyright__ = "Copyright 2024, PSE Projektgruppe Organize Your Studies"
+__copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni"]
 __version__ = "1.0.0"
 __email__ = "uhxch@student.kit.edu"
