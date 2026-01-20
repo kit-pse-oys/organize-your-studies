@@ -36,7 +36,7 @@ class TestMicroservice(unittest.TestCase):
         # Der TestClient nimmt deine 'app' und erlaubt normale Requests ohne async-Stress.
         self.client = TestClient(app)
 
-    def test_data_tranformer(self):
+    def test_data_transformer(self):
         """
         Testet, ob der DataTransformer die Solver-Ergebnisse korrekt in eine Liste umwandelt.
         """
