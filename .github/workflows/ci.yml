@@ -32,27 +32,33 @@ jobs:
   # --- JOB 2: JAVA SERVER ---
   test-java:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    services:
+      # Hier wird eine "leere" Datenbank für den Test gestartet
+      db:
+        image: postgres:15
+        env:
+          POSTGRES_DB: studydb
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: geheim
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build & Test Java
+          cache: 'gradle'
+      - name: Build & Test
         run: |
-          if [ -d "java-server" ]; then
-            cd java-server
-            if [ -f "gradlew" ]; then
-              chmod +x gradlew
-              ./gradlew test
-            else
-              echo "Kein Gradle Wrapper gefunden, überspringe Build..."
-            fi
-          else
-            echo "Ordner java-server fehlt!"
-            exit 1
-          fi
+          cd java-server
+          chmod +x gradlew
+          ./gradlew test
 
   # --- JOB 3: KOTLIN CLIENT ---
   test-kotlin:
