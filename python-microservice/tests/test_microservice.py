@@ -130,12 +130,12 @@ class TestMicroservice(unittest.TestCase):
             "deadline": 500
         })
 
-        # Kein 'await', kein 'asyncio.run'. Einfach aufrufen:
+
         response = self.client.post('/optimize', json=self.base_data)
 
         self.assertEqual(response.status_code, 200, "API sollte mit Status 200 antworten")
 
-        # .json() statt .get_json()
+
         response_data = response.json()
 
         self.assertIsInstance(response_data, list, "Antwort sollte eine JSON-Liste sein")
