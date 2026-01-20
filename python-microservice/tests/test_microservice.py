@@ -14,7 +14,12 @@ __email__ = "uhxch@student.kit.edu"
 import unittest
 # WICHTIG: TestClient von FastAPI importieren
 from fastapi.testclient import TestClient
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from Microservice import DataTransformer, COPSolver, app
+
 
 class TestMicroservice(unittest.TestCase):
     """
