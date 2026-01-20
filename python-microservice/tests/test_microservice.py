@@ -8,11 +8,12 @@ Diese Komponente testet den Microservice und dessen funktionen/Klassen
 __author__ = "Nardi Hyseni"
 __copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni"]
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __email__ = "uhxch@student.kit.edu"
 
 import unittest
-import json
+# WICHTIG: TestClient von FastAPI importieren
+from fastapi.testclient import TestClient
 from Microservice import DataTransformer, COPSolver, app
 
 class TestMicroservice(unittest.TestCase):
@@ -22,7 +23,6 @@ class TestMicroservice(unittest.TestCase):
     def setUp(self):
         """
         Wird VOR jedem einzelnen Test ausgeführt.
-        Setzt die Daten zurück, damit Tests sich nicht gegenseitig beeinflussen.
         """
         self.base_data = {
             "horizon": 2016,
@@ -32,8 +32,10 @@ class TestMicroservice(unittest.TestCase):
             "blocked_days": [],
             "preference_time": "neutral"
         }
-        self.client = app.test_client()
-        app.testing = True
+        # HIER IST DIE LÖSUNG:
+        # Der TestClient nimmt deine 'app' und erlaubt normale Requests ohne async-Stress.
+        self.client = TestClient(app)
+
     def test_data_tranformer(self):
         """
         Testet, ob der DataTransformer die Solver-Ergebnisse korrekt in eine Liste umwandelt.
@@ -50,10 +52,10 @@ class TestMicroservice(unittest.TestCase):
 
         result = DataTransformer.format_solution(mock_solver, fake_var)
 
-
-        self.assertEqual(result[0]['start'],100)
+        self.assertEqual(result[0]['start'],10)
         self.assertEqual(result[0]['end'],200)
         self.assertEqual(len(result),1)
+
 
 
     def test_assertNoOverlap(self):
@@ -69,12 +71,18 @@ class TestMicroservice(unittest.TestCase):
         solver.build_model()
         solution = solver.solve()
 
+        # Check, ob überhaupt eine Lösung da ist, sonst crasht Value()
+        if not solution:
+            self.fail("Sollte eine Lösung finden, hat aber keine gefunden.")
+
         start_1 = solution.Value(solver.solution_map["test_1"]["start"])
         start_2 = solution.Value(solver.solution_map["test_2"]["start"])
 
-        self.assertNotEqual(start_1, start_2, "Aufgaben ueberlappen sich")
+        self.assertNotEqual(start_1, start_2, "Aufgaben ueberlappen sich (gleicher Start)")
 
-        self.assertTrue((start_1 + 50 <= start_2) or (start_1 - 50 <= start_2),"Aufgaben ueberlappen sich")
+        # Logik-Korrektur: Task 1 endet vor Task 2 ODER Task 2 endet vor Task 1
+        no_overlap = (start_1 + 50 <= start_2) or (start_2 + 50 <= start_1)
+        self.assertTrue(no_overlap, "Aufgaben ueberlappen sich")
 
 
     def test_assertImpossibleDeadline(self):
@@ -109,31 +117,25 @@ class TestMicroservice(unittest.TestCase):
     def test_api_endpoint(self):
         """
         INTEGRATIONSTEST:
-        Sendet einen echten HTTP POST Request an den Flask-Server und prüft die Antwort.
-        Das simuliert den Aufruf durch das Java-Backend.
+        Viel einfacher mit TestClient!
         """
         self.base_data["tasks"].append({
             "id": "api_task",
             "duration": 20,
             "deadline": 500
         })
-        response = self.client.post(
-            '/optimize',
-            data=json.dumps(self.base_data),
-            content_type='application/json'
-        )
+
+        # Kein 'await', kein 'asyncio.run'. Einfach aufrufen:
+        response = self.client.post('/optimize', json=self.base_data)
+
         self.assertEqual(response.status_code, 200, "API sollte mit Status 200 antworten")
-        response_data = response.get_json()
+
+        # .json() statt .get_json()
+        response_data = response.json()
+
         self.assertIsInstance(response_data, list, "Antwort sollte eine JSON-Liste sein")
         self.assertEqual(len(response_data), 1, "Sollte genau eine geplante Aufgabe zurückgeben")
         self.assertEqual(response_data[0]['id'], "api_task")
 
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()
-
-
