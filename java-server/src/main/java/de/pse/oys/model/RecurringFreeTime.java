@@ -1,0 +1,65 @@
+package de.pse.oys.model;
+
+import jakarta.persistence.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.UUID;
+
+/**
+ * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
+ */
+@Entity
+@DiscriminatorValue("WEEKLY")
+public class RecurringFreeTime extends FreeTime {
+
+    /** Der Wochentag, an dem die Freizeit stattfindet. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "weekday")
+    private DayOfWeek dayOfWeek;
+
+    protected RecurringFreeTime() {
+        super();
+    }
+
+    /**
+     * Erzeugt eine Instanz für eine wiederkehrende Freizeitbeschränkung.
+     * Der Typ wird dabei automatisch auf WEEKLY gesetzt.
+     *
+     * @param id    Eindeutige ID des Freizeitblocks (slot-id).
+     * @param title Bezeichnung der Freizeit (z. B. "Wöchentliches Training").
+     * @param start Beginn der Freizeit als Uhrzeit.
+     * @param end   Ende der Freizeit als Uhrzeit.
+     * @param day   Der Wochentag, an dem die Wiederholung stattfindet.
+     */
+    public RecurringFreeTime(UUID id, String title, LocalTime start, LocalTime end, DayOfWeek day) {
+        super(id, title, start, end, RecurrenceType.WEEKLY);
+        this.dayOfWeek = day;
+    }
+
+    /**
+     * Prüft, ob die Freizeit an einem bestimmten Datum stattfindet.
+     * @param date Das zu prüfende Datum.
+     * @return true, wenn der Wochentag übereinstimmt.
+     */
+    public boolean occursOn(LocalDate date) {
+        return date != null && date.getDayOfWeek() == this.dayOfWeek;
+    }
+
+
+    //GETTER UND SETTER
+
+    /**
+     * @return Den Wochentag, an dem diese Freizeitbeschränkung eintritt.
+     */
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    /**
+     * @param dayOfWeek Der neue Wochentag für die regelmäßige Wiederholung.
+     */
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
+    }
+}
