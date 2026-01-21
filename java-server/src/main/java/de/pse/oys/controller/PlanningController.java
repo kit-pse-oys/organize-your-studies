@@ -29,3 +29,4 @@ public class PlanningController {
         return "pong"; //Aktuell Platzhalter nur zum Testen, Rückgabetyp entsprechend falsch
     }
 }
+
