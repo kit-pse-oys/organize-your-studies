@@ -1,4 +1,4 @@
-package de.pse.oys.persistence.repositories;
+package de.pse.oys.persistence;
 
 import java.time.LocalDate;
 import java.util.List;
