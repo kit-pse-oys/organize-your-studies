@@ -9,11 +9,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 // TODO: imports anpassen
-import your.package.domain.rating.UnitRating;
+import de.pse.oys.domain.UnitRating;
 
+/**
+ * RatingRepository – Repository-Schnittstelle für UnitRating-Entitäten.
+ */
 @Repository
 public interface RatingRepository extends JpaRepository<UnitRating, UUID> {
 
-    @Query(value = "select * from ratings where unitid = :unitId", nativeQuery = true)
+    /**
+     * Findet eine UnitRating anhand der zugehörigen Unit-ID.
+     * @param unitId Die ID der Lerneinheit.
+     * @return Optional mit der gefundenen UnitRating oder leer, wenn keine gefunden wurde.
+     */
+    @Query(value = "SELECT * FROM ratings WHERE unitid = :unitId", nativeQuery = true)
     Optional<UnitRating> findByUnitId(@Param("unitId") UUID unitId);
 }

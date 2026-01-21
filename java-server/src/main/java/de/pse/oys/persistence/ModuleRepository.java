@@ -9,11 +9,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 // TODO: imports anpassen
-import your.package.domain.module.Module;
+import de.pse.oys.domain.Module;
 
 @Repository
 public interface ModuleRepository extends JpaRepository<Module, UUID> {
 
-    @Query(value = "select * from modules where userid = :uid", nativeQuery = true)
+    /**
+     * Findet alle Module für einen bestimmten Benutzer.
+     * @param userId die ID des Benutzers
+     * @return Liste der Module des Benutzers
+     */
+    @Query(value = "SELECT * FROM modules WHERE userid = :uid", nativeQuery = true)
     List<Module> findByUserId(@Param("uid") UUID userId);
 }

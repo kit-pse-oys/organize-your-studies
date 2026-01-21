@@ -9,21 +9,35 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-// TODO: imports anpassen
-import your.package.domain.freetime.FreeTime;
+import de.pse.oys.domain.FreeTime;
 
+/**
+ * FreeTimeRepository – Repository-Schnittstelle für FreeTime-Entitäten.
+ */
 @Repository
 public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
 
-    @Query(value = "select * from free_times where userid = :uid", nativeQuery = true)
+    /**
+     * Findet alle FreeTime-Einträge für einen bestimmten Benutzer.
+     * @param userId 
+     * @return
+     */
+    @Query(value = "SELECT * FROM free_times WHERE userid = :uid", nativeQuery = true)
     List<FreeTime> findByUserId(@Param("uid") UUID userId);
 
+    /**
+     * Findet alle FreeTime-Einträge für einen bestimmten Benutzer in einem gegebenen Zeitraum.
+     * @param userId die ID des Benutzers
+     * @param start das Startdatum des Zeitraums
+     * @param end das Enddatum des Zeitraums
+     * @return Liste der FreeTime-Einträge im angegebenen Zeitraum
+     */
     @Query(value = """
-            select * from free_times
-            where userid = :uid
-              and (
-                    (specific_date is not null and specific_date between :start and :end)
-                 or (weekday is not null)
+            SELECT * FROM free_times
+            WHERE userid = :uid
+              AND (
+                    (specific_date IS NOT NULL AND specific_date BETWEEN :start AND :end)
+                 OR (weekday IS NOT NULL)
               )
             """, nativeQuery = true)
     List<FreeTime> findFreeTimeInPeriod(@Param("uid") UUID userId,
