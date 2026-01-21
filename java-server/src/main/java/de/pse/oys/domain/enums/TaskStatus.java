@@ -1,4 +1,4 @@
-package de.pse.oys.model;
+package de.pse.oys.domain.enums;
 
 /**
  * Repräsentiert den aktuellen Bearbeitungsstatus einer Aufgabe.

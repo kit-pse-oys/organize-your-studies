@@ -1,5 +1,6 @@
-package de.pse.oys.model;
+package de.pse.oys.domain;
 
+import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;

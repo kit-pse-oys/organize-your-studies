@@ -1,5 +1,6 @@
-package de.pse.oys.model;
+package de.pse.oys.domain;
 
+import de.pse.oys.domain.enums.TimeSlot;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;

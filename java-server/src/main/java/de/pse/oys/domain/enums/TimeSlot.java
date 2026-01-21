@@ -1,4 +1,4 @@
-package de.pse.oys.model;
+package de.pse.oys.domain.enums;
 
 /**
  * Definiert die zeitlichen Grenzen der Tagesabschnitte für die Lernplanung.
