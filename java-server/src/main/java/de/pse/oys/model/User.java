@@ -80,8 +80,8 @@ public abstract class User {
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
      * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
      */
-    public void createNewLearningPlan(LocalDate start, LocalDate end) {
-        // Skelett für die Fabrikmethode innerhalb des Aggregats[cite: 809].
+    public boolean createNewLearningPlan(LocalDate start, LocalDate end) {
+        return false; // Skelett
     }
 
     /**
