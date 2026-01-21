@@ -55,12 +55,4 @@ public class LocalUser extends User {
         // die Entität stellt hier nur den Einstiegspunkt bereit.
         return false; // Skelett
     }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public String getPasswordSalt() {
-        return passwordSalt;
-    }
 }
