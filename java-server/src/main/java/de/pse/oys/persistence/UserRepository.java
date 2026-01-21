@@ -1,4 +1,4 @@
-package de.pse.oys.persistence.repositories;
+package de.pse.oys.persistence;
 
 import java.util.Optional;
 import java.util.UUID;
