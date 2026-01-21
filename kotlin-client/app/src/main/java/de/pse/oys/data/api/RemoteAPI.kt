@@ -78,7 +78,7 @@ interface RemoteAPI {
     suspend fun deleteAccount(): Response<Unit>
 }
 
-class RemoteClient(private val serverUrl: String, timeout: Int, private val session: SessionStore) : RemoteAPI {
+class RemoteClient(private val serverUrl: String, private val session: SessionStore) : RemoteAPI {
     companion object {
         private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1/", path)
 
