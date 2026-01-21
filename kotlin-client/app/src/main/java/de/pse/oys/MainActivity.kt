@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.pse.oys.data.api.RemoteClient
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.properties.Darkmode
 import de.pse.oys.data.properties.DataStoreProperties
 import de.pse.oys.ui.theme.OrganizeYourStudiesTheme
@@ -25,6 +27,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val properties = DataStoreProperties(this)
+        val api = RemoteClient("TODO", properties) // TODO: Server URL
+        val model = ModelFacade()
         setContent {
             val darkmode by properties.darkmode.collectAsStateWithLifecycle(Darkmode.SYSTEM)
             val darkTheme = when (darkmode) {
@@ -35,8 +39,8 @@ class MainActivity : ComponentActivity() {
 
             OrganizeYourStudiesTheme(darkTheme = darkTheme) {
                 EntryPoint(
-                    model = TODO(),
-                    api = TODO(),
+                    model = model,
+                    api = api,
                     properties = properties
                 )
             }

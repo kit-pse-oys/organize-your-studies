@@ -1,7 +1,9 @@
 package de.pse.oys.data.facade
 
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+@Serializable
 data class Identified<T>(val data: T, val id: Uuid)
 
 class ModelFacade(
