@@ -6,7 +6,7 @@ Diese Komponente implementiert einen Constraint-Optimization-Solver (COP)
 unter Verwendung von Google OR-Tools, um Lernpläne zu erstellen.
 Der Service stellt eine REST-API bereit und er berücksichtigt Deadlines, Nachtruhe, geblockte Tage und Präferenzen.
 """
-#CI pipline test
+# CI pipline test
 __author__ = "Nardi Hyseni"
 __copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni", "Dav Debler"]
@@ -14,10 +14,12 @@ __version__ = "1.0.2"
 __email__ = "uhxch@student.kit.edu"
 
 import json
-import uvicorn
-from fastapi import FastAPI, Request, Body
 import os
+
+import uvicorn
+from fastapi import FastAPI, Body
 from ortools.sat.python import cp_model
+
 
 # Component DataTransformer
 
@@ -25,6 +27,7 @@ class DataTransformer:
     """
     Verantwirtlich für das laden, valedieren und formatieren der Input-Daten.
     """
+
     @staticmethod
     def load_json_file(file_path):
         """
@@ -48,7 +51,6 @@ class DataTransformer:
                 return json.load(f)
             except json.decoder.JSONDecodeError as e:
                 raise ValueError(f"Invalid JSON forat:{str(e)}")
-
 
     @staticmethod
     def format_solution(solver, task_vars):
@@ -83,6 +85,7 @@ class COPSolver:
     Kernkomponente für die Planung.
     Erstellt das Constraint-Programming-Modell und führt die Optimierung durch.
     """
+
     def __init__(self, data):
         """
         Initialisiert den Solver mit den Eingabedaten.
@@ -93,7 +96,6 @@ class COPSolver:
         self.data = data
         self.model = cp_model.CpModel()
         self.solution_map = {}
-
 
     def build_model(self):
         """
@@ -115,14 +117,12 @@ class COPSolver:
         all_intervals = []
         all_cost_terms = []
 
-
         for block in fixed_blocks:
             start = block['start']
             duration = block['duration']
 
             fixed_int = self.model.NewIntervalVar(start, duration, start + duration, f"Block_{start}")
             all_intervals.append(fixed_int)
-
 
         slots_per_day = 288
         morning_end = 72
@@ -131,9 +131,9 @@ class COPSolver:
         for day in range(7):
             offset = day * slots_per_day
 
-
             if day in blocked_days:
-                block_int = self.model.NewIntervalVar(offset, slots_per_day, offset + slots_per_day, f"BlockedDay_{day}")
+                block_int = self.model.NewIntervalVar(offset, slots_per_day, offset + slots_per_day,
+                                                      f"BlockedDay_{day}")
                 all_intervals.append(block_int)
 
                 continue
@@ -142,11 +142,10 @@ class COPSolver:
             all_intervals.append(night_a)
 
             night_b_duration = slots_per_day - evening_start
-            night_b = self.model.NewIntervalVar(offset + evening_start, night_b_duration, offset + slots_per_day, f"NightB_d{day}")
-
+            night_b = self.model.NewIntervalVar(offset + evening_start, night_b_duration, offset + slots_per_day,
+                                                f"NightB_d{day}")
 
             all_intervals.append(night_b)
-
 
         for task in tasks:
             t_id = task['id']
@@ -154,7 +153,6 @@ class COPSolver:
             deadline = task.get('deadline', horizon)
 
             min_start = max(0, current_slot)
-
 
             start_var = self.model.NewIntVar(min_start, horizon - duration, f'start_{t_id}')
             end_var = self.model.NewIntVar(min_start + duration, horizon, f'end_{t_id}')
@@ -164,16 +162,11 @@ class COPSolver:
             interval = self.model.NewIntervalVar(start_var, duration, end_var, f'interval_{t_id}')
             all_intervals.append(interval)
 
-
             self.solution_map[t_id] = {'start': start_var, 'duration': duration}
-
-
 
             cost_array = [0] * (horizon + 1)
 
-
             selected_prefs = [p.strip() for p in pref_time_string.split(',')]
-
 
             time_windows = []
             if "morgens" in selected_prefs:      time_windows.append((6, 9))
@@ -181,7 +174,6 @@ class COPSolver:
             if "mittags" in selected_prefs:      time_windows.append((12, 15))
             if "nachmittags" in selected_prefs:  time_windows.append((15, 18))
             if "abends" in selected_prefs:       time_windows.append((18, 22))
-
 
             for (h_start, h_end) in time_windows:
                 for day in range(7):
@@ -191,8 +183,6 @@ class COPSolver:
                         if t < horizon:
                             cost_array[t] += -10
 
-
-
             if 'costs' in task:
                 for c in task['costs']:
                     t_idx = c['t']
@@ -200,24 +190,15 @@ class COPSolver:
                     if 0 <= t_idx < horizon:
                         cost_array[t_idx] += cost_val
 
-
             cost_var = self.model.NewIntVar(-1000000, 1000000, f'cost_{t_id}')
-
 
             self.model.AddElement(start_var, cost_array, cost_var)
 
             all_cost_terms.append(cost_var)
 
-
-
         self.model.AddNoOverlap(all_intervals)
 
         self.model.Minimize(sum(all_cost_terms))
-
-
-
-
-
 
     def solve(self):
         """
@@ -237,7 +218,6 @@ class COPSolver:
             return solver
         else:
             return None
-
 
 
 app = FastAPI(title="Microservice Organize Your Studies")
@@ -264,6 +244,7 @@ async def optimize(data: dict = Body(...)):
     else:
         print("--> DEBUG: Keine Lösung möglich.")
         return []
+
 
 # --- 4. Server Starten ---
 if __name__ == '__main__':
