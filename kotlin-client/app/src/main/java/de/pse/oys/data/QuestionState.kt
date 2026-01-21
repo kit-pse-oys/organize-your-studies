@@ -33,9 +33,9 @@ class QuestionState(
 }
 
 data class Question(
-    val id: Int,
+    val id: String,
     val isMultipleChoice: Boolean,
     val answers: List<Answer>,
 )
 
-data class Answer(val id: Int)
+data class Answer(val id: String)
