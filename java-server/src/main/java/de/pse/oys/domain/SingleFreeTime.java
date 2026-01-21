@@ -37,7 +37,7 @@ public class SingleFreeTime extends FreeTime {
 
     /**
      * Überprüft, ob der Termin der einmaligen Freizeit bereits in der Vergangenheit liegt.
-     * @return true, wenn das Datum vor dem heutigen Systemdatum liegt.
+     * * @return true, wenn das Datum vor dem heutigen Systemdatum liegt.
      */
     public boolean isPast() {
         return date != null && date.isBefore(LocalDate.now());
