@@ -6,7 +6,7 @@ Diese Komponente implementiert einen Constraint-Optimization-Solver (COP)
 unter Verwendung von Google OR-Tools, um Lernpläne zu erstellen.
 Der Service stellt eine REST-API bereit und er berücksichtigt Deadlines, Nachtruhe, geblockte Tage und Präferenzen.
 """
-
+#CI pipline test
 __author__ = "Nardi Hyseni"
 __copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni", "Dav Debler"]

@@ -7,31 +7,58 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # --- JOB 1: PYTHON MICROSERVICE ---
+  # --- SCHRITT 1: PRÜFEN WAS SICH GEÄNDERT HAT ---
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      java: ${{ steps.filter.outputs.java }}
+      kotlin: ${{ steps.filter.outputs.kotlin }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            python:
+              - 'python-microservice/**'
+            java:
+              - 'java-server/**'
+            kotlin:
+              - 'kotlin-client/**'
+
+  # --- JOB 2: PYTHON MICROSERVICE ---
   test-python:
-    runs-on: ubuntu-24.04
+    needs: changes
+    if: ${{ needs.changes.outputs.python == 'true' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run Python Tests
-        run: |
-          if [ -d "python-microservice" ]; then
-            cd python-microservice
-            [ -f requirements.txt ] && pip install -r requirements.txt || echo "Keine requirements"
-            python -m unittest discover -s . -p "test_*.py"
-          else
-            echo "Ordner python-microservice fehlt!"
-            exit 1
-          fi
 
-  # --- JOB 2: JAVA SERVER ---
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install Dependencies
+        run: |
+          cd python-microservice
+          poetry install --no-root
+
+      - name: Run Tests
+        run: |
+          cd python-microservice
+          poetry run python -m unittest discover -s tests -p "test_*.py"
+
+  # --- JOB 3: JAVA SERVER ---
   test-java:
-    runs-on: ubuntu-24.04
+    needs: changes
+    if: ${{ needs.changes.outputs.java == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
-      # Hier wird eine "leere" Datenbank für den Test gestartet
       db:
         image: postgres:15
         env:
@@ -58,10 +85,12 @@ jobs:
           chmod +x gradlew
           ./gradlew test
 
-  # --- JOB 3: KOTLIN CLIENT ---
+  # --- JOB 4: KOTLIN CLIENT ---
   test-kotlin:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    needs: changes
+    if: ${{ needs.changes.outputs.kotlin == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -70,15 +99,6 @@ jobs:
           distribution: 'temurin'
       - name: Build & Test Kotlin
         run: |
-          if [ -d "kotlin-client" ]; then
-            cd kotlin-client
-            if [ -f "gradlew" ]; then
-              chmod +x gradlew
-              ./gradlew test
-            else
-              echo "Kein Gradle Wrapper gefunden, überspringe Build..."
-            fi
-          else
-            echo "Ordner kotlin-client fehlt!"
-            exit 1
-          fi
+          cd kotlin-client
+          chmod +x gradlew
+          ./gradlew test
