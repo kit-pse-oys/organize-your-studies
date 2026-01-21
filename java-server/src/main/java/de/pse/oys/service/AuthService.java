@@ -11,4 +11,7 @@ package de.pse.oys.service;
  * @version 1.0
  */
 public class AuthService {
+    private long expirationRefreshToken; //TODO
+    //TODO
 }
+
