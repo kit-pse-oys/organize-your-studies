@@ -8,17 +8,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-// TODO: imports anpassen
-import your.package.domain.plan.LearningPlan;
+import de.pse.oys.domain.LearningPlan;
 
+/**
+ * LearningPlanRepository – Repository-Schnittstelle für LearningPlan-Entitäten.
+ */
 @Repository
 public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID> {
 
+    /**
+     * Findet den neuesten LearningPlan für einen bestimmten Benutzer mit einem bestimmten Status.
+     * @param userId die ID des Benutzers
+     * @param status der Status des Lernplans
+     * @return Optional des neuesten LearningPlans mit dem angegebenen Status
+     */
     @Query(value = """
-            select * from learning_plans
-            where userid = :uid and status = cast(:status as plan_status)
-            order by validity_week_start desc
-            limit 1
+            SELECT * FROM learning_plans
+            WHERE userid = :uid AND status = cast(:status as plan_status)
+            ORDER BY validity_week_start DESC
+            LIMIT 1
             """, nativeQuery = true)
     Optional<LearningPlan> findByUserIdAndStatus(@Param("uid") UUID userId,
                                                  @Param("status") String status);

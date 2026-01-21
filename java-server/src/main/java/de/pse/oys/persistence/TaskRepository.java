@@ -9,19 +9,33 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-// TODO: imports anpassen
-import your.package.domain.task.Task;
 
+import de.pse.oys.domain.Task;
+
+/**
+ * TaskRepository – Repository-Schnittstelle für Task-Entitäten und dessen Sub-Emtitäten.
+ */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
+    /**
+     * Findet alle Tasks mit einem Deadline-Datum vor dem angegebenen Datum.
+     * @param deadline das Datum, vor dem die Deadlines liegen sollen
+     * @return Liste der Tasks mit Deadlines vor dem angegebenen Datum
+     * //FIXME: UserId fehlt noch als parameter, evtl bei weiteren repos auch
+     */
     @Query(value = """
-            select * from tasks
-            where (fixed_deadline is not null and fixed_deadline < :d)
-               or (time_frame_end is not null and time_frame_end < :d)
+            SELECT * FROM tasks
+            WHERE (fixed_deadline IS NOT NULL AND fixed_deadline < :d)
+               OR (time_frame_end IS NOT NULL AND time_frame_end < :d)
             """, nativeQuery = true)
     List<Task> findAllByDeadlineBefore(@Param("d") LocalDate deadline);
 
-    @Query(value = "select * from tasks where moduleid = :mid", nativeQuery = true)
+    /**
+     * Findet alle Tasks, die zu einem bestimmten Modul gehören.
+     * @param moduleId die ID des Moduls
+     * @return Liste der Tasks, die zu dem angegebenen Modul gehören
+     */
+    @Query(value = "SELECT * FROM tasks WHERE moduleid = :mid", nativeQuery = true)
     List<Task> findByModuleId(@Param("mid") UUID moduleId);
 }

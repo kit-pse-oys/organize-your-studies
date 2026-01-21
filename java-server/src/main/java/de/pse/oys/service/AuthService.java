@@ -13,5 +13,24 @@ package de.pse.oys.service;
 public class AuthService {
     private long expirationRefreshToken; //TODO
     //TODO
-}
 
+    AuthService () {
+        //TODO
+    }
+
+    void login() {
+        //TODO
+    }
+
+    void logout() {
+        //TODO
+    }
+
+    void refreshToken() {
+        //TODO
+    }
+
+    private void createAuthResponse() {
+        //TODO
+    }
+}
