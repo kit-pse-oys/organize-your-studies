@@ -37,11 +37,11 @@ fun EntryPoint(
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Main) {
         composable<Main> {
-            LaunchedEffect(api.isLoggedIn) {
-                if (!api.isLoggedIn) {
-                    navController.login(dontGoBack = Main)
-                }
-            }
+//            LaunchedEffect(api.isLoggedIn) {
+//                if (!api.isLoggedIn) {
+//                    navController.login(dontGoBack = Main)
+//                }
+//            }
 
             MainView(viewModel { MainViewModel(api, model, navController) })
         }
