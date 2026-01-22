@@ -14,6 +14,8 @@ services:
     container_name: oys-java-server
     ports:
       - "8080:8080"  # Macht den Server unter localhost:8080 erreichbar
+    env_file:
+      - .env
     environment:
       # Diese Variablen überschreiben die Werte in application.properties
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:-oys_db}
