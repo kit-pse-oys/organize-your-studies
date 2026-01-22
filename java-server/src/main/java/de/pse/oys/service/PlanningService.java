@@ -1,4 +1,6 @@
 package de.pse.oys.service;
+import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.dto.FreetimeDTO;
 import org.springframework.stereotype.Service;
 import de.pse.oys.persistence.*;
 import de.pse.oys.domain.*;
@@ -49,14 +51,34 @@ public class PlanningService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
+        int horizon = 2016;
         List<Task> openTasks = taskRepository.findOpenTasksByUserId(userId);
 
         int currentSlot = calculateCurrentSlot(weekStart);
 
         LearningPreferences userPreferences = user.getPreferences();
         List<Integer> blockedDays = calculateBlockedWeekDays(user, userPreferences);
+        String preferredTimeSlots = mapPreferredTimeSlotsToString(userPreferences);
+        List<FreeTime> freeTimes = user.getFreeTimes();
+        List<FreetimeDTO> fixedBlocksDTO = calculateFixedBlocksDTO(freeTimes);
 
 
+
+
+
+
+
+    }
+
+    private List<FreetimeDTO> calculateFixedBlocksDTO(List<FreeTime> freeTimes) {
+        List<FreetimeDTO> dtos = new ArrayList<>();
+        return dtos;
+    }
+
+
+    private int mapTimeToSlot(LocalTime time) {
+        int totalMinutes = time.getHour() * 60 + time.getMinute();
+        return totalMinutes / 5;
     }
     /** Berechnet die blockierten Wochentage basierend auf den Nutzerpräferenzen.
      *
@@ -93,4 +115,22 @@ public class PlanningService {
         int currentSlot = (int) (minutesBetween / 5);
         return currentSlot;
     }
+
+    private String mapPreferredTimeSlotsToString(LearningPreferences preferences) {
+        List<TimeSlot> preferredSlots = preferences.getPreferredTimeSlots();
+        List<String> slotStrings = new ArrayList<>();
+        for (TimeSlot slot : preferredSlots) {
+            switch (slot.name()) {
+                case "MORNING":     slotStrings.add("morgens"); break;
+                case "FORENOON":    slotStrings.add("vormittags"); break;
+                case "NOON":        slotStrings.add("mittags"); break;
+                case "AFTERNOON":   slotStrings.add("nachmittags"); break;
+                case "EVENING":     slotStrings.add("abends"); break;
+                default: break;
+            }
+        }
+
+        return String.join(",", slotStrings);
+    }
+
 }

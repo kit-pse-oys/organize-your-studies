@@ -125,6 +125,12 @@ public class LearningPreferences {
     public Set<DayOfWeek> getPreferredDays() {
         return preferredDays;
     }
+    public List<TimeSlot> getPreferredTimeSlots() {
+        if (preferredTimeSlots.isEmpty()) {
+            return null;
+        }
+        return preferredTimeSlots;
+    }
 
     public void setPreferredDays(Set<DayOfWeek> preferredDays) {
         this.preferredDays = preferredDays;

@@ -112,6 +112,9 @@ public abstract class User {
     public List<Task> getAllOpenTasks() {
         return null; // Skelett
     }
+    public List<FreeTime> getFreeTimes() {
+        return freeTimes;
+    }
 
     public LearningPreferences getPreferences() {
         return preferences;
