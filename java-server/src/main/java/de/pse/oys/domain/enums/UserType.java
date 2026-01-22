@@ -19,5 +19,5 @@ public enum UserType {
      * Kennzeichnet ein Konto, das über einen externen Identity Provider
      * (z. B. Google via OIDC) authentifiziert wird.
      */
-    AUTH
+    GOOGLE
 }
