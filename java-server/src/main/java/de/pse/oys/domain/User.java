@@ -157,6 +157,10 @@ public abstract class User {
 
     // GETTER
 
+    /**
+     * Gibt die user id
+     * @return die user id als UUID
+     */
     public UUID getId() {
         return userId;
     }
