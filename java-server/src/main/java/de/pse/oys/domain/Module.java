@@ -10,6 +10,8 @@ import java.util.UUID;
  * Repräsentiert ein Studienmodul (z. B. eine Vorlesung), das vom Nutzer verwaltet wird.
  * Ein Modul dient als Container für verschiedene Aufgaben (Tasks) und definiert
  * grundlegende Eigenschaften wie Farbe und Priorität.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "modules")
