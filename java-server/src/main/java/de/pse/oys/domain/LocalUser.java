@@ -8,6 +8,8 @@ import java.util.UUID;
 
 /**
  * Repräsentiert einen Nutzer, der sich lokal über Benutzername und Passwort authentifiziert.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("local")

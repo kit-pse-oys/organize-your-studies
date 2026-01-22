@@ -8,6 +8,8 @@ import java.util.UUID;
 /**
  * Repräsentiert eine allgemeine Aufgabe ohne punktuelle Deadline.
  * Diese Aufgabe ist stattdessen an einen definierten Bearbeitungszeitraum gebunden.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("OTHER")

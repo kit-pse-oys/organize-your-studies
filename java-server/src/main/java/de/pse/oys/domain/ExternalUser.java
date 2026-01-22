@@ -8,6 +8,8 @@ import java.util.UUID;
 
 /**
  * Repräsentiert einen Nutzer, der über einen externen Identity Provider (OIDC) verwaltet wird.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("google")
