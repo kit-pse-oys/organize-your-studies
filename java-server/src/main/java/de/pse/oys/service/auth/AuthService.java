@@ -1,6 +1,6 @@
 package de.pse.oys.service.auth;
 
-import de.pse.oys.dto.AuthResponseDTO;
+import de.pse.oys.dto.responsedtos.AuthResponseDTO;
 import de.pse.oys.dto.LoginDTO;
 import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.persistence.UserRepository;
