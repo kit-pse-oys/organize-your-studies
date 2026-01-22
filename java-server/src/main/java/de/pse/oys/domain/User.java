@@ -114,6 +114,9 @@ public abstract class User {
     public List<Task> getAllOpenTasks() {
         return null; // Skelett
     }
+    public List<FreeTime> getFreeTimes() {
+        return freeTimes;
+    }
 
     /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
      * @param module das hinzuzufügende Modul
