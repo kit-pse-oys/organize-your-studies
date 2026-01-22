@@ -1,4 +1,4 @@
-package de.pse.oys.dto.responsedtos;
+package de.pse.oys.dto.response;
 
 import java.util.UUID;
 
