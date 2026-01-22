@@ -2,6 +2,8 @@ package de.pse.oys.domain.enums;
 
 /**
  * Definiert die fachlichen Kategorien einer Aufgabe.
+ * @author utgid
+ * @version 1.0
  */
 public enum TaskCategory {
     /** Aufgaben mit festem Abgabetermin. */

@@ -8,6 +8,8 @@ import java.util.UUID;
 /**
  * Abstrakte Basisklasse für alle Aufgabentypen im System.
  * Hält die gemeinsamen Merkmale wie Titel, Aufwand und Status.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "tasks")

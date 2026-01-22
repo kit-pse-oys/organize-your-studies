@@ -8,6 +8,8 @@ import jakarta.persistence.*;
  * Speichert die individuellen Lernpräferenzen eines Nutzers.
  * Dazu gehören die gewünschte Dauer von Lerneinheiten sowie das tägliche Arbeitspensum.
  * Gemäß dem Rich Domain Model enthält diese Klasse auch Validierungslogik.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "learning_preferences")

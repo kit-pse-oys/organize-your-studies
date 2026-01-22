@@ -4,6 +4,8 @@ package de.pse.oys.domain.enums;
  * Repräsentiert den aktuellen Status einer Lerneinheit im Lernplan.
  * Dieser Status gibt Auskunft darüber, ob eine Einheit noch bevorsteht,
  * erfolgreich abgeschlossen wurde oder nicht wahrgenommen werden konnte.
+ * @author utgid
+ * @version 1.0
  */
 public enum UnitStatus {
 

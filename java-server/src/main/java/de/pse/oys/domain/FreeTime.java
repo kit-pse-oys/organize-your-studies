@@ -8,10 +8,12 @@ import java.util.UUID;
 /**
  * Repräsentiert einen Zeitraum, in dem der Nutzer keine Lerneinheiten einplanen möchte.
  * Diese Freizeitblöcke werden vom Planungsalgorithmus als harte Restriktionen behandelt.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "free_times")
-public class FreeTime {
+public abstract class FreeTime {
 
     /** Eindeutige Kennung des Freizeitblocks (readOnly). */
     @Id
