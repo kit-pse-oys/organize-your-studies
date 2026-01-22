@@ -7,7 +7,7 @@ package de.pse.oys.domain.enums;
  */
 public enum TaskCategory {
     /** Aufgaben mit festem Abgabetermin. */
-    COMMISSION,
+    SUBMISSION,
     /** Aufgaben, die auf eine Prüfung vorbereiten. */
     EXAM,
     /** Allgemeine Aufgaben ohne strikte Deadline. */

@@ -31,7 +31,7 @@ public class ExternalUser extends User {
      * Spezialisierter Konstruktor für externe OIDC-Nutzer[cite: 800, 832].
      */
     public ExternalUser(UUID userId, String username, String extId) {
-        super(userId, username, UserType.AUTH);
+        super(userId, username, UserType.GOOGLE);
         this.externalSubjectId = extId;
     }
 
