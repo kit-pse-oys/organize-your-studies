@@ -3,7 +3,7 @@ package de.pse.oys.service;
 import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.dto.responsedtos.AuthResponseDTO;
 import de.pse.oys.dto.UserDTO;
-import de.pse.oys.security.JwtProvider;
+import de.pse.oys.service.auth.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
