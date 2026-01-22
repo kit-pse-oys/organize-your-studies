@@ -38,4 +38,14 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
      */
     @Query(value = "SELECT * FROM tasks WHERE moduleid = :mid", nativeQuery = true)
     List<Task> findByModuleId(@Param("mid") UUID moduleId);
+
+    // In TaskRepository.java
+
+    // In TaskRepository.java
+
+    // TODO: @Marcel - Das ist nur ein Provisorisorische lösung bitte später auf sauberes JPA umstelen oder so ka du bist experte zB findAllByUserAndStatus  .
+    @Query(value = "SELECT * FROM tasks WHERE user_id = :userId AND status = 'OPEN'", nativeQuery = true)
+    List<Task> findOpenTasksByUserId(@Param("userId") UUID userId);
 }
+
+
