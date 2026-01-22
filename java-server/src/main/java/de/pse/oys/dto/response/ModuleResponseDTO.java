@@ -1,4 +1,4 @@
-package de.pse.oys.dto.responsedtos;
+package de.pse.oys.dto.response;
 
 import de.pse.oys.dto.TaskDTO;
 
