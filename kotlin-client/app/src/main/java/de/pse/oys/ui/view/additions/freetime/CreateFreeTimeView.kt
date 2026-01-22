@@ -21,9 +21,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.ViewModel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 
 @Composable
@@ -31,8 +34,18 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+    val dateText = viewModel.date?.let {
+        "${it.day.toString().padStart(2, '0')}.${
+            it.month.number.toString().padStart(2, '0')
+        }.${it.year}"
+    } ?: "Nicht gewählt"
+    val startTimeText = "${viewModel.start.hour.toString().padStart(2, '0')}:${
+        viewModel.start.minute.toString().padStart(2, '0')
+    }"
+    val endTimeText = "${viewModel.end.hour.toString().padStart(2, '0')}:${
+        viewModel.end.minute.toString().padStart(2, '0')
+    }"
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -51,19 +64,19 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
             OutlinedButton(
                 onClick = { showDatePicker = true },
             ) {
-                Text(viewModel.date?.format(dateFormatter) ?: "Nicht gewählt")
+                Text(dateText)
             }
             Text("Startzeit wählen:")
             OutlinedButton(
                 onClick = { showStartTimePicker = true },
             ) {
-                Text(viewModel.start.format(timeFormatter))
+                Text(startTimeText)
             }
             Text("Endzeit wählen:")
             OutlinedButton(
                 onClick = { showEndTimePicker = true },
             ) {
-                Text(viewModel.end.format(timeFormatter))
+                Text(endTimeText)
             }
             Row(
                 modifier = Modifier.toggleable(
@@ -120,8 +133,14 @@ interface ICreateFreeTimeViewModel {
 
 abstract class BaseCreateFreeTimeViewModel : ViewModel(), ICreateFreeTimeViewModel {
     override var title by mutableStateOf("")
-    override var date by mutableStateOf<LocalDate?>(LocalDate.now())
-    override var start by mutableStateOf<LocalTime>(LocalTime.now())
-    override var end by mutableStateOf<LocalTime>(LocalTime.now())
+    override var date by mutableStateOf<LocalDate?>(
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+    override var start by mutableStateOf<LocalTime>(
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+    )
+    override var end by mutableStateOf<LocalTime>(
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+    )
     override var weekly by mutableStateOf(false)
 }
