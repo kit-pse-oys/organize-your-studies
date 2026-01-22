@@ -118,10 +118,6 @@ public abstract class User {
         return freeTimes;
     }
 
-    public LearningPreferences getPreferences() {
-        return preferences;
-    }
-
     /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
      * @param module das hinzuzufügende Modul
      */
