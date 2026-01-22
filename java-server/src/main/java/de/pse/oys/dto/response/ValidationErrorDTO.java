@@ -1,4 +1,4 @@
-package de.pse.oys.dto.responsedtos;
+package de.pse.oys.dto.response;
 
 import java.time.LocalDateTime;
 
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * @author utgid
  * @version 1.0
  */
-public class ValidErrorDTO {
+public class ValidationErrorDTO {
 
     /** Der Zeitpunkt, an dem der Fehler aufgetreten ist. */
     private LocalDateTime timestamp;
@@ -19,15 +19,15 @@ public class ValidErrorDTO {
     /**
      * Standardkonstruktor für die Deserialisierung.
      */
-    public ValidErrorDTO() {
+    public ValidationErrorDTO() {
     }
 
     /**
      * Erzeugt ein neues Fehler-DTO mit den angegebenen Informationen.
-     * * @param timestamp Zeitpunkt des Fehlers.
+     * @param timestamp Zeitpunkt des Fehlers.
      * @param message   Inhalt der Fehlermeldung.
      */
-    public ValidErrorDTO(LocalDateTime timestamp, String message) {
+    public ValidationErrorDTO(LocalDateTime timestamp, String message) {
         this.timestamp = timestamp;
         this.message = message;
     }
