@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 /**
  * Repräsentiert einen berechneten Lernplan für eine spezifische Woche.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "learning_plans")

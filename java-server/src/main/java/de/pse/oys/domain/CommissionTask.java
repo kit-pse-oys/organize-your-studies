@@ -8,6 +8,8 @@ import java.util.UUID;
 /**
  * Repräsentiert eine Aufgabe mit einem festen Abgabetermin (Deadline).
  * Diese Klasse wird für zeitkritische Abgaben wie Hausarbeiten genutzt.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("COMMISSION")
