@@ -35,7 +35,7 @@ public class LocalUser extends User {
 
     /**
      * Erzeugt eine Instanz für die lokale Authentifizierung.
-     * * @param userId Eindeutige ID des Nutzers.
+     * @param userId Eindeutige ID des Nutzers.
      * @param username Der gewählte Benutzername.
      * @param passHash Der bereits berechnete Passwort-Hash.
      * @param salt Das verwendete Salt.
@@ -48,7 +48,7 @@ public class LocalUser extends User {
 
     /**
      * Prüft das eingegebene Passwort gegen den gespeicherten Hash unter Verwendung des Salts.
-     * * @param rawPassword Das im Login eingegebene Klartext-Passwort.
+     * @param rawPassword Das im Login eingegebene Klartext-Passwort.
      * @return true, wenn die Passwörter übereinstimmen.
      */
     public boolean validatePassword(String rawPassword) {
