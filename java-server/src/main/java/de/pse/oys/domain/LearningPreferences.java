@@ -3,9 +3,8 @@ package de.pse.oys.domain;
 import de.pse.oys.domain.enums.TimeSlot;
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.time.DayOfWeek;
+import java.util.*;
 
 /**
  * Speichert die individuellen Lernpräferenzen eines Nutzers.
@@ -113,5 +112,34 @@ public class LearningPreferences {
     public void removeSlot(TimeSlot slot) {
         this.preferredTimeSlots.remove(slot);
     }
+
+    // TODO: @Marcel kannst du mal drüber schauen ob das so passt mit den preferredDays?
+    @ElementCollection(targetClass = DayOfWeek.class)
+    @CollectionTable(name = "preferred_week_days", joinColumns = @JoinColumn(name = "preference_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week")
+    private Set<DayOfWeek> preferredDays = new HashSet<>();
+
+    // --- Getter, Setter & Helper ---
+
+    public Set<DayOfWeek> getPreferredDays() {
+        return preferredDays;
+    }
+
+    public void setPreferredDays(Set<DayOfWeek> preferredDays) {
+        this.preferredDays = preferredDays;
+    }
+
+    public void addPreferredDay(DayOfWeek day) {
+        this.preferredDays.add(day);
+    }
+
+    public void removePreferredDay(DayOfWeek day) {
+        this.preferredDays.remove(day);
+    }
+    public UUID getPreferenceId() {
+        return preferenceId;
+    }
+
 
 }
