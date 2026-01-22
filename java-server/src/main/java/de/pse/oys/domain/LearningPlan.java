@@ -54,7 +54,7 @@ public class LearningPlan {
 
     /**
      * Erzeugt einen neuen Lernplan.
-     * * @param id    Die UUID des Plans.
+     * @param id    Die UUID des Plans.
      * @param start Der Starttag der Woche.
      * @param end   Der Endtag der Woche.
      */
@@ -66,7 +66,7 @@ public class LearningPlan {
 
     /**
      * Filtert alle Einheiten des Plans für ein bestimmtes Datum.
-     * * @param date Das angefragte Datum.
+     * @param date Das angefragte Datum.
      * @return Liste der Einheiten, die am angefragten Tag stattfinden.
      */
     public List<LearningUnit> getUnitsForDay(LocalDate date) {
