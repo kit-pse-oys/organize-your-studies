@@ -71,6 +71,7 @@ public class AuthService {
      */
     public AuthResponseDTO refreshToken() {
         //TODO
+        return null;
     }
 
     private void createAuthResponse() {
