@@ -87,24 +87,17 @@ public class PlanningService {
         for (FreeTime freeTime : freeTimes) {
             Integer dayIndex = null;
             RecurrenceType type = freeTime.getRecurrenceType();
-
             if (type == RecurrenceType.WEEKLY) {
-
                 RecurringFreeTime weekly = (RecurringFreeTime) freeTime;
-
                 dayIndex = weekly.getDayOfWeek().getValue() - 1;
             }
-            // Fall B: Einmalig
             else if (type == RecurrenceType.ONCE) { // oder SINGLE, je nach Enum-Name
                     SingleFreeTime single = (SingleFreeTime) freeTime;
                     LocalDate date = single.getDate();
-
-                if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
-                    dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
-                }
+                    if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+                        dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
+                    }
             }
-
-         //DTO's bauen
             if (dayIndex != null) {
                 int dayOffset = dayIndex * 288;
 
