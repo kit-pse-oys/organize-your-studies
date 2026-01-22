@@ -151,4 +151,10 @@ public abstract class User {
     public void setPreferences(LearningPreferences preferences) {
         this.preferences = preferences;
     }
+
+    // GETTER
+
+    public UUID getId() {
+        return userId;
+    }
 }
