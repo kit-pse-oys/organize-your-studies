@@ -1,7 +1,5 @@
 package de.pse.oys.dto;
 
-import de.pse.oys.domain.enums.UserType;
-
 /**
  * DTO für den Login-Request vom Client.
  * Unterstützt lokale Authentifizierung und externe Provider.
@@ -9,16 +7,16 @@ import de.pse.oys.domain.enums.UserType;
 public class LoginDTO {
 
     /** Benutzername für lokale Authentifizierung */
-    private String username; // null, wenn externer Account. Besonders dann null wenn dies der erste Anmeldeversuch ist.
+    private String username; // nur für lokale Authentifizierung relevant. Besonders dann null wenn dies der erste Anmeldeversuch ist.
 
     /** Passwort für lokale Authentifizierung */
-    private String password; // null, wenn externer Account
+    private String password; // nur für lokale Authentifizierung relevant
 
-    /** UserType: LOCAL oder externer Provider */
-    private UserType provider;
+    /** AuthProvider: Lokal oder oidc Provider */
+    private AuthProvider provider;
 
     /** ID-Token für externe Provider */
-    private String idToken; // null, wenn lokaler Account
+    private String idToken; // nur für oidc Authentifizierung relevant
 
     // ----- Getter & Setter -----
 
@@ -38,11 +36,11 @@ public class LoginDTO {
         this.password = password;
     }
 
-    public UserType getProvider() {
+    public AuthProvider getProvider() {
         return provider;
     }
 
-    public void setProvider(UserType provider) {
+    public void setProvider(AuthProvider provider) {
         this.provider = provider;
     }
 
