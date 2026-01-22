@@ -19,7 +19,7 @@ public class TaskResponseDTO {
     /** Der Titel der Aufgabe. */
     private String title;
 
-    /** Die fachliche Kategorie (z. B. "EXAM", "COMMISSION"). */
+    /** Die fachliche Kategorie (z. B. "EXAM", "SUBMISSION"). */
     private TaskCategory type;
 
     /** Der Name des zugehörigen Moduls. */
