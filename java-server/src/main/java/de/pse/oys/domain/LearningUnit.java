@@ -10,6 +10,8 @@ import java.util.UUID;
  * Repräsentiert eine konkrete Lerneinheit innerhalb eines Lernplans.
  * Eine Lerneinheit ist einer spezifischen Aufgabe zugeordnet und besitzt
  * einen geplanten sowie einen tatsächlichen Zeitrahmen.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "learning_units")

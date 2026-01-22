@@ -8,10 +8,12 @@ import java.util.UUID;
 /**
  * Repräsentiert eine Aufgabe mit einem festen Abgabetermin (Deadline).
  * Diese Klasse wird für zeitkritische Abgaben wie Hausarbeiten genutzt.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
-@DiscriminatorValue("COMMISSION")
-public class CommissionTask extends Task {
+@DiscriminatorValue("SUBMISSION")
+public class SubmissionTask extends Task {
 
     /** Der präzise Zeitpunkt der Abgabefrist. */
     @Column(name = "fixed_deadline")
@@ -20,7 +22,7 @@ public class CommissionTask extends Task {
     /**
      * Standardkonstruktor für JPA/Hibernate.
      */
-    protected CommissionTask() {
+    protected SubmissionTask() {
         super();
     }
 
@@ -32,8 +34,8 @@ public class CommissionTask extends Task {
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param deadline              Der feste Abgabetermin.
      */
-    public CommissionTask(UUID taskId, String title, int weeklyDurationMinutes, LocalDateTime deadline) {
-        super(taskId, title, weeklyDurationMinutes, TaskCategory.COMMISSION);
+    public SubmissionTask(UUID taskId, String title, int weeklyDurationMinutes, LocalDateTime deadline) {
+        super(taskId, title, weeklyDurationMinutes, TaskCategory.SUBMISSION);
         this.deadline = deadline;
     }
 
