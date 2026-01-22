@@ -141,4 +141,21 @@ public abstract class User {
      * @param freeTime die zu entfernende Freizeit
      */
     public void deleteFreeTime(FreeTime freeTime) { /* Skelett */ }
+
+
+    /**
+     * Gibt die Lernpräferenzen zurück.
+     * @return die aktuellen Lernpräferenzen
+     */
+    public LearningPreferences getPreferences() {
+        return preferences;
+    }
+
+    /**
+     * Setzt die Lernpräferenzen.
+     * @param preferences die neu zu setzenden Lernpräferenzen
+     */
+    public void setPreferences(LearningPreferences preferences) {
+        this.preferences = preferences;
+    }
 }
