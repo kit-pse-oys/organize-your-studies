@@ -48,7 +48,7 @@ public abstract class Task {
 
     /**
      * Erzeugt eine neue Aufgabe.
-     * * @param taskId                Eindeutige ID.
+     * @param taskId                Eindeutige ID.
      * @param title                 Bezeichnung der Aufgabe.
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param category              Fachliche Kategorie der Aufgabe.
@@ -117,4 +117,6 @@ public abstract class Task {
     /** @param durationMinutes Der neue wöchentliche Aufwand. */
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
+    public void setModule(Module module) {
+    }
 }

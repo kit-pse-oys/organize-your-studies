@@ -80,6 +80,9 @@ public abstract class User {
     /**
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
      * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
+     * @param start
+     * @param end
+     * @return
      */
     public boolean createNewLearningPlan(LocalDate start, LocalDate end) {
         return false; // Skelett
@@ -110,15 +113,23 @@ public abstract class User {
         return null; // Skelett
     }
 
-    /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817]. */
+    /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
+     * @param module das hinzuzufügende Modul
+     */
     public void addModule(Module module) { /* Skelett */ }
 
-    /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817]. */
+    /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817].
+     * @param module das zu entfernende Modul
+     */
     public void deleteModule(Module module) { /* Skelett */ }
 
-    /** Fügt eine neue Zeitrestriktion (Freizeit) hinzu[cite: 788, 819]. */
+    /** Fügt eine neue Zeitrestriktion (Freizeit) hinzu[cite: 788, 819].
+     * @param freeTime die hinzuzufügende Freizeit
+     */
     public void addFreeTime(FreeTime freeTime) { /* Skelett */ }
 
-    /** Entfernt eine bestehende Zeitrestriktion[cite: 786, 819]. */
+    /** Entfernt eine bestehende Zeitrestriktion[cite: 786, 819].
+     * @param freeTime die zu entfernende Freizeit
+     */
     public void deleteFreeTime(FreeTime freeTime) { /* Skelett */ }
 }
