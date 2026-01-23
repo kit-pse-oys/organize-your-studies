@@ -7,6 +7,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import de.pse.oys.domain.ExternalUser;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.enums.UserType;
+import de.pse.oys.dto.RefreshTokenDTO;
+import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -121,4 +123,24 @@ class AuthServiceTest {
         assertEquals(googleSub, savedUser.getExternalSubjectId());
         assertEquals(UserType.GOOGLE, savedUser.getUserType());
     }
+
+    @Test
+    void refreshToken_withInvalidToken_shouldThrowException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userId.toString());
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO("invalid-token");
+
+        when(jwtProvider.validateToken("invalid-token")).thenReturn(false);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authService.refreshToken(userDTO, refreshDTO)
+        );
+
+        assertEquals("Ungültiges Refresh-Token.", exception.getMessage());
+    }
+
 }
