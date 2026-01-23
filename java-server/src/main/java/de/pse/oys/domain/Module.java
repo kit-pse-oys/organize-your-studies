@@ -10,6 +10,8 @@ import java.util.UUID;
  * Repräsentiert ein Studienmodul (z. B. eine Vorlesung), das vom Nutzer verwaltet wird.
  * Ein Modul dient als Container für verschiedene Aufgaben (Tasks) und definiert
  * grundlegende Eigenschaften wie Farbe und Priorität.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "modules")
@@ -41,7 +43,8 @@ public class Module {
      * Liste der Aufgaben, die diesem Modul untergeordnet sind.
      * cascade = ALL stellt sicher, dass Aufgaben bei Modullöschung mitentfernt werden.
      */
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "module_id")
     private List<Task> tasks = new ArrayList<>();
 
     /**

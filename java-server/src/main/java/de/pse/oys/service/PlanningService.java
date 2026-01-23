@@ -1,7 +1,12 @@
 package de.pse.oys.service;
+import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.dto.FreetimeDTO;
+import de.pse.oys.dto.TaskDTO;
 import org.springframework.stereotype.Service;
 import de.pse.oys.persistence.*;
 import de.pse.oys.domain.*;
+
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -49,14 +54,68 @@ public class PlanningService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        List<Task> openTasks = taskRepository.findOpenTasksByUserId(userId);
-
+        int horizon = 2016;
         int currentSlot = calculateCurrentSlot(weekStart);
 
         LearningPreferences userPreferences = user.getPreferences();
         List<Integer> blockedDays = calculateBlockedWeekDays(user, userPreferences);
+        String preferredTimeSlots = mapPreferredTimeSlotsToString(userPreferences);
+        List<FreeTime> freeTimes = user.getFreeTimes();
+        List<FreetimeDTO> fixedBlocksDTO = calculateFixedBlocksDTO(freeTimes, weekStart);
+        List<TaskDTO> taskDTOs = new ArrayList<>();
 
 
+
+
+
+
+    }
+
+    // Importe checken:
+
+// ...
+
+    /**
+     * Wandelt die FreeTime-Objekte (Entities) in DTOs um, die Python versteht.
+     * Filtert Termine raus, die nicht in die aktuelle Woche fallen.
+     */
+    private List<FreetimeDTO> calculateFixedBlocksDTO(List<FreeTime> freeTimes, LocalDate weekStart) {
+        List<FreetimeDTO> dtos = new ArrayList<>();
+
+        LocalDate weekEnd = weekStart.plusDays(6);
+
+        for (FreeTime freeTime : freeTimes) {
+            Integer dayIndex = null;
+            RecurrenceType type = freeTime.getRecurrenceType();
+            if (type == RecurrenceType.WEEKLY) {
+                RecurringFreeTime weekly = (RecurringFreeTime) freeTime;
+                dayIndex = weekly.getDayOfWeek().getValue() - 1;
+            }
+            else if (type == RecurrenceType.ONCE) { // oder SINGLE, je nach Enum-Name
+                    SingleFreeTime single = (SingleFreeTime) freeTime;
+                    LocalDate date = single.getDate();
+                    if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+                        dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
+                    }
+            }
+            if (dayIndex != null) {
+                int dayOffset = dayIndex * 288;
+
+                int timeSlot = mapTimeToSlot(freeTime.getStartTime());
+                int absoluteStart = dayOffset + timeSlot;
+
+                long durationMinutes = java.time.Duration.between(freeTime.getStartTime(), freeTime.getEndTime()).toMinutes();
+                int durationSlots = (int) (durationMinutes / 5);
+                dtos.add(new FreetimeDTO(absoluteStart, durationSlots));
+            }
+        }
+        return dtos;
+    }
+
+
+    private int mapTimeToSlot(LocalTime time) {
+        int totalMinutes = time.getHour() * 60 + time.getMinute();
+        return totalMinutes / 5;
     }
     /** Berechnet die blockierten Wochentage basierend auf den Nutzerpräferenzen.
      *
@@ -93,4 +152,38 @@ public class PlanningService {
         int currentSlot = (int) (minutesBetween / 5);
         return currentSlot;
     }
+    /** Mappt die bevorzugten Zeitslots des Nutzers in eine kommagetrennte String-Darstellung.
+     *
+     * @param preferences Die Lernpräferenzen des Nutzers.
+     * @return Kommagetrennter String der bevorzugten Zeitslots.
+     */
+
+    private String mapPreferredTimeSlotsToString(LearningPreferences preferences) {
+        List<TimeSlot> preferredSlots = preferences.getPreferredTimeSlots();
+        List<String> slotStrings = new ArrayList<>();
+
+        for (TimeSlot slot : preferredSlots) {
+            switch (slot) {
+                case MORNING:
+                    slotStrings.add("morgens");
+                    break;
+                case FORENOON:
+                    slotStrings.add("vormittags");
+                    break;
+                case NOON:
+                    slotStrings.add("mittags");
+                    break;
+                case AFTERNOON:
+                    slotStrings.add("nachmittags");
+                    break;
+                case EVENING:
+                    slotStrings.add("abends");
+                    break;
+                default:
+                    break;
+            }
+        }
+        return String.join(",", slotStrings);
+    }
+
 }

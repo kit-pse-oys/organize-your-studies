@@ -9,6 +9,8 @@ import java.util.UUID;
 /**
  * Repräsentiert das subjektive Feedback eines Nutzers zu einer abgeschlossenen Lerneinheit.
  * Die Bewertung umfasst die Konzentration, die Zeitwahrnehmung und den Lernerfolg.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "ratings")

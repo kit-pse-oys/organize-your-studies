@@ -10,6 +10,8 @@ import java.util.UUID;
 /**
  * Repräsentiert die Vorbereitung auf eine Modulprüfung.
  * Die harte Deadline entspricht hierbei dem Zeitpunkt des Prüfungsantritts.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("EXAM")

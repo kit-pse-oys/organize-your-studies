@@ -18,8 +18,6 @@ public class Main {
      * @param args Kommandozeilenargumente (ignoriert)
      */
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
         System.out.printf("Spring Boot Application started with args: %s%n", String.join(", ", args));
         SpringApplication.run(Main.class, args);
     }

@@ -8,6 +8,8 @@ import java.util.UUID;
 
 /**
  * Repräsentiert einen Nutzer, der über einen externen Identity Provider (OIDC) verwaltet wird.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("google")
@@ -29,7 +31,7 @@ public class ExternalUser extends User {
      * Spezialisierter Konstruktor für externe OIDC-Nutzer[cite: 800, 832].
      */
     public ExternalUser(UUID userId, String username, String extId) {
-        super(userId, username, UserType.AUTH);
+        super(userId, username, UserType.GOOGLE);
         this.externalSubjectId = extId;
     }
 
