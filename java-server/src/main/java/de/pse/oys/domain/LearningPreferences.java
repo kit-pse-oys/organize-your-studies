@@ -134,6 +134,12 @@ public class LearningPreferences {
     public Set<DayOfWeek> getPreferredDays() {
         return preferredDays;
     }
+    public List<TimeSlot> getPreferredTimeSlots() {
+        if (preferredTimeSlots.isEmpty()) {
+            return null;
+        }
+        return preferredTimeSlots;
+    }
 
     /** @param preferredDays Die neu zu setzende Menge an bevorzugten Wochentagen. */
     public void setPreferredDays(Set<DayOfWeek> preferredDays) {

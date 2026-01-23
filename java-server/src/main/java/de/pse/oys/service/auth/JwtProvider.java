@@ -16,7 +16,8 @@ import java.util.UUID;
 
 
 /**
- * JwtProvider – TODO: Beschreibung ergänzen
+ * JwtProvider – Der Service zur Erstellung und Validierung von JWT-Tokens.
+ * Verwendet die Bibliothek jjwt zur Handhabung von JSON Web Tokens.
  *
  * @author uhupo
  * @version 1.0
@@ -34,12 +35,46 @@ public class JwtProvider {
     @Value("${jwt.refresh.token.expiration}")
     private long refreshTokenExpiration;
 
+    /**
+     * Default-Konstruktor.
+     * Für Spring Autowiring erforderlich.
+     */
+    public JwtProvider() {
+    }
 
-    String createAccessToken(User user) {
+    /**
+     * Konstruktor mit Dependency Injection.
+     * Für Testzwecke können die Ablaufzeiten der Tokens gesetzt werden.
+     * Secret JWT wird über @Value injiziert.
+     *
+     * @param jwtSecret der geheime Key für die JWT-Signatur
+     * @param accessTokenExpiration die Ablaufzeit des Access-Tokens in Millisekunden
+     * @param refreshTokenExpiration die Ablaufzeit des Refresh-Tokens in Millisekunden
+     */
+    public JwtProvider(String jwtSecret, long accessTokenExpiration, long refreshTokenExpiration) {
+        this.jwtSecret = jwtSecret;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+
+    }
+
+
+    /**
+     * Erstellt ein JWT-Access-Token für den angegebenen Benutzer.
+     *
+     * @param user Der Benutzer, für den das Token erstellt werden soll.
+     * @return Das generierte JWT-Access-Token als String.
+     */
+    public String createAccessToken(User user) {
         return createToken(user, accessTokenExpiration);
     }
 
-    String createRefreshToken(User user) {
+    /**
+     * Erstellt ein JWT-Refresh-Token für den angegebenen Benutzer.
+     * @param user Der Benutzer, für den das Token erstellt werden soll.
+     * @return Das generierte JWT-Refresh-Token als String.
+     */
+    public String createRefreshToken(User user) {
         return createToken(user, refreshTokenExpiration);
     }
 
@@ -56,7 +91,13 @@ public class JwtProvider {
                 .compact();
     }
 
-    boolean validateToken(String token) {
+    /**
+     * Validiert das JWT-Token durch Überprüfung der Signatur und des Ablaufdatums.
+     *
+     * @param token Das zu validierende JWT-Token.
+     * @return true, wenn das Token gültig ist; false andernfalls.
+     */
+    public boolean validateToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -72,7 +113,7 @@ public class JwtProvider {
      * @param token Das JWT-Token, aus dem die Benutzer-ID extrahiert werden soll.
      * @return Die extrahierte Benutzer-ID als String.
      */
-    UUID getUserIdFromToken(String token) {
+    public UUID getUserIdFromToken(String token) {
         try {
             String subject = Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)))

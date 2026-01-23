@@ -1,11 +1,10 @@
 package de.pse.oys.service.auth;
 
-import de.pse.oys.dto.response.AuthResponseDTO;
-import de.pse.oys.dto.LoginDTO;
+import de.pse.oys.dto.auth.AuthResponseDTO;
+import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.persistence.UserRepository;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,25 +26,19 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    @Value("${jwt.refresh.token.expiration}")
-    private long expirationRefreshToken;
-
     /**
      * Konstruktor mit Dependency Injection.
      * @param userRepository Das UserRepository für den Zugriff auf Benutzerdaten.
      *
      * @param passwordEncoder
      * @param jwtProvider
-     * @param expirationRefreshToken
      */
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtProvider jwtProvider,
-                       @Value("${jwt.refresh-token-expiration}") long expirationRefreshToken) {
+                       JwtProvider jwtProvider) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
-        this.expirationRefreshToken = expirationRefreshToken;
     }
 
 

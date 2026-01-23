@@ -49,15 +49,18 @@ public abstract class User {
     private LearningPreferences preferences;
 
     /** Liste der dem Nutzer zugeordneten Studienmodule. */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
     private List<Module> modules;
 
     /** Liste der definierten Freizeiten und Zeitrestriktionen. */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
     private List<FreeTime> freeTimes;
 
     /** Liste der generierten wochenbasierten Lernpläne. */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
     private List<LearningPlan> learningPlans;
 
     /**
@@ -113,6 +116,9 @@ public abstract class User {
      */
     public List<Task> getAllOpenTasks() {
         return null; // Skelett
+    }
+    public List<FreeTime> getFreeTimes() {
+        return freeTimes;
     }
 
     /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
