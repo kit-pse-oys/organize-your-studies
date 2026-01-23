@@ -1,7 +1,7 @@
 package de.pse.oys.service;
 
 import de.pse.oys.persistence.UserRepository;
-import de.pse.oys.dto.response.AuthResponseDTO;
+import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.UserDTO;
 import de.pse.oys.service.auth.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
