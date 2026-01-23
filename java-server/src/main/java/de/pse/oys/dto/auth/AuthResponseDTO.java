@@ -28,6 +28,22 @@ public class AuthResponseDTO {
     public AuthResponseDTO() {
     }
 
+    /**
+     * Konstruktor mit allen Attributen.
+     * Wird aufgerufen, um eine vollständige Authentifizierungsantwort zu erstellen.
+     *
+     * @param accessToken der ausgestellte Access-Token
+     * @param refreshToken der ausgestellte Refresh-Token
+     * @param id die ID des Nutzers, welcher sich authentifiziert hat
+     * @param username der Anzeigename des Nutzers
+     */
+    public AuthResponseDTO(String accessToken, String refreshToken, UUID id, String username) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.userId = id;
+        this.username = username;
+    }
+
     // Getter
 
     /** @return Der aktuelle Access-Token. */

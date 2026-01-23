@@ -26,36 +26,25 @@ import java.util.UUID;
 @Component
 public class JwtProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.access.token.expiration}")
-    private long accessTokenExpiration;
-
-    @Value("${jwt.refresh.token.expiration}")
-    private long refreshTokenExpiration;
-
-    /**
-     * Default-Konstruktor.
-     * Für Spring Autowiring erforderlich.
-     */
-    public JwtProvider() {
-    }
+    private final String jwtSecret;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
 
     /**
      * Konstruktor mit Dependency Injection.
-     * Für Testzwecke können die Ablaufzeiten der Tokens gesetzt werden.
-     * Secret JWT wird über @Value injiziert.
+     * Les die Konfigurationswerte für den JWT-Provider aus den Anwendungseigenschaften fest.
      *
      * @param jwtSecret der geheime Key für die JWT-Signatur
      * @param accessTokenExpiration die Ablaufzeit des Access-Tokens in Millisekunden
      * @param refreshTokenExpiration die Ablaufzeit des Refresh-Tokens in Millisekunden
      */
-    public JwtProvider(String jwtSecret, long accessTokenExpiration, long refreshTokenExpiration) {
+    public JwtProvider(
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.access.token.expiration}") long accessTokenExpiration,
+            @Value("${jwt.refresh.token.expiration}") long refreshTokenExpiration) {
         this.jwtSecret = jwtSecret;
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
-
     }
 
 
