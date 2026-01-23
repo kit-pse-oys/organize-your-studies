@@ -1,5 +1,8 @@
 package de.pse.oys.dto;
 
+import de.pse.oys.dto.auth.AuthProvider;
+import de.pse.oys.dto.auth.AuthType;
+
 /**
  * DTO für den Login-Request vom Client.
  * Unterstützt lokale Authentifizierung und externe Provider.
@@ -12,43 +15,84 @@ public class LoginDTO {
     /** Passwort für lokale Authentifizierung */
     private String password; // nur für lokale Authentifizierung relevant
 
-    /** AuthProvider: Lokal oder oidc Provider */
-    private AuthProvider provider;
+    /** AuthType: Unterscheidung zwischen lokal und extern */
+    private AuthType type; // gibt an ob lokale oder externe Authentifizierung genutzt wird
+
+    /** Externer Authentifizierungsprovider */
+    private AuthProvider provider; // nur für externe Authentifizierung relevant
 
     /** ID-Token für externe Provider */
-    private String idToken; // nur für oidc Authentifizierung relevant
+    private String externalToken; // nur für oidc Authentifizierung relevant
 
     // ----- Getter & Setter -----
 
+    /**
+     * @return den Username als String
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * @param username der Username als String
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * @return das password als String
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * @param password das password als String
+     */
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public AuthProvider getProvider() {
+    /**
+     * @return den AuthType
+     */
+    public AuthType getAuthType() {
+        return type;
+    }
+
+    /**
+     * @param type den AuthType
+     */
+    public void setAuthType(AuthType type) {
+        this.type = type;
+    }
+
+    /**
+     * @return den Authentifizierungsprovider
+     */
+    public AuthProvider getAuthProvider() {
         return provider;
     }
 
-    public void setProvider(AuthProvider provider) {
+    /**
+     * @param provider den Authentifizierungsprovider
+     */
+    public void setAuthProvider(AuthProvider provider) {
         this.provider = provider;
     }
 
-    public String getIdToken() {
-        return idToken;
+    /**
+     * @return den Token des externen Authentifizierungsproviders
+     */
+    public String getExternalToken() {
+        return externalToken;
     }
 
-    public void setIdToken(String idToken) {
-        this.idToken = idToken;
+    /**
+     * @param externalToken den zu setzenden Token String
+     */
+    public void setExternalToken(String externalToken) {
+        this.externalToken = externalToken;
     }
 }
