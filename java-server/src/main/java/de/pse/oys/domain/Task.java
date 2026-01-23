@@ -3,6 +3,8 @@ package de.pse.oys.domain;
 import de.pse.oys.domain.enums.TaskCategory;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -42,6 +44,13 @@ public abstract class Task {
      */
     @OneToOne(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private CostMatrix costMatrix;
+
+    /**
+     * Die Liste der geplanten oder abgeschlossenen Lerneinheiten für diese Aufgabe.
+     * Realisiert als One-to-Many Beziehung.
+     */
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LearningUnit> learningUnits = new ArrayList<>();
 
     /**
      * Standardkonstruktor für JPA/Hibernate.
@@ -120,5 +129,34 @@ public abstract class Task {
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
     public void setModule(Module module) {
+    }
+
+    // Hilfsmethoden für learningUnits
+
+    /**
+     * Fügt der Aufgabe eine neue Lerneinheit hinzu.
+     * Stellt die bidirektionale Verknüpfung sicher.
+     * @param unit Die hinzuzufügende Lerneinheit.
+            */
+    public void addLearningUnit(LearningUnit unit) {
+        if (unit != null && !this.learningUnits.contains(unit)) {
+            this.learningUnits.add(unit);
+        }
+    }
+
+
+    /**
+     * @return Eine nicht veränderbare Liste aller zugehörigen Lerneinheiten.
+     */
+    public List<LearningUnit> getLearningUnits() {
+        return List.copyOf(learningUnits);
+    }
+
+    /**
+     * Ersetzt die gesamte Liste der Lerneinheiten.
+     * @param learningUnits Die neue Liste der Lerneinheiten.
+     */
+    public void setLearningUnits(List<LearningUnit> learningUnits) {
+        this.learningUnits = learningUnits;
     }
 }

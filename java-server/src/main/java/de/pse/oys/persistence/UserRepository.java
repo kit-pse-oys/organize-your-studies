@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import de.pse.oys.domain.User;
-import de.pse.oys.domain.UserType;
+import de.pse.oys.domain.enums.UserType;
 
 /**
  * UserRepository – Repository-Schnittstelle für User-Entitäten.
