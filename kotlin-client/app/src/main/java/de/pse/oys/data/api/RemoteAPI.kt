@@ -12,7 +12,11 @@ import de.pse.oys.data.facade.TaskData
 import de.pse.oys.data.facade.UnitRatings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.okhttp.OkHttpConfig
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
@@ -78,18 +82,27 @@ interface RemoteAPI {
     suspend fun deleteAccount(): Response<Unit>
 }
 
-class RemoteClient(private val serverUrl: String, private val session: SessionStore) : RemoteAPI {
+class RemoteClient
+internal constructor(
+    private val serverUrl: String,
+    private val session: SessionStore,
+    engine: HttpClientEngine
+) : RemoteAPI {
     companion object {
-        private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1/", path)
+        operator fun invoke(serverUrl: String, session: SessionStore) =
+            RemoteClient(serverUrl, session, OkHttp.create())
+
+        private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1", path)
 
         private fun HttpResponse.statusResponse() = Response(Unit, status.value)
 
         private suspend fun HttpResponse.idResponse() = Response(body<Routes.Id>().id, status.value)
 
-        private suspend inline fun <reified T> HttpResponse.responseAs() = Response(body<T>(), status.value)
+        private suspend inline fun <reified T> HttpResponse.responseAs() =
+            Response(body<T>(), status.value)
     }
 
-    private val client = HttpClient(OkHttp) {
+    private val client = HttpClient(engine) {
         install(Auth) {
             bearer {
                 loadTokens {

@@ -6,12 +6,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Credentials {
     @Serializable
-    @SerialName("basic")
+    @SerialName("BASIC")
     data class UsernamePassword(val username: String, val password: String) : Credentials()
 
     @Serializable
-    @SerialName("oidc")
-    data class OIDC(val token: String, val type: OIDCType) : Credentials()
+    @SerialName("OIDC")
+    data class OIDC(val externalToken: String, val provider: OIDCType) : Credentials()
 }
 
 @Serializable

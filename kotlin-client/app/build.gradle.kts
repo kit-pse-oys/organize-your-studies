@@ -72,6 +72,7 @@ dependencies {
 
 
     testImplementation(libs.junit)
+    testImplementation(libs.ktor.client.mock)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
