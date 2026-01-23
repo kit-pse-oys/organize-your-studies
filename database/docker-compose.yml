@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: oys-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: oys
+      POSTGRES_USER: oys
+      POSTGRES_PASSWORD: oys123
+    volumes:
+      - oys_pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+
+volumes:
+  oys_pgdata:
