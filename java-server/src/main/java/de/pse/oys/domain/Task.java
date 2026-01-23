@@ -4,6 +4,7 @@ import de.pse.oys.domain.enums.TaskCategory;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.time.LocalDate;
 
 /**
  * Abstrakte Basisklasse für alle Aufgabentypen im System.
@@ -25,6 +26,18 @@ public abstract class Task {
     /** Wöchentlicher Aufwand in Minuten. */
     @Column(name = "weekly_duration_minutes", nullable = false)
     private int weeklyDurationMinutes;
+
+    /** Feste Deadline aus der DB-Spalte {@code tasks.fixed_deadline} (optional). */
+    @Column(name = "fixed_deadline")
+    private LocalDate fixedDeadline;
+
+    /** Start eines Zeitfensters aus {@code tasks.time_frame_start} (optional). */
+    @Column(name = "time_frame_start")
+    private LocalDate timeFrameStart;
+
+    /** Ende eines Zeitfensters aus {@code tasks.time_frame_end} (optional). */
+    @Column(name = "time_frame_end")
+    private LocalDate timeFrameEnd;
 
     /**
      * Die fachliche Kategorie der Aufgabe.
@@ -119,4 +132,23 @@ public abstract class Task {
 
     public void setModule(Module module) {
     }
+
+    /** @return feste Deadline oder {@code null}. */
+    public LocalDate getFixedDeadline() { return fixedDeadline; }
+
+    /** @param fixedDeadline feste Deadline (oder {@code null}). */
+    public void setFixedDeadline(LocalDate fixedDeadline) { this.fixedDeadline = fixedDeadline; }
+
+    /** @return Startdatum des Zeitfensters oder {@code null}. */
+    public LocalDate getTimeFrameStart() { return timeFrameStart; }
+
+    /** @param timeFrameStart Startdatum (oder {@code null}). */
+    public void setTimeFrameStart(LocalDate timeFrameStart) { this.timeFrameStart = timeFrameStart; }
+
+    /** @return Enddatum des Zeitfensters oder {@code null}. */
+    public LocalDate getTimeFrameEnd() { return timeFrameEnd; }
+
+    /** @param timeFrameEnd Enddatum (oder {@code null}). */
+    public void setTimeFrameEnd(LocalDate timeFrameEnd) { this.timeFrameEnd = timeFrameEnd; }
+
 }
