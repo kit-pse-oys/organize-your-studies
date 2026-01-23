@@ -43,7 +43,8 @@ public class Module {
      * Liste der Aufgaben, die diesem Modul untergeordnet sind.
      * cascade = ALL stellt sicher, dass Aufgaben bei Modullöschung mitentfernt werden.
      */
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "module_id")
     private List<Task> tasks = new ArrayList<>();
 
     /**
