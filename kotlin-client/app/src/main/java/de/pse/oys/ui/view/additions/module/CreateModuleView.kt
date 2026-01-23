@@ -239,7 +239,7 @@ class EditModuleViewModel(
     }
 }
 
-fun createModuleViewModel(
+fun CreateModuleViewModel(
     intent: Intent,
     api: RemoteAPI,
     model: ModelFacade,
