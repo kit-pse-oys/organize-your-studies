@@ -1,7 +1,5 @@
 package de.pse.oys.dto.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * AuthType – Enum für die verschiedenen Arten der Authentifizierung, die unterstützt werden.
  * Es wird verwendet, um zwischen lokaler Authentifizierung und Authentifizierung
@@ -16,12 +14,10 @@ public enum AuthType {
     /**
      * BASIC - Ein Nutzer versucht sich mit lokalem Benutzernamen und Passwort zu authentifizieren.
      */
-    @JsonProperty("basic")
     BASIC,
 
     /**
      * OIDC - Ein Nutzer versucht sich über einen externen OpenID Connect (OIDC) Identity Provider zu authentifizieren.
      */
-    @JsonProperty("oidc")
     OIDC
 }

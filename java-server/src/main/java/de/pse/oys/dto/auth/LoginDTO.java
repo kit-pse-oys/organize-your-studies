@@ -1,7 +1,4 @@
-package de.pse.oys.dto;
-
-import de.pse.oys.dto.auth.AuthProvider;
-import de.pse.oys.dto.auth.AuthType;
+package de.pse.oys.dto.auth;
 
 /**
  * DTO für den Login-Request vom Client.
