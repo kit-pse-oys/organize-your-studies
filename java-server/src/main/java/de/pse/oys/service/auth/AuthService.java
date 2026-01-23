@@ -6,6 +6,7 @@ import de.pse.oys.domain.ExternalUser;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.UserType;
+import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -66,6 +67,7 @@ public class AuthService {
     /**
      * Authentifiziert einen Benutzer basierend auf den bereitgestellten Anmeldeinformationen.
      * Unterstützt sowohl lokale (Benutzername/Passwort) als auch externe Authentifizierungsmethoden.
+     * Implementiert Just-in-Time-Provisioning für externe Benutzer.
      *
      * @param loginDTO Die Anmeldeinformationen des Benutzers.
      * @return AuthResponseDTO mit Access- und Refresh-Token bei erfolgreicher Authentifizierung.
@@ -152,12 +154,6 @@ public class AuthService {
 
         // 5. AuthResponseDTO zurückgeben.
         return new AuthResponseDTO(accessToken, refreshToken, user.getId(), username);
-    }
-
-    public void logout(RefreshTokenDTO refreshTokenDTO) {
-        //TODO
-        // Erklärt die JWT für ungültig und entfernt sie aus dem Client-Speicher.
-
     }
 
     /**
