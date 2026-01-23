@@ -15,6 +15,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -25,7 +26,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
-    // Spring Security für Hash-basierte Passwörter
+    // Spring Security für Password-Hashing / Token-Hashing
     implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.security:spring-security-test")
 
@@ -33,7 +34,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     // JJWT Implementierung
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-    // Jackson für Claims
+    // JJWT - Jackson für Claims
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     // H2 In-Memory Database (für Tests und Entwicklung des Java-Servers ohne PostgreSQL Docker-Container)
@@ -46,6 +47,12 @@ dependencies {
 
     // Spring Boot Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    // Google OAuth Token Verifier
+    implementation("com.google.api-client:google-api-client:2.2.0")
+    implementation("com.google.oauth-client:google-oauth-client:1.39.0")
+    implementation("com.google.http-client:google-http-client-gson:1.45.1")
+
 
 }
 

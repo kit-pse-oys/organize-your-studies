@@ -29,16 +29,21 @@ public class ExternalUser extends User {
 
     /**
      * Spezialisierter Konstruktor für externe OIDC-Nutzer[cite: 800, 832].
+     * @param userId die eindeutige Nutzer-ID
+     * @param username der Anzeigename des Nutzers
+     * @param extId die Subject-ID des externen Identity Providers
+     * @param userType der Benutzertyp, referenziert den Authentifizierungsanbieter des Benutzers
      */
-    public ExternalUser(UUID userId, String username, String extId) {
-        super(userId, username, UserType.GOOGLE);
+    public ExternalUser(UUID userId, String username, String extId, UserType userType) {
+        super(userId, username, userType);
         this.externalSubjectId = extId;
     }
 
     /**
      * Gibt die Subject-ID des externen Identity Providers zurück[cite: 801, 823].
+     * @return die externe Subject-ID
      */
-    public String getExternalIdentifier() {
+    public String getExternalSubjectId() {
         return externalSubjectId;
     }
 }
