@@ -9,6 +9,8 @@ import java.util.UUID;
 
 /**
  * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @DiscriminatorValue("WEEKLY")

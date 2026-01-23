@@ -4,6 +4,8 @@ package de.pse.oys.domain.enums;
  * Definiert die zeitlichen Grenzen der Tagesabschnitte für die Lernplanung.
  * Diese Intervalle dienen dem Planungsalgorithmus als Grundlage, um die
  * Präferenzen des Nutzers mit den tatsächlichen Zeitslots im Kalender abzugleichen.
+ * @author utgid
+ * @version 1.0
  */
 public enum TimeSlot {
 

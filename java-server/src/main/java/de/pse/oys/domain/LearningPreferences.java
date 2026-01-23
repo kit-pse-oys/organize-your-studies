@@ -4,12 +4,18 @@ import de.pse.oys.domain.enums.TimeSlot;
 import jakarta.persistence.*;
 
 import java.time.DayOfWeek;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Speichert die individuellen Lernpräferenzen eines Nutzers.
  * Dazu gehören die gewünschte Dauer von Lerneinheiten sowie das tägliche Arbeitspensum.
  * Gemäß dem Rich Domain Model enthält diese Klasse auch Validierungslogik.
+ * @author utgid
+ * @version 1.0
  */
 @Entity
 @Table(name = "learning_preferences")
@@ -46,6 +52,13 @@ public class LearningPreferences {
     @Enumerated(EnumType.STRING)
     @Column(name = "time_slot")
     private List<TimeSlot> preferredTimeSlots = new ArrayList<>();
+
+    // TODO: @Marcel kannst du mal drüber schauen ob das so passt mit den preferredDays?
+    @ElementCollection(targetClass = DayOfWeek.class)
+    @CollectionTable(name = "preferred_week_days", joinColumns = @JoinColumn(name = "preference_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_of_week")
+    private Set<DayOfWeek> preferredDays = new HashSet<>();
 
     /**
      * Standardkonstruktor für JPA/Hibernate.
@@ -113,30 +126,37 @@ public class LearningPreferences {
         this.preferredTimeSlots.remove(slot);
     }
 
-    // TODO: @Marcel kannst du mal drüber schauen ob das so passt mit den preferredDays?
-    @ElementCollection(targetClass = DayOfWeek.class)
-    @CollectionTable(name = "preferred_week_days", joinColumns = @JoinColumn(name = "preference_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "day_of_week")
-    private Set<DayOfWeek> preferredDays = new HashSet<>();
+
 
     // --- Getter, Setter & Helper ---
 
+    /** @return Die Menge der bevorzugten Wochentage für Lerneinheiten. */
     public Set<DayOfWeek> getPreferredDays() {
         return preferredDays;
     }
+    public List<TimeSlot> getPreferredTimeSlots() {
+        if (preferredTimeSlots.isEmpty()) {
+            return null;
+        }
+        return preferredTimeSlots;
+    }
 
+    /** @param preferredDays Die neu zu setzende Menge an bevorzugten Wochentagen. */
     public void setPreferredDays(Set<DayOfWeek> preferredDays) {
         this.preferredDays = preferredDays;
     }
 
+    /** @param day Ein Wochentag, der zu den bevorzugten Tagen hinzugefügt werden soll. */
     public void addPreferredDay(DayOfWeek day) {
         this.preferredDays.add(day);
     }
 
+    /** @param day Der Wochentag, der aus den bevorzugten Tagen entfernt werden soll. */
     public void removePreferredDay(DayOfWeek day) {
         this.preferredDays.remove(day);
     }
+
+    /** @return Die eindeutige Kennung dieser Präferenz-Konfiguration. */
     public UUID getPreferenceId() {
         return preferenceId;
     }
