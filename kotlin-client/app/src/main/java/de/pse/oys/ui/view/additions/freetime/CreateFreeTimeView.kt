@@ -1,15 +1,23 @@
 package de.pse.oys.ui.view.additions.freetime
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import de.pse.oys.ui.theme.Blue
+import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
 import kotlinx.datetime.LocalDate
@@ -54,43 +67,120 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Neue Freizeit")
+            Text(
+                "Neue Freizeit",
+                style = typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
+            )
+            Text(
+                "Titel:",
+                style = typography.titleLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp)
+            )
             TextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.title = it },
-                singleLine = true,
-                label = { Text("") })
-            Text("Datum wählen:")
-            OutlinedButton(
-                onClick = { showDatePicker = true },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(bottom = 14.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = LightBlue,
+                    unfocusedContainerColor = LightBlue,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                singleLine = true
+            )
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(dateText)
+                Text(
+                    "Datum wählen:",
+                    style = typography.titleLarge,
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+                OutlinedButton(
+                    onClick = { showDatePicker = true },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = LightBlue,
+                    )
+                ) {
+                    Text(dateText)
+                }
             }
-            Text("Startzeit wählen:")
-            OutlinedButton(
-                onClick = { showStartTimePicker = true },
+            Text(
+                "Zeitraum wählen:",
+                style = typography.titleLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp)
+            )
+            Row(
+                modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(40.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(startTimeText)
-            }
-            Text("Endzeit wählen:")
-            OutlinedButton(
-                onClick = { showEndTimePicker = true },
-            ) {
-                Text(endTimeText)
+                Column(
+                    modifier = Modifier
+                ) {
+                    Text("Von:")
+                    OutlinedButton(
+                        onClick = { showStartTimePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = LightBlue,
+                        )
+                    ) {
+                        Text(startTimeText)
+                    }
+                }
+                Text(
+                    "-",
+                    style = typography.headlineLarge
+                )
+                Column(
+                    modifier = Modifier
+                ) {
+                    Text("Bis:")
+                    OutlinedButton(
+                        onClick = { showEndTimePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = LightBlue,
+                        )
+                    ) {
+                        Text(endTimeText)
+                    }
+                }
             }
             Row(
-                modifier = Modifier.toggleable(
-                    value = viewModel.weekly,
-                    onValueChange = { viewModel.weekly = it },
-                    role = Role.Checkbox
-                )
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp)
+                    .toggleable(
+                        value = viewModel.weekly,
+                        onValueChange = { viewModel.weekly = it },
+                        role = Role.Checkbox
+                    ), verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = viewModel.weekly,
-                    onCheckedChange = null
+                    onCheckedChange = null,
+                    modifier = Modifier.padding(end = 10.dp),
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Blue,
+                        uncheckedColor = LightBlue
+                    )
                 )
                 Text(
-                    text = "Wöchentlich wiederholen",
+                    text = "Freizeit wöchentlich wiederholen",
                 )
             }
             if (showDatePicker) {
@@ -136,10 +226,10 @@ abstract class BaseCreateFreeTimeViewModel : ViewModel(), ICreateFreeTimeViewMod
     override var date by mutableStateOf<LocalDate?>(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
-    override var start by mutableStateOf<LocalTime>(
+    override var start by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
     )
-    override var end by mutableStateOf<LocalTime>(
+    override var end by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
     )
     override var weekly by mutableStateOf(false)

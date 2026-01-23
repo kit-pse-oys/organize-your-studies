@@ -4,35 +4,44 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import de.pse.oys.R
+import de.pse.oys.ui.theme.Blue
+import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
 import kotlinx.datetime.LocalDate
@@ -72,22 +81,77 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Neue Aufgabe")
-            Text("Titel:")
+            Text(
+                "Neue Aufgabe",
+                style = typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
+            )
+            Text(
+                "Titel:",
+                style = typography.titleLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp)
+            )
             TextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.title = it },
-                singleLine = true,
-                label = { Text("") })
-            Text("Modul wählen:")
-            OutlinedButton(onClick = { showDialog = true }) {
-                Text(text = selectedModule)
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(bottom = 14.dp)
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = LightBlue,
+                    unfocusedContainerColor = LightBlue,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                singleLine = true
+            )
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Modul:",
+                    style = typography.titleLarge,
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+                OutlinedButton(
+                    onClick = { showDialog = true },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = LightBlue,
+                    )
+                ) {
+                    Text(text = selectedModule)
+                }
             }
-            Text("Zeitaufwand pro Woche wählen:")
-            OutlinedButton(onClick = { showTimeLoadPicker = true }) {
-                Text(text = timeLoadDisplay)
+            Row(
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Zeitaufwand pro Woche:",
+                    style = typography.titleLarge,
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+                OutlinedButton(
+                    onClick = { showTimeLoadPicker = true },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = LightBlue,
+                    )
+                ) {
+                    Text(text = timeLoadDisplay)
+                }
             }
-
             if (showTimeLoadPicker) {
                 LocalTimePickerDialog(
                     initialTime = LocalTime(
@@ -101,10 +165,17 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                     onDismiss = { showTimeLoadPicker = false }
                 )
             }
-            Text("Aufgabentyp wählen:")
+            Text(
+                "Aufgabentyp wählen:",
+                style = typography.titleLarge,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 20.dp, bottom = 8.dp)
+            )
             TaskTypeChips(
                 current = viewModel.type,
-                onSelect = { viewModel.type = it })
+                onSelect = { viewModel.type = it }
+            )
 
             if (showDialog) {
                 AlertDialog(
@@ -133,39 +204,24 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             }
 
             if (viewModel.type == TaskType.EXAM) {
-                Text("Datum der Klausur wählen:")
-                OutlinedButton(
-                    onClick = { showExamDatePicker = true },
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val d = viewModel.examDate
                     Text(
-                        "${d.day.toString().padStart(2, '0')}.${
-                            d.month.number.toString().padStart(2, '0')
-                        }.${d.year}"
+                        "Klausurdatum:",
+                        style = typography.titleLarge,
+                        modifier = Modifier.padding(end = 20.dp)
                     )
-                }
-            }
-            if (viewModel.type == TaskType.OTHER) {
-                Text("Aufgabezeitraum festlegen:")
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Startdatum wählen:")
                     OutlinedButton(
-                        onClick = { showStartDatePicker = true },
-                    ) {
-                        val d = viewModel.start
-                        Text(
-                            "${d.day.toString().padStart(2, '0')}.${
-                                d.month.number.toString().padStart(2, '0')
-                            }.${d.year}"
+                        onClick = { showExamDatePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = LightBlue,
                         )
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Enddatum wählen:")
-                    OutlinedButton(
-                        onClick = { showEndDatePicker = true },
                     ) {
-                        val d = viewModel.start
+                        val d = viewModel.examDate
                         Text(
                             "${d.day.toString().padStart(2, '0')}.${
                                 d.month.number.toString().padStart(2, '0')
@@ -175,33 +231,133 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 }
             }
             if (viewModel.type == TaskType.SUBMISSION) {
-                Text("ersten Abgabetermin wählen:")
-                OutlinedButton(onClick = { showSubmissionDatePicker = true }) {
+                Text(
+                    "erster Abgabetermin:",
+                    style = typography.titleLarge,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp)
+                )
+                OutlinedButton(
+                    onClick = { showSubmissionDatePicker = true },
+                    modifier = Modifier.padding(bottom = 10.dp, top = 10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = LightBlue,
+                    )
+                ) {
                     Text(text = submissionText)
                 }
-                Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Wochenzyklus eingeben")
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Wochenzyklus eingeben:",
+                        style = typography.titleLarge
+                    )
                     TextField(
                         value = viewModel.submissionCycle.toString(),
                         onValueChange = { viewModel.submissionCycle = it.toIntOrNull() ?: 0 },
-                        modifier = Modifier.width(60.dp),
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(50.dp),
                         textStyle = TextStyle(textAlign = TextAlign.Center),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = LightBlue,
+                            unfocusedContainerColor = LightBlue,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
             }
+            if (viewModel.type == TaskType.OTHER) {
+                Text(
+                    "Aufgabezeitraum festlegen:",
+                    style = typography.titleLarge,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp, bottom = 10.dp, top = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Startdatum:",
+                        style = typography.titleMedium,
+                        modifier = Modifier.padding(end = 20.dp)
+                    )
+                    OutlinedButton(
+                        onClick = { showStartDatePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = LightBlue,
+                        )
+                    ) {
+                        val d = viewModel.start
+                        Text(
+                            "${d.day.toString().padStart(2, '0')}.${
+                                d.month.number.toString().padStart(2, '0')
+                            }.${d.year}"
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Enddatum:",
+                        style = typography.titleMedium,
+                        modifier = Modifier.padding(end = 20.dp)
+                    )
+                    OutlinedButton(
+                        onClick = { showEndDatePicker = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = LightBlue,
+                        )
+                    ) {
+                        val d = viewModel.start
+                        Text(
+                            "${d.day.toString().padStart(2, '0')}.${
+                                d.month.number.toString().padStart(2, '0')
+                            }.${d.year}"
+                        )
+                    }
+                }
+            }
             if (viewModel.type == TaskType.EXAM || viewModel.type == TaskType.SUBMISSION) {
                 Row(
-                    modifier = Modifier.toggleable(
-                        value = viewModel.sendNotification,
-                        onValueChange = { viewModel.sendNotification = it },
-                        role = Role.Checkbox
-                    )
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 20.dp)
+                        .toggleable(
+                            value = viewModel.sendNotification,
+                            onValueChange = { viewModel.sendNotification = it },
+                            role = Role.Checkbox
+                        ), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
                         checked = viewModel.sendNotification,
-                        onCheckedChange = null
+                        onCheckedChange = null,
+                        modifier = Modifier.padding(end = 10.dp),
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Blue,
+                            uncheckedColor = LightBlue
+                        )
                     )
                     Text(
                         text = "Ich will benachrichtigt werden.",
@@ -239,7 +395,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 LocalDatePickerDialog(
                     currentDate = viewModel.end,
                     onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
+                        if (selectedDate != null && selectedDate >= viewModel.start) {
                             viewModel.end = selectedDate
                         }
                         showEndDatePicker = false
@@ -287,25 +443,25 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
 
 @Composable
 private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {
-    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier.padding(bottom = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(26.dp)
+    ) {
         TaskTypeChip(
             taskType = TaskType.EXAM,
             current = current,
-            icon = painterResource(R.drawable.outline_expand_circle_up_24),
             label = "Klausur",
             onSelect = onSelect
         )
         TaskTypeChip(
             taskType = TaskType.SUBMISSION,
             current = current,
-            icon = painterResource(R.drawable.outline_expand_circle_right_24),
             label = "Abgabe",
             onSelect = onSelect
         )
         TaskTypeChip(
             taskType = TaskType.OTHER,
             current = current,
-            icon = painterResource(R.drawable.outline_expand_circle_down_24),
             label = "Sonstige",
             onSelect = onSelect
         )
@@ -316,15 +472,27 @@ private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {
 private fun TaskTypeChip(
     taskType: TaskType,
     current: TaskType,
-    icon: Painter,
     label: String,
     onSelect: (TaskType) -> Unit
 ) {
     FilterChip(
         selected = taskType == current,
         onClick = { onSelect(taskType) },
-        leadingIcon = { Icon(painter = icon, contentDescription = label) },
-        label = { Text(label) }
+        label = { Text(label) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = LightBlue,
+            containerColor = Color.Transparent,
+            labelColor = Color.DarkGray,
+            selectedLeadingIconColor = Color.Blue,
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = taskType == current,
+            borderColor = LightBlue,
+            selectedBorderColor = Blue,
+            borderWidth = 1.2.dp,
+            selectedBorderWidth = 1.2.dp
+        )
     )
 }
 
@@ -361,19 +529,19 @@ abstract class BaseCreateTaskViewModel : ViewModel(), ICreateTaskViewModel {
     override var title by mutableStateOf("")
     override var module by mutableStateOf("")
     override var type by mutableStateOf(TaskType.OTHER)
-    override var weeklyTimeLoad by mutableStateOf(0)
+    override var weeklyTimeLoad by mutableIntStateOf(0)
     override var sendNotification by mutableStateOf(false)
-    override var examDate by mutableStateOf<LocalDate>(
+    override var examDate by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
-    override var submissionDate by mutableStateOf<LocalDateTime>(
+    override var submissionDate by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     )
-    override var submissionCycle by mutableStateOf(0)
-    override var start by mutableStateOf<LocalDate>(
+    override var submissionCycle by mutableIntStateOf(0)
+    override var start by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
-    override var end by mutableStateOf<LocalDate>(
+    override var end by mutableStateOf(
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
 }

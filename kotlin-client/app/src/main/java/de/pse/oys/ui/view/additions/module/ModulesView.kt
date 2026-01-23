@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.pse.oys.data.facade.Module
-import de.pse.oys.ui.theme.DarkBlue
+import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 
 @Composable
@@ -50,7 +50,7 @@ fun ModulesView(viewModel: IModulesViewModel) {
                         .fillMaxWidth()
                         .padding(vertical = 8.dp, horizontal = 16.dp),
                     shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(2.dp, DarkBlue),
+                    border = BorderStroke(2.dp, Blue),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = LightBlue,
                         contentColor = MaterialTheme.colorScheme.onSurface
