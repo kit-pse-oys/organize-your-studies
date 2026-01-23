@@ -27,7 +27,15 @@ data class ModuleData(
 enum class Priority {
     LOW,
     NEUTRAL,
-    HIGH,
+    HIGH;
+
+    fun toGermanString(): String {
+        return when (this) {
+            LOW -> "Niedrig"
+            NEUTRAL -> "Neutral"
+            HIGH -> "Hoch"
+        }
+    }
 }
 
 object ColorAsStringSerializer : KSerializer<Color> {
