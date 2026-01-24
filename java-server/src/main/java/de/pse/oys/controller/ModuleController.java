@@ -1,10 +1,14 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.ModuleDTO;
+import de.pse.oys.security.UserPrincipal;
 import de.pse.oys.service.ModuleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 
 /**
@@ -32,7 +36,8 @@ public class ModuleController {
      */
     @PostMapping
     public ResponseEntity<ModuleDTO> createModule(@RequestBody ModuleDTO dto) {
-        ModuleDTO created = moduleService.createModule(null, dto);
+        UUID userId = getAuthenticatedUserId();
+        ModuleDTO created = moduleService.createModule(userId, dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
@@ -43,7 +48,8 @@ public class ModuleController {
      */
     @PutMapping
     public ResponseEntity<ModuleDTO> updateModule(@RequestBody ModuleDTO dto) {
-        ModuleDTO updated = moduleService.updateModule(null, dto);
+        UUID userId = getAuthenticatedUserId();
+        ModuleDTO updated = moduleService.updateModule(userId, dto);
         return ResponseEntity.ok(updated);
     }
 
@@ -54,8 +60,20 @@ public class ModuleController {
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteModule(@RequestBody ModuleDTO dto) {
-        // In der Praxis wird hier oft die ID aus dem DTO oder Pfad genutzt
-        moduleService.deleteModule(null, null);
+        UUID userId = getAuthenticatedUserId();
+        moduleService.deleteModule(userId, null); //todo irgendwie an die UUID des moduls rankommen
         return ResponseEntity.noContent().build();
+    }
+
+
+    /**
+     * Hilfsmethode, um die UUID des aktuell authentifizierten Nutzers
+     * aus dem SecurityContext zu extrahieren.
+     * @return Die UUID des Nutzers.
+     */
+    private UUID getAuthenticatedUserId() {
+        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return principal.getUserId();
     }
 }
