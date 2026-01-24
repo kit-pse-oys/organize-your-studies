@@ -82,7 +82,14 @@ public class RatingService {
 
     /**
      * Markiert eine Lerneinheit nachträglich als verpasst.
-     * @param unitId
+     *<p>
+     * Hinweis: Die Lerneinheit bleibt weiterhin im zugehörigen LearningPlan erhalten
+     * und wird nur im Status auf {@link de.pse.oys.domain.enums.UnitStatus#MISSED} gesetzt.
+     * Das bedeutet, dass die Einheit in der DB und im Plan referenziert bleibt,
+     * aber als verpasst markiert ist.
+     * Da das "verpasst markieren" nur rückwirkend erfolgt, werden keine neu verlegbaren Zeitslots blockiert.
+     *</p>
+     * @param unitId Die ID der Lerneinheit, die als verpasst markiert werden soll.
      */
     @Transactional
     public void markAsMissed(UUID unitId) {
