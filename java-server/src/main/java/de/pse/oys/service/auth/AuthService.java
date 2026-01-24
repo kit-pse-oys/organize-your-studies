@@ -6,7 +6,6 @@ import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.UserType;
 import de.pse.oys.dto.RefreshTokenDTO;
-import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -160,11 +159,10 @@ public class AuthService {
      * WICHTIG: Das Refresh-Token selbst wird nicht erneuert oder geändert.
      * Es bleibt bis zu seinem ursprünglichen Ablaufdatum gültig.
      *
-     * @param userDTO         Das DTO des Benutzers, der den Token erneuern möchte.
      * @param refreshTokenDTO Das DTO, das das Refresh-Token enthält.
      * @return AuthResponseDTO mit dem neuen Access-Token.
      */
-    public AuthResponseDTO refreshToken(UserDTO userDTO, RefreshTokenDTO refreshTokenDTO) {
+    public AuthResponseDTO refreshToken(RefreshTokenDTO refreshTokenDTO) {
         String refreshToken = refreshTokenDTO.getRefreshToken();
 
         if (!jwtProvider.validateToken(refreshToken)) {

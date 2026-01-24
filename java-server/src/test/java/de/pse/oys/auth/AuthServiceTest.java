@@ -137,10 +137,44 @@ class AuthServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                authService.refreshToken(userDTO, refreshDTO)
+                authService.refreshToken(refreshDTO)
         );
 
         assertEquals("Ungültiges Refresh-Token.", exception.getMessage());
+    }
+
+    @Test
+    void refreshToken_withValidToken_shouldReturnNewAccessToken() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        String refreshToken = "valid-refresh-token";
+        String newAccessToken = "new-access-token";
+        String username = "testuser";
+        String refreshTokenHash = "hashed-refresh-token";
+
+        // User-Mock
+        LocalUser user = mock(LocalUser.class);
+        when(user.getId()).thenReturn(userId);
+        when(user.getUsername()).thenReturn(username);
+        when(user.getRefreshTokenHash()).thenReturn(refreshTokenHash);
+
+        // Mocks für Token-Validierung und Extraktion
+        when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
+        when(jwtProvider.extractUserId(refreshToken)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(refreshToken, refreshTokenHash)).thenReturn(true);
+        when(jwtProvider.createAccessToken(user)).thenReturn(newAccessToken);
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO(refreshToken);
+
+        // Act
+        AuthResponseDTO response = authService.refreshToken(refreshDTO);
+
+        // Assert
+        assertEquals(newAccessToken, response.getAccessToken());
+        assertEquals(refreshToken, response.getRefreshToken());
+        assertEquals(userId, response.getUserId());
+        assertEquals(username, response.getUsername());
     }
 
 }
