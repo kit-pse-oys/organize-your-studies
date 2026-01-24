@@ -70,7 +70,7 @@ public class UnitRating {
     }
 
     /** @return Die Wahrnehmung der Dauer. */
-    public PerceivedDuration getDurationPerception() {
+    public PerceivedDuration getPerceivedDuration() {
         return durationPerception;
     }
 

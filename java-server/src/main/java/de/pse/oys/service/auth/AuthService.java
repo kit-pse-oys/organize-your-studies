@@ -36,6 +36,7 @@ public class AuthService {
     private static final String ERR_INVALID_LOGIN_CREDENTIALS = "Ungültige Anmeldeinformationen.";
     private static final String ERR_INVALID_EXTERNAL_TOKEN = "Ungültiges externes Token übermittelt.";
     private static final String STANDARD_GOOGLE_USER_NAME = "Google User";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
