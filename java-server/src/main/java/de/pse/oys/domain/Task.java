@@ -52,6 +52,11 @@ public abstract class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LearningUnit> learningUnits = new ArrayList<>();
 
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "moduleid", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Module module;
+
     /**
      * Standardkonstruktor für JPA/Hibernate.
      */
@@ -117,6 +122,15 @@ public abstract class Task {
         return costMatrix;
     }
 
+    public Module getModule() {
+        return module;
+    }
+
+    public void setModule(Module module) {
+        this.module = module;
+    }
+
+
     /** @param costMatrix Die neu zugeordnete Kostenmatrix. */
     public void setCostMatrix(CostMatrix costMatrix) {
         this.costMatrix = costMatrix;
@@ -128,8 +142,6 @@ public abstract class Task {
     /** @param durationMinutes Der neue wöchentliche Aufwand. */
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
-    public void setModule(Module module) {
-    }
 
     // Hilfsmethoden für learningUnits
 

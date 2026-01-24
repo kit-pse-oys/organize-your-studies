@@ -46,7 +46,7 @@ public class CostMatrix {
     /**
      * Standardkonstruktor für JPA/Hibernate.
      */
-    protected CostMatrix() {
+    public CostMatrix() {
     }
 
     /**

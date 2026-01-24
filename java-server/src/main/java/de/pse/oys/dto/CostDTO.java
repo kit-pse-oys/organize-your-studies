@@ -14,6 +14,9 @@ public class CostDTO {
         this.t = t;
         this.c = c;
     }
+    /*** Standardkonstruktor für CostDTO. */
+    public CostDTO(){
+    }
 /** @return Kostenwert. */
     public int getC() {
         return c;
@@ -22,4 +25,12 @@ public class CostDTO {
     public int getT() {
         return t;
     }
+    public void setT(int t) {
+        this.t = t;
+    }
+
+    public void setC(int c) {
+        this.c = c;
+    }
+
 }

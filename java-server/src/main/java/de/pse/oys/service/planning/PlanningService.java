@@ -1,4 +1,4 @@
-package de.pse.oys.service;
+package de.pse.oys.service.planning;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.FreetimeDTO;
@@ -65,15 +65,9 @@ public class PlanningService {
         List<TaskDTO> taskDTOs = new ArrayList<>();
 
 
-
-
-
-
     }
 
-    // Importe checken:
 
-// ...
 
     /**
      * Wandelt die FreeTime-Objekte (Entities) in DTOs um, die Python versteht.
