@@ -73,12 +73,28 @@ public class LearningUnit {
 
     /**
      * Markiert die Einheit als abgeschlossen und speichert die tatsächliche Dauer.
-     *
+     * Wird aufgerufen wenn der Nutzer die Einheit frühzeitig bendet hat.
      * @param actualMinutes Die tatsächlich aufgewendete Zeit in Minuten.
      */
-    public void markAsCompleted(int actualMinutes) {
+    public void markAsCompletedEarly(int actualMinutes) {
         this.actualDurationMinutes = actualMinutes;
         this.status = UnitStatus.COMPLETED;
+    }
+
+    /**
+     * Markiert die Lerneinheit als abgeschlossen.
+     * Der Status wird auf COMPLETED gesetzt und die geplante Dauer bleibt unverändert.
+     */
+    public void markAsCompleted() {
+        this.status = UnitStatus.COMPLETED;
+        this.actualDurationMinutes = (int) Duration.between(startTime, endTime).toMinutes();
+    }
+
+    /**
+     * Markiert die Lerneinheit als verpasst.
+     */
+    public void markAsMissed() {
+        this.status = UnitStatus.MISSED;
     }
 
     /**
@@ -151,6 +167,11 @@ public class LearningUnit {
     /** @param status Der neue Status der Einheit. */
     public void setStatus(UnitStatus status) { this.status = status; }
 
-    /** @param rating Die Bewertung der Einheit nach der Durchführung. */
-    public void setRating(UnitRating rating) { this.rating = rating; }
+    /**
+     * Setzt die Bewertung der Lerneinheit und markiert sie als abgeschlossen.
+     * @param rating Die Bewertung der Einheit nach der Durchführung.
+     */
+    public void setRating(UnitRating rating) {
+        this.rating = rating;
+    }
 }
