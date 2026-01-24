@@ -17,13 +17,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.ViewHeader
 
 @Composable
 fun ModulesView(viewModel: IModulesViewModel) {
@@ -35,13 +35,7 @@ fun ModulesView(viewModel: IModulesViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Text(
-                    "Meine Module",
-                    style = typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(top = 18.dp, bottom = 10.dp)
-                )
+                ViewHeader("Meine Module")
             }
             items(viewModel.modules) { module ->
                 OutlinedButton(
@@ -49,7 +43,7 @@ fun ModulesView(viewModel: IModulesViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp, horizontal = 16.dp),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(2.dp, Blue),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = LightBlue,

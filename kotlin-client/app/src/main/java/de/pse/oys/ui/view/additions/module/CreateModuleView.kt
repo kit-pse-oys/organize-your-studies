@@ -4,18 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
@@ -38,6 +31,9 @@ import de.pse.oys.ui.navigation.Intent
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ColorPicker
+import de.pse.oys.ui.util.InputLabel
+import de.pse.oys.ui.util.SingleLineInput
+import de.pse.oys.ui.util.ViewHeaderBig
 
 @Composable
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
@@ -48,77 +44,16 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "Neues Modul",
-                style = typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
-            )
-            Text(
-                "Titel:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp)
-            )
-            TextField(
-                value = viewModel.title,
-                onValueChange = { viewModel.title = it },
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(bottom = 14.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = LightBlue,
-                    unfocusedContainerColor = LightBlue,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                singleLine = true
-            )
-            Text(
-                "Beschreibung:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp)
-            )
-            TextField(
-                value = viewModel.description,
-                onValueChange = { viewModel.description = it },
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(bottom = 14.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = LightBlue,
-                    unfocusedContainerColor = LightBlue,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                singleLine = true
-            )
-            Text(
-                "Priorität wählen:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 8.dp)
-            )
+            ViewHeaderBig(text = "Neues Modul")
+            InputLabel(text = "Titel:")
+            SingleLineInput(viewModel.title) { viewModel.title = it }
+            InputLabel("Beschreibung:")
+            SingleLineInput(viewModel.description) { viewModel.description = it }
+            InputLabel("Priorität wählen:")
             PriorityChips(
                 current = viewModel.priority,
                 onSelect = { viewModel.priority = it })
-            Text(
-                "Modulfarbe wählen:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 12.dp, top = 8.dp)
-            )
+            InputLabel("Modulfarbe wählen:")
             ColorPicker(onColorChanged = { viewModel.color = it })
         }
     }
@@ -254,3 +189,4 @@ fun CreateModuleViewModel(
         )
     }
 }
+

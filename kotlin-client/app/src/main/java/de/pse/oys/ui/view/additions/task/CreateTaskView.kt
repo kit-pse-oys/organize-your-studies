@@ -4,17 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme.typography
@@ -33,17 +29,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.DateSelectionRow
+import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
+import de.pse.oys.ui.util.NotifyCheckbox
+import de.pse.oys.ui.util.SingleLineInput
+import de.pse.oys.ui.util.ViewHeaderBig
+import de.pse.oys.ui.util.toFormattedString
+import de.pse.oys.ui.view.additions.freetime.format
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -55,7 +56,7 @@ import kotlin.time.Clock
 
 @Composable
 fun CreateTaskView(viewModel: ICreateTaskViewModel) {
-    var showDialog by remember { mutableStateOf(false) }
+    var showModulesDialog by remember { mutableStateOf(false) }
     var selectedModule by remember { mutableStateOf("Kein Modul gewählt") }
     var showExamDatePicker by remember { mutableStateOf(false) }
     var showStartDatePicker by remember { mutableStateOf(false) }
@@ -64,16 +65,6 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var showSubmissionDatePicker by remember { mutableStateOf(false) }
     var showSubmissionTimePicker by remember { mutableStateOf(false) }
 
-    val sub = viewModel.submissionDate
-    val submissionText = "${sub.day.toString().padStart(2, '0')}.${
-        sub.month.number.toString().padStart(2, '0')
-    }.${sub.year}, " +
-            "${sub.hour.toString().padStart(2, '0')}:${sub.minute.toString().padStart(2, '0')} Uhr"
-    val timeLoadDisplay = "${
-        (viewModel.weeklyTimeLoad / 60).toString().padStart(2, '0')
-    }:${(viewModel.weeklyTimeLoad % 60).toString().padStart(2, '0')} h"
-
-
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
@@ -81,36 +72,9 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "Neue Aufgabe",
-                style = typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
-            )
-            Text(
-                "Titel:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp)
-            )
-            TextField(
-                value = viewModel.title,
-                onValueChange = { viewModel.title = it },
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(bottom = 14.dp)
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = LightBlue,
-                    unfocusedContainerColor = LightBlue,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                singleLine = true
-            )
+            ViewHeaderBig(text = "Neue Aufgabe")
+            InputLabel(text = "Titel:")
+            SingleLineInput(viewModel.title) { viewModel.title = it }
             Row(
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -123,7 +87,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                     modifier = Modifier.padding(end = 20.dp)
                 )
                 OutlinedButton(
-                    onClick = { showDialog = true },
+                    onClick = { showModulesDialog = true },
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = LightBlue,
@@ -149,95 +113,29 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                         containerColor = LightBlue,
                     )
                 ) {
-                    Text(text = timeLoadDisplay)
+                    Text(text = viewModel.weeklyTimeLoad.toFormattedString())
                 }
             }
-            if (showTimeLoadPicker) {
-                LocalTimePickerDialog(
-                    initialTime = LocalTime(
-                        hour = (viewModel.weeklyTimeLoad / 60).coerceIn(0, 23),
-                        minute = (viewModel.weeklyTimeLoad % 60).coerceIn(0, 59)
-                    ),
-                    onTimeSelected = { selectedTime ->
-                        viewModel.weeklyTimeLoad = (selectedTime.hour * 60) + selectedTime.minute
-                        showTimeLoadPicker = false
-                    },
-                    onDismiss = { showTimeLoadPicker = false }
-                )
-            }
-            Text(
-                "Aufgabentyp wählen:",
-                style = typography.titleLarge,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 8.dp)
-            )
+            InputLabel(text = "Aufgabentyp wählen:")
             TaskTypeChips(
                 current = viewModel.type,
                 onSelect = { viewModel.type = it }
             )
 
-            if (showDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDialog = false },
-                    title = { Text("Modul auswählen") },
-                    text = {
-                        Column {
-                            viewModel.availableModules.forEach { title ->
-                                TextButton(
-                                    onClick = {
-                                        selectedModule = title
-                                        showDialog = false
-                                    },
-                                ) {
-                                    Text(title, textAlign = TextAlign.Left)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Abbrechen")
-                        }
-                    }
-                )
-            }
-
             if (viewModel.type == TaskType.EXAM) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp, bottom = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                DateSelectionRow(
+                    "Datum wählen:",
+                    viewModel.examDate.format()
+                ) { showExamDatePicker = true }
+                NotifyCheckbox(
+                    "Ich will vor der Klausur benachrichtigt werden.",
+                    viewModel.sendNotification
                 ) {
-                    Text(
-                        "Klausurdatum:",
-                        style = typography.titleLarge,
-                        modifier = Modifier.padding(end = 20.dp)
-                    )
-                    OutlinedButton(
-                        onClick = { showExamDatePicker = true },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = LightBlue,
-                        )
-                    ) {
-                        val d = viewModel.examDate
-                        Text(
-                            "${d.day.toString().padStart(2, '0')}.${
-                                d.month.number.toString().padStart(2, '0')
-                            }.${d.year}"
-                        )
-                    }
+                    viewModel.sendNotification = it
                 }
             }
             if (viewModel.type == TaskType.SUBMISSION) {
-                Text(
-                    "erster Abgabetermin:",
-                    style = typography.titleLarge,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp)
-                )
+                InputLabel(text = "Abgabedatum wählen:")
                 OutlinedButton(
                     onClick = { showSubmissionDatePicker = true },
                     modifier = Modifier.padding(bottom = 10.dp, top = 10.dp),
@@ -245,7 +143,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                         containerColor = LightBlue,
                     )
                 ) {
-                    Text(text = submissionText)
+                    Text(text = viewModel.submissionDate.toFormattedString())
                 }
                 Row(
                     modifier = Modifier
@@ -277,92 +175,59 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
+                NotifyCheckbox(
+                    "Ich will vor jeder Abgabe benachrichtigt werden.",
+                    viewModel.sendNotification
+                ) {
+                    viewModel.sendNotification = it
+                }
             }
             if (viewModel.type == TaskType.OTHER) {
-                Text(
-                    "Aufgabezeitraum festlegen:",
-                    style = typography.titleLarge,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp, bottom = 10.dp, top = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Startdatum:",
-                        style = typography.titleMedium,
-                        modifier = Modifier.padding(end = 20.dp)
-                    )
-                    OutlinedButton(
-                        onClick = { showStartDatePicker = true },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = LightBlue,
-                        )
-                    ) {
-                        val d = viewModel.start
-                        Text(
-                            "${d.day.toString().padStart(2, '0')}.${
-                                d.month.number.toString().padStart(2, '0')
-                            }.${d.year}"
-                        )
-                    }
+                InputLabel(text = "Aufgabenzeitraum wählen:")
+                DateSelectionRow("Startdatum:", viewModel.start.format()) {
+                    showStartDatePicker = true
                 }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp, bottom = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Enddatum:",
-                        style = typography.titleMedium,
-                        modifier = Modifier.padding(end = 20.dp)
-                    )
-                    OutlinedButton(
-                        onClick = { showEndDatePicker = true },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = LightBlue,
-                        )
-                    ) {
-                        val d = viewModel.start
-                        Text(
-                            "${d.day.toString().padStart(2, '0')}.${
-                                d.month.number.toString().padStart(2, '0')
-                            }.${d.year}"
-                        )
-                    }
-                }
+                DateSelectionRow("Enddatum:", viewModel.end.format()) { showEndDatePicker = true }
             }
-            if (viewModel.type == TaskType.EXAM || viewModel.type == TaskType.SUBMISSION) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp)
-                        .toggleable(
-                            value = viewModel.sendNotification,
-                            onValueChange = { viewModel.sendNotification = it },
-                            role = Role.Checkbox
-                        ), verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = viewModel.sendNotification,
-                        onCheckedChange = null,
-                        modifier = Modifier.padding(end = 10.dp),
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Blue,
-                            uncheckedColor = LightBlue
-                        )
-                    )
-                    Text(
-                        text = "Ich will benachrichtigt werden.",
-                    )
-                }
+
+            if (showModulesDialog) {
+                AlertDialog(
+                    onDismissRequest = { showModulesDialog = false },
+                    title = { Text("Modul auswählen") },
+                    text = {
+                        Column {
+                            viewModel.availableModules.forEach { title ->
+                                TextButton(
+                                    onClick = {
+                                        selectedModule = title
+                                        showModulesDialog = false
+                                    },
+                                ) {
+                                    Text(title, textAlign = TextAlign.Left)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showModulesDialog = false }) {
+                            Text("Abbrechen")
+                        }
+                    }
+                )
+            }
+
+            if (showTimeLoadPicker) {
+                LocalTimePickerDialog(
+                    initialTime = LocalTime(
+                        hour = (viewModel.weeklyTimeLoad / 60).coerceIn(0, 23),
+                        minute = (viewModel.weeklyTimeLoad % 60).coerceIn(0, 59)
+                    ),
+                    onTimeSelected = { selectedTime ->
+                        viewModel.weeklyTimeLoad = (selectedTime.hour * 60) + selectedTime.minute
+                        showTimeLoadPicker = false
+                    },
+                    onDismiss = { showTimeLoadPicker = false }
+                )
             }
 
             if (showExamDatePicker) {
