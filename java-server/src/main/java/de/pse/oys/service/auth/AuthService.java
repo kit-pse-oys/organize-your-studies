@@ -1,22 +1,18 @@
 package de.pse.oys.service.auth;
 
-import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import de.pse.oys.domain.ExternalUser;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.UserType;
-import de.pse.oys.dto.UserDTO;
+import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
-import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.persistence.UserRepository;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,9 +20,9 @@ import java.util.UUID;
 /**
  * AuthService – Der Service für die Identitäts- und zentrale Sitzungsverwaltung.
  * Seine Kernfunktionen umfassen:
- *  - Provider-Management: Verwaltung der lokalen und externen Authentifizierung (OAuth2).
- *  - Validierung externer Identitäten: Sicherstellung der Authentizität externer Benutzer.
- *  - Sitzungsverwaltung(JWT): Nach erfolgreicher Authentifizierung Erzeugung von Sitzungstokens.
+ * - Provider-Management: Verwaltung der lokalen und externen Authentifizierung (OAuth2).
+ * - Validierung externer Identitäten: Sicherstellung der Authentizität externer Benutzer.
+ * - Sitzungsverwaltung(JWT): Nach erfolgreicher Authentifizierung Erzeugung von Sitzungstokens.
  *
  * @author uhupo
  * @version 1.0
@@ -47,10 +43,10 @@ public class AuthService {
 
     /**
      * Konstruktor mit Dependency Injection.
-     * @param userRepository Das UserRepository für den Zugriff auf Benutzerdaten.
      *
-     * @param passwordEncoder Der PasswordEncoder für die Passwort-Hashing und -Validierung.
-     * @param jwtProvider Der JwtProvider für die JWT-Erstellung und -Validierung.
+     * @param userRepository      Das UserRepository für den Zugriff auf Benutzerdaten.
+     * @param passwordEncoder     Der PasswordEncoder für die Passwort-Hashing und -Validierung.
+     * @param jwtProvider         Der JwtProvider für die JWT-Erstellung und -Validierung.
      * @param googleOAuthVerifier Verifier für Google OAuth2 Tokens.
      */
     public AuthService(UserRepository userRepository,
@@ -71,7 +67,7 @@ public class AuthService {
      *
      * @param loginDTO Die Anmeldeinformationen des Benutzers.
      * @return AuthResponseDTO mit Access- und Refresh-Token bei erfolgreicher Authentifizierung.
-     * @throws IllegalStateException Geworfen, wenn eine unauflösbare Inkonsistenz zwischen DTO und Datenbank besteht.
+     * @throws IllegalStateException    Geworfen, wenn eine unauflösbare Inkonsistenz zwischen DTO und Datenbank besteht.
      * @throws IllegalArgumentException Geworfen, wenn die Authentifizierung fehlschlägt (z.B. ungültiges Passwort).
      */
     @Transactional
@@ -110,7 +106,6 @@ public class AuthService {
             } else {
                 // 4. Benutzer existiert nicht, neuen Benutzer anlegen (Just-in-Time-Provisioning).
                 user = new ExternalUser(UUID.randomUUID(), name, googleSub, UserType.GOOGLE);
-                userRepository.save(user);
             }
             // 5. JWT und Refresh-Token generieren.
             String accessToken = jwtProvider.createAccessToken(user);
@@ -118,6 +113,7 @@ public class AuthService {
 
             //6. Refresh-Token in der Datenbank speichern
             user.setRefreshTokenHash(passwordEncoder.encode(refreshToken));
+            userRepository.save(user);
 
             // 7. AuthResponseDTO zurückgeben.
             return new AuthResponseDTO(accessToken, refreshToken, user.getId(), name);
@@ -137,7 +133,7 @@ public class AuthService {
         LocalUser user = (LocalUser) optionalUser.orElseThrow(() -> new IllegalStateException(ERR_LOCAL_USER_INCONSISTENT));// Stellt Konsistenz zwischen DTO und DB sicher
 
         // 2. Passwort validieren.
-        String userSalt= user.getSalt(); // Salt abrufen
+        String userSalt = user.getSalt(); // Salt abrufen
         String hashedPassword = user.getHashedPassword(); // Hash abrufen
 
         if (!passwordEncoder.matches(loginDTO.getPassword() + userSalt, hashedPassword)) {
@@ -163,18 +159,33 @@ public class AuthService {
      * WICHTIG: Das Refresh-Token selbst wird nicht erneuert oder geändert.
      * Es bleibt bis zu seinem ursprünglichen Ablaufdatum gültig.
      *
-     * @return
+     * @param refreshTokenDTO Das DTO, das das Refresh-Token enthält.
+     * @return AuthResponseDTO mit dem neuen Access-Token.
      */
-    public AuthResponseDTO refreshToken() {
-        //TODO
-        return null;
-    }
+    public AuthResponseDTO refreshToken(RefreshTokenDTO refreshTokenDTO) {
+        String refreshToken = refreshTokenDTO.getRefreshToken();
 
-    private void createAuthResponse() {
-        //TODO
-    }
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("Ungültiges Refresh-Token.");
+        }
 
-    private void validateExternalToken() {
-        //TODO
+        UUID userId = jwtProvider.extractUserId(refreshToken);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Benutzer nicht gefunden"));
+
+        String storedRefreshTokenHash = user.getRefreshTokenHash();
+        if (storedRefreshTokenHash == null ||
+                !passwordEncoder.matches(refreshToken, storedRefreshTokenHash)) {
+            throw new IllegalArgumentException("Refresh-Token stimmt nicht überein.");
+        }
+
+        String newAccessToken = jwtProvider.createAccessToken(user);
+
+        return new AuthResponseDTO(
+                newAccessToken,
+                refreshToken,
+                user.getId(),
+                user.getUsername()
+        );
     }
 }

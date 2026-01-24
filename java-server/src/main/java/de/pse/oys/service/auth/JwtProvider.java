@@ -26,7 +26,8 @@ import java.util.UUID;
 @Component
 public class JwtProvider {
 
-    private final String jwtSecret;
+    private static final String ERR_TOKEN_INVALID = "Token ist ungültig.";
+    private final SecretKey secretKey;
     private final long accessTokenExpiration;
     private final long refreshTokenExpiration;
 
@@ -42,7 +43,7 @@ public class JwtProvider {
             @Value("${jwt.secret}") String jwtSecret,
             @Value("${jwt.access.token.expiration}") long accessTokenExpiration,
             @Value("${jwt.refresh.token.expiration}") long refreshTokenExpiration) {
-        this.jwtSecret = jwtSecret;
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
@@ -60,6 +61,7 @@ public class JwtProvider {
 
     /**
      * Erstellt ein JWT-Refresh-Token für den angegebenen Benutzer.
+     *
      * @param user Der Benutzer, für den das Token erstellt werden soll.
      * @return Das generierte JWT-Refresh-Token als String.
      */
@@ -68,7 +70,6 @@ public class JwtProvider {
     }
 
     private String createToken(User user, long refreshTokenExpiration) {
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshTokenExpiration);
 
@@ -76,7 +77,7 @@ public class JwtProvider {
                 .setSubject(user.getId().toString())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -88,8 +89,7 @@ public class JwtProvider {
      */
     public boolean validateToken(String token) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             // Token ist ungültig: abgelaufen, manipuliert oder sonst fehlerhaft
@@ -99,13 +99,14 @@ public class JwtProvider {
 
     /**
      * Extrahiert die Benutzer-ID aus dem JWT-Token.
+     *
      * @param token Das JWT-Token, aus dem die Benutzer-ID extrahiert werden soll.
      * @return Die extrahierte Benutzer-ID als String.
      */
-    public UUID getUserIdFromToken(String token) {
+    public UUID extractUserId(String token) {
         try {
             String subject = Jwts.parserBuilder()
-                    .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8)))
+                    .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token)
                     .getBody()
@@ -113,7 +114,7 @@ public class JwtProvider {
 
             return UUID.fromString(subject);
         } catch (JwtException e) {
-            throw new InvalidTokenException("Token ungültig", e);
+            throw new InvalidTokenException(ERR_TOKEN_INVALID, e);
         }
     }
 }

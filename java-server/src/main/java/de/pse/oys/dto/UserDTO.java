@@ -15,6 +15,13 @@ public class UserDTO {
     private String username;
     private String password;
 
+    /**
+     * Setzt die eindeutige ID des Nutzers.
+     * @param id die ID des Nutzers
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
 
     /**
      * Gibt die eindeutige ID des Nutzers zurück.
@@ -39,4 +46,6 @@ public class UserDTO {
     public String getPassword() {
         return password;
     }
+
+
 }

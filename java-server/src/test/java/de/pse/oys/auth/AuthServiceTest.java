@@ -7,6 +7,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import de.pse.oys.domain.ExternalUser;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.enums.UserType;
+import de.pse.oys.dto.RefreshTokenDTO;
+import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -121,4 +123,58 @@ class AuthServiceTest {
         assertEquals(googleSub, savedUser.getExternalSubjectId());
         assertEquals(UserType.GOOGLE, savedUser.getUserType());
     }
+
+    @Test
+    void refreshToken_withInvalidToken_shouldThrowException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userId.toString());
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO("invalid-token");
+
+        when(jwtProvider.validateToken("invalid-token")).thenReturn(false);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authService.refreshToken(refreshDTO)
+        );
+
+        assertEquals("Ungültiges Refresh-Token.", exception.getMessage());
+    }
+
+    @Test
+    void refreshToken_withValidToken_shouldReturnNewAccessToken() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        String refreshToken = "valid-refresh-token";
+        String newAccessToken = "new-access-token";
+        String username = "testuser";
+        String refreshTokenHash = "hashed-refresh-token";
+
+        // User-Mock
+        LocalUser user = mock(LocalUser.class);
+        when(user.getId()).thenReturn(userId);
+        when(user.getUsername()).thenReturn(username);
+        when(user.getRefreshTokenHash()).thenReturn(refreshTokenHash);
+
+        // Mocks für Token-Validierung und Extraktion
+        when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
+        when(jwtProvider.extractUserId(refreshToken)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(refreshToken, refreshTokenHash)).thenReturn(true);
+        when(jwtProvider.createAccessToken(user)).thenReturn(newAccessToken);
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO(refreshToken);
+
+        // Act
+        AuthResponseDTO response = authService.refreshToken(refreshDTO);
+
+        // Assert
+        assertEquals(newAccessToken, response.getAccessToken());
+        assertEquals(refreshToken, response.getRefreshToken());
+        assertEquals(userId, response.getUserId());
+        assertEquals(username, response.getUsername());
+    }
+
 }
