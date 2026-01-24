@@ -167,4 +167,36 @@ public abstract class User {
     public UUID getId() {
         return userId;
     }
+
+    /**
+     * Gibt den Benutzertyp zurück.
+     * @return den Benutzertyp
+     */
+    public UserType getUserType() {
+        return userType;
+    }
+
+    /**
+     * Setzt den Hash des Refresh-Tokens.
+     * @param refreshTokenHash der neue Hash des Refresh-Tokens
+     */
+    public void setRefreshTokenHash(String refreshTokenHash) {
+        this.refreshTokenHash = refreshTokenHash;
+    }
+
+    /**
+     * Gibt den Hash des Refresh-Tokens zurück.
+     * @return
+     */
+    public String getRefreshTokenHash() {
+        return refreshTokenHash;
+    }
+
+    /**
+     * Gibt den Benutzernamen zurück.
+     * @return den Benutzernamen
+     */
+    public String getUsername() {
+        return username;
+    }
 }

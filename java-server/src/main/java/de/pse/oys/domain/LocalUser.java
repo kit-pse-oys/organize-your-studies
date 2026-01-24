@@ -48,14 +48,20 @@ public class LocalUser extends User {
         this.passwordSalt = salt;
     }
 
+    // Getter Methoden
+
+
     /**
-     * Prüft das eingegebene Passwort gegen den gespeicherten Hash unter Verwendung des Salts.
-     * @param rawPassword Das im Login eingegebene Klartext-Passwort.
-     * @return true, wenn die Passwörter übereinstimmen.
+     * @return den Salt-Wert des Passwort-Hashings.
      */
-    public boolean validatePassword(String rawPassword) {
-        // Die eigentliche Logik zur Hash-Berechnung findet im AuthService statt,
-        // die Entität stellt hier nur den Einstiegspunkt bereit.
-        return false; // Skelett
+    public String getSalt() {
+        return passwordSalt;
+    }
+
+    /**
+     * @return den Passwort-Hash.
+     */
+    public String getHashedPassword() {
+        return passwordHash;
     }
 }

@@ -1,47 +1,51 @@
 package de.pse.oys.dto;
 
 /**
- * Datentransferobjekt für Benutzerdaten.
- * Wird primär für die Registrierung und Validierung von Benutzerkonten verwendet.
- * @author utgid
+ * UserDTO –
+ *
+ * @author uhupo
  * @version 1.0
  */
+/**
+ * Data Transfer Object für Benutzer.
+ * Wird für Registrierung und Profilanzeige verwendet.
+ */
 public class UserDTO {
-
-    /** Die eindeutige Kennung des Nutzers als String. */
     private String id;
-
-    /** Der gewählte Nutzername des Benutzers. */
     private String username;
-
-    /** Das Passwort des Benutzers (im Klartext bei Request, verschlüsselt in der Domain). */
     private String password;
 
     /**
-     * Standardkonstruktor für die Deserialisierung.
+     * Setzt die eindeutige ID des Nutzers.
+     * @param id die ID des Nutzers
      */
-    public UserDTO() {
+    public void setId(String id) {
+        this.id = id;
     }
 
-    // Getter
+    /**
+     * Gibt die eindeutige ID des Nutzers zurück.
+     * @return die ID des Nutzers
+     */
+    public String getId() {
+        return id;
+    }
 
-    /** @return Die ID des Nutzers. */
-    public String getId() { return id; }
+    /**
+     * Gibt den Nutzernamen zurück.
+     * @return der Nutzername
+     */
+    public String getUsername() {
+        return username;
+    }
 
-    /** @return Der Nutzername. */
-    public String getUsername() { return username; }
+    /**
+     * Gibt das Passwort zurück.
+     * @return das Passwort
+     */
+    public String getPassword() {
+        return password;
+    }
 
-    /** @return Das Passwort. */
-    public String getPassword() { return password; }
 
-    // Setter
-
-    /** @param id Die zu setzende Nutzer-ID. */
-    public void setId(String id) { this.id = id; }
-
-    /** @param username Der zu setzende Nutzername. */
-    public void setUsername(String username) { this.username = username; }
-
-    /** @param password Das zu setzende Passwort. */
-    public void setPassword(String password) { this.password = password; }
 }
