@@ -2,7 +2,6 @@ package de.pse.oys.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.UUID;
 
 /**
  * Datentransferobjekt für eine einzelne Lerneinheit.

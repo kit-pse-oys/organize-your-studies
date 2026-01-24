@@ -1,12 +1,6 @@
 package de.pse.oys.dto;
 
 /**
- * UserDTO –
- *
- * @author uhupo
- * @version 1.0
- */
-/**
  * Data Transfer Object für Benutzer.
  * Wird für Registrierung und Profilanzeige verwendet.
  */
