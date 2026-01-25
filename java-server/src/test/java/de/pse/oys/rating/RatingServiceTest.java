@@ -21,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * RatingServiceTest – TODO: Beschreibung ergänzen
+ * RatingServiceTest – Unit-Tests für den RatingService.
+ * Testet das Speichern von Bewertungen und die Handhabung von Fehlerfällen.
  *
  * @author uhupo
  * @version 1.0

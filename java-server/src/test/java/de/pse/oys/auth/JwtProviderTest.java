@@ -8,6 +8,7 @@ import de.pse.oys.service.auth.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.UUID;
 
@@ -17,13 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
- * JwtProviderTest – TODO: Beschreibung ergänzen
+ * JwtProviderTest – Test für die JWT Token Erstellung und Validierung.
+ * Ausgelagerter Teil des Tests für den AuthService und UserService (Registrieren von lokalen Benutzern).
  *
  * @author uhupo
  * @version 1.0
  */
 @SpringBootTest
-public class JwtProviderTest {
+@ActiveProfiles("test")
+class JwtProviderTest {
 
    @Autowired
    private JwtProvider jwtProvider;
