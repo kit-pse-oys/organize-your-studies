@@ -17,13 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
- * JwtProviderTest – TODO: Beschreibung ergänzen
+ * JwtProviderTest – Test für die JWT Token Erstellung und Validierung.
+ * Ausgelagerter Teil des Tests für den AuthService und UserService (Registrieren von lokalen Benutzern).
  *
  * @author uhupo
  * @version 1.0
  */
 @SpringBootTest
-public class JwtProviderTest {
+class JwtProviderTest {
 
    @Autowired
    private JwtProvider jwtProvider;

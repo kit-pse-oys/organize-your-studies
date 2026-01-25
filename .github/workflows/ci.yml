@@ -85,6 +85,20 @@ jobs:
           chmod +x gradlew
           ./gradlew test
 
+      - name: Upload Java Test HTML Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: java-test-html-report
+          path: java-server/build/reports/tests/test/
+
+      - name: Publish Java Test Results to GitHub
+        uses: dorny/test-reporter@v1
+        with:
+          name: Java Tests
+          path: java-server/build/test-results/test/*.xml
+          reporter: junit
+          fail-on-error: true
+
   # --- JOB 4: KOTLIN CLIENT ---
   test-kotlin:
     needs: changes

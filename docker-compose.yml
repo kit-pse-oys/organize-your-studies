@@ -18,7 +18,7 @@ services:
       - .env
     environment:
       # Diese Variablen überschreiben die Werte in application.properties
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:-oys_db}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-oys_db}
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
