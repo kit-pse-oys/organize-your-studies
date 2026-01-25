@@ -86,7 +86,7 @@ jobs:
           ./gradlew test
 
       - name: Upload Java Test HTML Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.2.1
         with:
           name: java-test-html-report
           path: java-server/build/reports/tests/test/
