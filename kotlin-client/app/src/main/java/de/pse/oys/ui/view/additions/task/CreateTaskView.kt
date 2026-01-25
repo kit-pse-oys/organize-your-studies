@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -44,7 +45,6 @@ import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
-import de.pse.oys.ui.view.additions.freetime.format
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -56,14 +56,9 @@ import kotlin.time.Clock
 
 @Composable
 fun CreateTaskView(viewModel: ICreateTaskViewModel) {
-    var showModulesDialog by remember { mutableStateOf(false) }
-    var selectedModule by remember { mutableStateOf("Kein Modul gewählt") }
     var showExamDatePicker by remember { mutableStateOf(false) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
-    var showTimeLoadPicker by remember { mutableStateOf(false) }
-    var showSubmissionDatePicker by remember { mutableStateOf(false) }
-    var showSubmissionTimePicker by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -75,47 +70,8 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             ViewHeaderBig(text = "Neue Aufgabe")
             InputLabel(text = "Titel:")
             SingleLineInput(viewModel.title) { viewModel.title = it }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Modul:",
-                    style = typography.titleLarge,
-                    modifier = Modifier.padding(end = 20.dp)
-                )
-                OutlinedButton(
-                    onClick = { showModulesDialog = true },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                    )
-                ) {
-                    Text(text = selectedModule)
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Zeitaufwand pro Woche:",
-                    style = typography.titleLarge,
-                    modifier = Modifier.padding(end = 20.dp)
-                )
-                OutlinedButton(
-                    onClick = { showTimeLoadPicker = true },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                    )
-                ) {
-                    Text(text = viewModel.weeklyTimeLoad.toFormattedString())
-                }
-            }
+            ModuleSelection(viewModel)
+            TimeLoadSelection(viewModel)
             InputLabel(text = "Aufgabentyp wählen:")
             TaskTypeChips(
                 current = viewModel.type,
@@ -125,7 +81,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             if (viewModel.type == TaskType.EXAM) {
                 DateSelectionRow(
                     "Datum wählen:",
-                    viewModel.examDate.format()
+                    viewModel.examDate.toFormattedString()
                 ) { showExamDatePicker = true }
                 NotifyCheckbox(
                     "Ich will vor der Klausur benachrichtigt werden.",
@@ -136,45 +92,8 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             }
             if (viewModel.type == TaskType.SUBMISSION) {
                 InputLabel(text = "Abgabedatum wählen:")
-                OutlinedButton(
-                    onClick = { showSubmissionDatePicker = true },
-                    modifier = Modifier.padding(bottom = 10.dp, top = 10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                    )
-                ) {
-                    Text(text = viewModel.submissionDate.toFormattedString())
-                }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(start = 20.dp, bottom = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Wochenzyklus eingeben:",
-                        style = typography.titleLarge
-                    )
-                    TextField(
-                        value = viewModel.submissionCycle.toString(),
-                        onValueChange = { viewModel.submissionCycle = it.toIntOrNull() ?: 0 },
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp),
-                        textStyle = TextStyle(textAlign = TextAlign.Center),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = LightBlue,
-                            unfocusedContainerColor = LightBlue,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
-                        ),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    )
-                }
+                SubmissionDateSelection(viewModel)
+                SubmissionCycleSelection(viewModel)
                 NotifyCheckbox(
                     "Ich will vor jeder Abgabe benachrichtigt werden.",
                     viewModel.sendNotification
@@ -184,50 +103,13 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             }
             if (viewModel.type == TaskType.OTHER) {
                 InputLabel(text = "Aufgabenzeitraum wählen:")
-                DateSelectionRow("Startdatum:", viewModel.start.format()) {
+                DateSelectionRow("Startdatum:", viewModel.start.toFormattedString()) {
                     showStartDatePicker = true
                 }
-                DateSelectionRow("Enddatum:", viewModel.end.format()) { showEndDatePicker = true }
-            }
-
-            if (showModulesDialog) {
-                AlertDialog(
-                    onDismissRequest = { showModulesDialog = false },
-                    title = { Text("Modul auswählen") },
-                    text = {
-                        Column {
-                            viewModel.availableModules.forEach { title ->
-                                TextButton(
-                                    onClick = {
-                                        selectedModule = title
-                                        showModulesDialog = false
-                                    },
-                                ) {
-                                    Text(title, textAlign = TextAlign.Left)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { showModulesDialog = false }) {
-                            Text("Abbrechen")
-                        }
-                    }
-                )
-            }
-
-            if (showTimeLoadPicker) {
-                LocalTimePickerDialog(
-                    initialTime = LocalTime(
-                        hour = (viewModel.weeklyTimeLoad / 60).coerceIn(0, 23),
-                        minute = (viewModel.weeklyTimeLoad % 60).coerceIn(0, 59)
-                    ),
-                    onTimeSelected = { selectedTime ->
-                        viewModel.weeklyTimeLoad = (selectedTime.hour * 60) + selectedTime.minute
-                        showTimeLoadPicker = false
-                    },
-                    onDismiss = { showTimeLoadPicker = false }
-                )
+                DateSelectionRow(
+                    "Enddatum:",
+                    viewModel.end.toFormattedString()
+                ) { showEndDatePicker = true }
             }
 
             if (showExamDatePicker) {
@@ -268,43 +150,182 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                     onDismiss = { showEndDatePicker = false }
                 )
             }
-
-            if (showSubmissionDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.submissionDate.date,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
-                            viewModel.submissionDate = LocalDateTime(
-                                selectedDate.year,
-                                selectedDate.month.number, selectedDate.day,
-                                viewModel.submissionDate.hour, viewModel.submissionDate.minute
-                            )
-                            showSubmissionDatePicker = false
-                            showSubmissionTimePicker = true
-                        }
-                    },
-                    onDismiss = { showSubmissionDatePicker = false }
-                )
-            }
-
-            if (showSubmissionTimePicker) {
-                LocalTimePickerDialog(
-                    initialTime = viewModel.submissionDate.time,
-                    onTimeSelected = { selectedTime ->
-                        val d = viewModel.submissionDate.date
-                        viewModel.submissionDate = LocalDateTime(
-                            d.year, d.month.number, d.day,
-                            selectedTime.hour, selectedTime.minute
-                        )
-                        showSubmissionTimePicker = false
-                    },
-                    onDismiss = { showSubmissionTimePicker = false }
-                )
-            }
         }
     }
 }
 
+@Composable
+private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedModule by remember { mutableStateOf("Kein Modul gewählt") }
+    Row(
+        modifier = Modifier
+            .padding(start = 20.dp, bottom = 10.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Modul:",
+            style = typography.titleLarge,
+            modifier = Modifier.padding(end = 20.dp)
+        )
+        OutlinedButton(
+            onClick = { showDialog = true },
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = LightBlue,
+            )
+        ) {
+            Text(text = selectedModule)
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Modul auswählen") },
+            text = {
+                Column {
+                    viewModel.availableModules.forEach { title ->
+                        TextButton(
+                            onClick = {
+                                selectedModule = title
+                                showDialog = false
+                            },
+                        ) {
+                            Text(title, textAlign = TextAlign.Left)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Abbrechen")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
+    var showTimeLoadPicker by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .padding(start = 20.dp, bottom = 10.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Zeitaufwand pro Woche:",
+            style = typography.titleLarge,
+            modifier = Modifier.padding(end = 20.dp)
+        )
+        OutlinedButton(
+            onClick = { showTimeLoadPicker = true },
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = LightBlue,
+            )
+        ) {
+            Text(text = viewModel.weeklyTimeLoad.toFormattedString())
+        }
+    }
+
+    if (showTimeLoadPicker) {
+        LocalTimePickerDialog(
+            initialTime = LocalTime(
+                hour = (viewModel.weeklyTimeLoad / 60).coerceIn(0, 23),
+                minute = (viewModel.weeklyTimeLoad % 60).coerceIn(0, 59)
+            ),
+            onTimeSelected = { selectedTime ->
+                viewModel.weeklyTimeLoad = (selectedTime.hour * 60) + selectedTime.minute
+                showTimeLoadPicker = false
+            },
+            onDismiss = { showTimeLoadPicker = false }
+        )
+    }
+}
+
+@Composable
+private fun SubmissionDateSelection(viewModel: ICreateTaskViewModel) {
+    var showSubmissionDatePicker by remember { mutableStateOf(false) }
+    var showSubmissionTimePicker by remember { mutableStateOf(false) }
+    OutlinedButton(
+        onClick = { showSubmissionDatePicker = true },
+        modifier = Modifier.padding(bottom = 10.dp, top = 10.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = LightBlue,
+        )
+    ) {
+        Text(text = viewModel.submissionDate.toFormattedString())
+    }
+    if (showSubmissionDatePicker) {
+        LocalDatePickerDialog(
+            currentDate = viewModel.submissionDate.date,
+            onDateSelected = { selectedDate ->
+                if (selectedDate != null) {
+                    viewModel.submissionDate = LocalDateTime(
+                        selectedDate.year,
+                        selectedDate.month.number, selectedDate.day,
+                        viewModel.submissionDate.hour, viewModel.submissionDate.minute
+                    )
+                    showSubmissionDatePicker = false
+                    showSubmissionTimePicker = true
+                }
+            },
+            onDismiss = { showSubmissionDatePicker = false }
+        )
+    }
+
+    if (showSubmissionTimePicker) {
+        LocalTimePickerDialog(
+            initialTime = viewModel.submissionDate.time,
+            onTimeSelected = { selectedTime ->
+                val d = viewModel.submissionDate.date
+                viewModel.submissionDate = LocalDateTime(
+                    d.year, d.month.number, d.day,
+                    selectedTime.hour, selectedTime.minute
+                )
+                showSubmissionTimePicker = false
+            },
+            onDismiss = { showSubmissionTimePicker = false }
+        )
+    }
+}
+
+@Composable
+private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
+    Row(
+        modifier = Modifier
+            .padding(start = 20.dp, bottom = 10.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Wochenzyklus eingeben:",
+            style = typography.titleLarge
+        )
+        TextField(
+            value = viewModel.submissionCycle.toString(),
+            onValueChange = { viewModel.submissionCycle = it.toIntOrNull() ?: 1 },
+            modifier = Modifier
+                .width(50.dp)
+                .height(50.dp),
+            textStyle = TextStyle(textAlign = TextAlign.Center),
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = LightBlue,
+                unfocusedContainerColor = LightBlue,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+    }
+}
 
 @Composable
 private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {

@@ -28,10 +28,7 @@ import de.pse.oys.data.facade.Task
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
-import de.pse.oys.ui.view.additions.freetime.format
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.number
-
+import de.pse.oys.ui.util.toFormattedString
 
 @Composable
 fun TasksView(viewModel: ITasksViewModel) {
@@ -46,52 +43,58 @@ fun TasksView(viewModel: ITasksViewModel) {
                 ViewHeader(text = "Meine Aufgaben")
             }
             items(viewModel.tasks) { task ->
-                OutlinedButton(
-                    onClick = { viewModel.select(task) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp, horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(2.dp, Blue),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                TaskButton(task, viewModel)
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun TaskButton(task: Task, viewModel: ITasksViewModel) {
+    OutlinedButton(
+        onClick = { viewModel.select(task) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(2.dp, Blue),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = LightBlue,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 2.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    task.data.title, style = typography.titleLarge.copy(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp, horizontal = 2.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                task.data.title, style = typography.titleLarge.copy(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            )
-                            Text(" aus " + task.data.module.data.title)
-                        }
-                        when (task.data) {
-                            is ExamTaskData -> {
-                                Text("Kategorie: Klausur")
-                                Text("Klausurtermin: " + task.data.examDate.format())
-                            }
+                )
+                Text(" aus " + task.data.module.data.title)
+            }
+            when (task.data) {
+                is ExamTaskData -> {
+                    Text("Kategorie: Klausur")
+                    Text("Klausurtermin: " + task.data.examDate.toFormattedString())
+                }
 
-                            is SubmissionTaskData -> {
-                                Text("Kategorie: Abgabe")
-                                Text("Seit " + task.data.firstDate.formatDate + ", um " + task.data.firstDate.formatTime + " Uhr im " + task.data.cycle.toString() + "-Wochenzyklus")
-                            }
+                is SubmissionTaskData -> {
+                    Text("Kategorie: Abgabe")
+                    Text("Seit " + task.data.firstDate.toFormattedString() + " im " + task.data.cycle.toString() + "-Wochenzyklus")
+                }
 
-                            is OtherTaskData -> {
-                                Text("Kategorie: Sonstige")
-                                Text("Aufgabezeitraum: " + task.data.start.format() + " - " + task.data.end.format())
-                            }
-                        }
-                    }
+                is OtherTaskData -> {
+                    Text("Kategorie: Sonstige")
+                    Text("Aufgabezeitraum: " + task.data.start.toFormattedString() + " - " + task.data.end.toFormattedString())
                 }
             }
         }
@@ -104,9 +107,3 @@ interface ITasksViewModel {
 
     fun select(task: Task)
 }
-
-val LocalDateTime.formatDate: String
-    get() = "${day.toString().padStart(2, '0')}.${month.number.toString().padStart(2, '0')}.$year"
-
-val LocalDateTime.formatTime: String
-    get() = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"

@@ -1,18 +1,27 @@
 package de.pse.oys.ui.view.ratings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.pse.oys.data.facade.Rating
@@ -24,6 +33,7 @@ import de.pse.oys.ui.util.ViewHeader
 @Composable
 fun RatingView(viewModel: IRatingViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        var selectedMissed by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -31,23 +41,43 @@ fun RatingView(viewModel: IRatingViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             ViewHeader("Einheit bewerten")
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+                    .padding(bottom = 10.dp),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (!selectedMissed) Color.LightGray else LightBlue),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.5.dp, if (!selectedMissed) Color.Gray else Blue),
+                onClick = {
+                    selectedMissed = !selectedMissed
+                }) {
+                Text(
+                    "Ich habe diese Einheit verpasst.",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             RatingQuestion(
                 1,
                 "Wie gut konntest du deine Ziele für diese Einheit umsetzten?",
                 viewModel.goalCompletion,
                 listOf("Gar nicht", "Eher nicht", "Teilweise", "Gut", "Sehr gut"),
+                selectedMissed,
                 onRatingChange = { viewModel.goalCompletion = it })
             RatingQuestion(
                 2,
                 "Wie hast du die Länge der Einheit empfunden?",
                 viewModel.duration,
                 listOf("Viel zu kurz", "Zu kurz", "Gut", "Zu lang", "Viel zu lang"),
+                selectedMissed,
                 onRatingChange = { viewModel.duration = it })
             RatingQuestion(
                 3,
                 "Wie konzentriert und motiviert warst du während dieser Einheit?",
                 viewModel.motivation,
                 listOf("Sehr gering", "Eher gering", "Mittel", "Eher hoch", "Sehr hoch"),
+                selectedMissed,
                 onRatingChange = { viewModel.motivation = it })
         }
     }
@@ -59,6 +89,7 @@ private fun RatingQuestion(
     question: String,
     aspect: Rating,
     labels: List<String>,
+    selectedMissed: Boolean,
     onRatingChange: (Rating) -> Unit
 ) {
     Column(
@@ -66,12 +97,12 @@ private fun RatingQuestion(
             .padding(horizontal = 10.dp)
             .padding(bottom = 10.dp)
             .background(
-                color = LightBlue,
+                color = if (selectedMissed) Color.LightGray else LightBlue,
                 shape = RoundedCornerShape(16.dp)
             )
             .border(
                 width = 1.5.dp,
-                color = Blue,
+                color = if (selectedMissed) Color.Gray else Blue,
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(16.dp)
@@ -91,6 +122,7 @@ private fun RatingQuestion(
         RatingSlider(
             currentRating = aspect,
             labels = labels,
+            enabled = !selectedMissed,
             onRatingChange = onRatingChange
         )
     }
