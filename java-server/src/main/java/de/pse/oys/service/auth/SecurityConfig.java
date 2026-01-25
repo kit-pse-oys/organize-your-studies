@@ -17,8 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Konfiguriert die HTTP-Sicherheit, die zustandslose Sitzungsverwaltung (JWT)
  * und den Passwort-Encoder.
  *
- * @author uhupo
- * @version 1.0
+ * @author uhupo, utgid
+ * @version 1.1
  */
 @Configuration
 @EnableWebSecurity
