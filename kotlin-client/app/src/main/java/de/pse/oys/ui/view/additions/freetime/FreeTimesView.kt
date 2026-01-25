@@ -24,9 +24,7 @@ import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.number
+import de.pse.oys.ui.util.toFormattedString
 
 @Composable
 fun FreeTimesView(viewModel: IFreeTimesViewModel) {
@@ -41,53 +39,49 @@ fun FreeTimesView(viewModel: IFreeTimesViewModel) {
                 ViewHeader(text = "Meine Freizeiten")
             }
             items(viewModel.freeTimes) { freeTime ->
-                OutlinedButton(
-                    onClick = { viewModel.select(freeTime) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp, horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(2.dp, Blue),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp, horizontal = 2.dp)
-                    ) {
-                        Text(
-                            freeTime.data.title, style = typography.titleLarge.copy(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
-                        if (freeTime.data.weekly) {
-                            Text("wöchentliche Freizeit (seit " + freeTime.data.date.format() + ")")
-                        } else {
-                            Text("Freizeit am " + freeTime.data.date.format())
-                        }
-                        Text("Uhrzeit: " + freeTime.data.start.format() + " - " + freeTime.data.end.format())
-                    }
-                }
+                FreeTimeButton(freeTime, viewModel)
             }
         }
     }
 }
 
+@Composable
+private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
+    OutlinedButton(
+        onClick = { viewModel.select(freeTime) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(2.dp, Blue),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = LightBlue,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 2.dp)
+        ) {
+            Text(
+                freeTime.data.title, style = typography.titleLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            if (freeTime.data.weekly) {
+                Text("wöchentliche Freizeit (seit " + freeTime.data.date.toFormattedString() + ")")
+            } else {
+                Text("Freizeit am " + freeTime.data.date.toFormattedString())
+            }
+            Text("Uhrzeit: " + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
+        }
+    }
+}
 
 interface IFreeTimesViewModel {
     val freeTimes: List<FreeTime>
 
     fun select(freeTime: FreeTime)
-}
-
-fun LocalDate.format(): String {
-    return "${day.toString().padStart(2, '0')}.${month.number.toString().padStart(2, '0')}.$year"
-}
-
-fun LocalTime.format(): String {
-    return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
 }

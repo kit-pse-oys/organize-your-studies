@@ -38,34 +38,39 @@ fun ModulesView(viewModel: IModulesViewModel) {
                 ViewHeader("Meine Module")
             }
             items(viewModel.modules) { module ->
-                OutlinedButton(
-                    onClick = { viewModel.select(module) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp, horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(2.dp, Blue),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = LightBlue,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp, horizontal = 2.dp)
-                    ) {
-                        Text(
-                            module.data.title, style = typography.titleLarge.copy(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
-                        Text(module.data.description)
-                        Text("Priorität: " + module.data.priority.toGermanString())
-                    }
-                }
+                ModuleButton(module, viewModel)
             }
+        }
+    }
+}
+
+@Composable
+private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
+    OutlinedButton(
+        onClick = { viewModel.select(module) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(2.dp, Blue),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = LightBlue,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 2.dp)
+        ) {
+            Text(
+                module.data.title, style = typography.titleLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Text(module.data.description)
+            Text("Priorität: " + module.data.priority.toGermanString())
         }
     }
 }

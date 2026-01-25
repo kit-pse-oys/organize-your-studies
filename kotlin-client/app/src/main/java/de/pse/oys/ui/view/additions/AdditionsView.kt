@@ -33,25 +33,31 @@ fun AdditionsView(viewModel: IAdditionsViewModel) {
         ) {
             ViewHeader(text = "Hinzufügen")
             buttonLabels.forEach { label ->
-                OutlinedButton(
-                    onClick = { if (label == "Neues Modul") viewModel.navigateToCreateModule() else if (label == "Neue Aufgabe") viewModel.navigateToCreateTask() else viewModel.navigateToCreateFreeTime() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 20.dp)
-                        .height(60.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(2.dp, Blue),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue)
-                ) {
-                    Text(
-                        text = label,
-                        style = typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Blue
-                    )
-                }
+                AdditionsButton(label, viewModel)
             }
         }
+    }
+}
+
+
+@Composable
+private fun AdditionsButton(label: String, viewModel: IAdditionsViewModel) {
+    OutlinedButton(
+        onClick = { if (label == "Neues Modul") viewModel.navigateToCreateModule() else if (label == "Neue Aufgabe") viewModel.navigateToCreateTask() else viewModel.navigateToCreateFreeTime() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 20.dp)
+            .height(60.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(2.dp, Blue),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue)
+    ) {
+        Text(
+            text = label,
+            style = typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Blue
+        )
     }
 }
 

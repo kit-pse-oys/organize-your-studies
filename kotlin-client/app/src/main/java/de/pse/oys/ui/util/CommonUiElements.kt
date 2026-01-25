@@ -130,7 +130,9 @@ fun NotifyCheckbox(
 @Composable
 fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, bottom = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = typography.titleLarge, modifier = Modifier.padding(end = 20.dp))
@@ -148,6 +150,7 @@ fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
 fun RatingSlider(
     currentRating: Rating,
     labels: List<String>,
+    enabled: Boolean,
     onRatingChange: (Rating) -> Unit,
     activeColor: Color = Blue
 ) {
@@ -169,19 +172,25 @@ fun RatingSlider(
             },
             valueRange = 0f..maxRange,
             steps = steps,
+            enabled = enabled,
             colors = SliderDefaults.colors(
                 thumbColor = activeColor,
                 activeTrackColor = activeColor,
                 inactiveTrackColor = activeColor.copy(alpha = 0.2f),
                 activeTickColor = Color.White,
-                inactiveTickColor = activeColor.copy(alpha = 0.4f)
+                inactiveTickColor = activeColor.copy(alpha = 0.4f),
+                disabledThumbColor = Color.Gray,
+                disabledActiveTrackColor = Color.DarkGray,
+                disabledInactiveTrackColor = Color.LightGray,
+                disabledActiveTickColor = Color.Transparent,
+                disabledInactiveTickColor = Color.Transparent
             )
         )
         Text(
             text = labels.getOrElse(currentRating.ordinal) { "" },
             style = typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = activeColor,
+            color = if (enabled) activeColor else Color.DarkGray,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
         )
         Row(
@@ -200,7 +209,11 @@ fun LocalTime.toFormattedString(): String =
 fun LocalDate.toFormattedString(): String =
     "${day.toString().padStart(2, '0')}.${month.number.toString().padStart(2, '0')}.${year}"
 
-fun LocalDateTime.toFormattedString() = "${date.toFormattedString()}, ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} Uhr"
+fun LocalDateTime.toFormattedString() =
+    "${date.toFormattedString()}, ${hour.toString().padStart(2, '0')}:${
+        minute.toString().padStart(2, '0')
+    } Uhr"
+
 fun Int.toFormattedString(): String {
     val hours = this / 60
     val minutes = this % 60
