@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
 @Serializable
-data class Identified<T>(val data: T, val id: Uuid)
+data class Identified<out T>(val data: T, val id: Uuid)
 
 class ModelFacade(
     var modules: Map<Uuid, ModuleData>? = null,

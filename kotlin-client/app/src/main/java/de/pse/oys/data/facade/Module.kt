@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -36,12 +37,14 @@ object ColorAsStringSerializer : KSerializer<Color> {
         encoder: Encoder,
         value: Color
     ) {
-        val string = value.convert(ColorSpaces.Srgb).value.toString(16).padStart(8, '0')
+        val string = "#" + value.copy(alpha = 0.0f).toArgb().toString(16).uppercase().padStart(6, '0')
         encoder.encodeString(string)
     }
 
     override fun deserialize(decoder: Decoder): Color {
         val string = decoder.decodeString()
-        return Color(string.toLong(16))
+        if (string.length != 7 || string[0] != '#')
+            throw SerializationException("Invalid color string: $string")
+        return Color(string.removePrefix("#").toLong(16) or 0xFF00_0000L)
     }
 }
