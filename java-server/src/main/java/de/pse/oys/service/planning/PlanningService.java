@@ -153,7 +153,7 @@ public class PlanningService {
      */
 
     private String mapPreferredTimeSlotsToString(LearningPreferences preferences) {
-        List<TimeSlot> preferredSlots = preferences.getPreferredTimeSlots();
+        Set<TimeSlot> preferredSlots = preferences.getPreferredTimeSlots();
         List<String> slotStrings = new ArrayList<>();
 
         for (TimeSlot slot : preferredSlots) {
