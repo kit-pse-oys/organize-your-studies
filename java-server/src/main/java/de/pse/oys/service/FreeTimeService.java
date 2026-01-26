@@ -52,7 +52,7 @@ public class FreeTimeService {
         validateData(user, dto, null);
 
         UUID id = (dto.getId() != null) ? dto.getId() : UUID.randomUUID();
-        FreeTime entity = mapToEntity(id, dto);
+        FreeTime entity = mapToEntity(dto);
 
         user.addFreeTime(entity);
         userRepository.save(user); // Cascade.ALL auf freeTimes
@@ -92,7 +92,7 @@ public class FreeTimeService {
             user.deleteFreeTime(existing);
             freeTimeRepository.delete(existing);
 
-            FreeTime replacement = mapToEntity(freeTimeId, dto);
+            FreeTime replacement = mapToEntity(dto);
             user.addFreeTime(replacement);
 
             userRepository.save(user);
