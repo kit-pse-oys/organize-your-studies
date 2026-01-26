@@ -2,6 +2,7 @@ package de.pse.oys.data.facade
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.graphics.toArgb
 import de.pse.oys.R
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
