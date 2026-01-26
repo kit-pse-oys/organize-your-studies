@@ -60,8 +60,13 @@ class PlanningServiceTest {
     @BeforeEach
     void setUp() {
 
-        planningService = new PlanningService(taskRepository, learningPlanRepository, userRepository,
-                costMatrixRepository, learningAnalyticsProvider, restTemplate);
+        planningService = new PlanningService(
+                taskRepository,
+                learningPlanRepository,
+                userRepository,
+                learningAnalyticsProvider,
+                restTemplate
+        );
 
         // URL setzen
         ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5000/solve");
@@ -133,7 +138,7 @@ class PlanningServiceTest {
         assertFalse(request.getTasks().isEmpty());
 
 
-        assertTrue(request.getPreferredSlots().contains("morgens"));
+        assertTrue(request.getPreferredSlots().contains(TimeSlot.MORNING.toString()));
 
         verify(learningPlanRepository).save(any(LearningPlan.class));
     }
