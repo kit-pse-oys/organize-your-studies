@@ -193,17 +193,16 @@ public class FreeTimeService {
         return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
     }
 
-    private FreeTime mapToEntity(UUID id, FreeTimeDTO dto) {
+    private FreeTime mapToEntity(FreeTimeDTO dto) {
         if (dto.isWeekly()) {
             return new RecurringFreeTime(
-                    id,
                     dto.getTitle(),
                     dto.getStartTime(),
                     dto.getEndTime(),
                     dto.getDate().getDayOfWeek()
             );
         }
-        return new SingleFreeTime(id, dto.getTitle(), dto.getStartTime(), dto.getEndTime(), dto.getDate());
+        return new SingleFreeTime(dto.getTitle(), dto.getStartTime(), dto.getEndTime(), dto.getDate());
     }
 
     private FreeTimeDTO mapToDto(FreeTime ft) {

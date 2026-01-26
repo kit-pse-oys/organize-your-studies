@@ -1,6 +1,6 @@
 package de.pse.oys.dto.response;
 
-import de.pse.oys.dto.plan.FreeTimeDTO;
+import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.UnitDTO;
 
 import java.time.LocalDate;
