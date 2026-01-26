@@ -30,11 +30,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import de.pse.oys.R
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
@@ -45,6 +47,7 @@ import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
+import de.pse.oys.ui.util.toFormattedTimeString
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -67,12 +70,12 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeaderBig(text = "Neue Aufgabe")
-            InputLabel(text = "Titel:")
+            ViewHeaderBig(text = stringResource(id = R.string.new_task))
+            InputLabel(text = stringResource(id = R.string.enter_title))
             SingleLineInput(viewModel.title) { viewModel.title = it }
             ModuleSelection(viewModel)
             TimeLoadSelection(viewModel)
-            InputLabel(text = "Aufgabentyp wählen:")
+            InputLabel(text = stringResource(id = R.string.select_task_type))
             TaskTypeChips(
                 current = viewModel.type,
                 onSelect = { viewModel.type = it }
@@ -80,34 +83,37 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
 
             if (viewModel.type == TaskType.EXAM) {
                 DateSelectionRow(
-                    "Datum wählen:",
+                    stringResource(id = R.string.enter_exam_date),
                     viewModel.examDate.toFormattedString()
                 ) { showExamDatePicker = true }
                 NotifyCheckbox(
-                    "Ich will vor der Klausur benachrichtigt werden.",
+                    stringResource(id = R.string.notify_before_exam),
                     viewModel.sendNotification
                 ) {
                     viewModel.sendNotification = it
                 }
             }
             if (viewModel.type == TaskType.SUBMISSION) {
-                InputLabel(text = "Abgabedatum wählen:")
+                InputLabel(text = stringResource(id = R.string.enter_submission_date))
                 SubmissionDateSelection(viewModel)
                 SubmissionCycleSelection(viewModel)
                 NotifyCheckbox(
-                    "Ich will vor jeder Abgabe benachrichtigt werden.",
+                    stringResource(id = R.string.notify_before_submission),
                     viewModel.sendNotification
                 ) {
                     viewModel.sendNotification = it
                 }
             }
             if (viewModel.type == TaskType.OTHER) {
-                InputLabel(text = "Aufgabenzeitraum wählen:")
-                DateSelectionRow("Startdatum:", viewModel.start.toFormattedString()) {
+                InputLabel(text = stringResource(id = R.string.select_time_period))
+                DateSelectionRow(
+                    stringResource(id = R.string.select_start_date),
+                    viewModel.start.toFormattedString()
+                ) {
                     showStartDatePicker = true
                 }
                 DateSelectionRow(
-                    "Enddatum:",
+                    stringResource(id = R.string.select_end_date),
                     viewModel.end.toFormattedString()
                 ) { showEndDatePicker = true }
             }
@@ -157,7 +163,6 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
 @Composable
 private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
     var showDialog by remember { mutableStateOf(false) }
-    var selectedModule by remember { mutableStateOf("Kein Modul gewählt") }
     Row(
         modifier = Modifier
             .padding(start = 20.dp, bottom = 10.dp)
@@ -165,7 +170,7 @@ private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Modul:",
+            stringResource(id = R.string.module),
             style = typography.titleLarge,
             modifier = Modifier.padding(end = 20.dp)
         )
@@ -176,31 +181,31 @@ private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
                 containerColor = LightBlue,
             )
         ) {
-            Text(text = selectedModule)
+            Text(text = viewModel.module.ifEmpty { stringResource(id = R.string.nothing_chosen) })
         }
     }
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Modul auswählen") },
+            title = { Text(stringResource(id = R.string.select_module)) },
             text = {
                 Column {
-                    viewModel.availableModules.forEach { title ->
+                    viewModel.availableModules.forEach { module ->
                         TextButton(
                             onClick = {
-                                selectedModule = title
+                                viewModel.module = module
                                 showDialog = false
                             },
                         ) {
-                            Text(title, textAlign = TextAlign.Left)
+                            Text(module, textAlign = TextAlign.Left)
                         }
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Abbrechen")
+                    Text(stringResource(id = R.string.confirm_cancel))
                 }
             }
         )
@@ -217,7 +222,7 @@ private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Zeitaufwand pro Woche:",
+            stringResource(id = R.string.enter_weekly_time_load),
             style = typography.titleLarge,
             modifier = Modifier.padding(end = 20.dp)
         )
@@ -227,7 +232,7 @@ private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
                 containerColor = LightBlue,
             )
         ) {
-            Text(text = viewModel.weeklyTimeLoad.toFormattedString())
+            Text(text = viewModel.weeklyTimeLoad.toFormattedTimeString())
         }
     }
 
@@ -303,7 +308,7 @@ private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Wochenzyklus eingeben:",
+            stringResource(id = R.string.enter_submission_cycle),
             style = typography.titleLarge
         )
         TextField(
@@ -336,19 +341,19 @@ private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {
         TaskTypeChip(
             taskType = TaskType.EXAM,
             current = current,
-            label = "Klausur",
+            label = stringResource(id = R.string.examTask),
             onSelect = onSelect
         )
         TaskTypeChip(
             taskType = TaskType.SUBMISSION,
             current = current,
-            label = "Abgabe",
+            label = stringResource(id = R.string.submissionTask),
             onSelect = onSelect
         )
         TaskTypeChip(
             taskType = TaskType.OTHER,
             current = current,
-            label = "Sonstige",
+            label = stringResource(id = R.string.otherTask),
             onSelect = onSelect
         )
     }
@@ -410,24 +415,34 @@ interface ICreateTaskViewModel {
     fun delete()
 }
 
-abstract class BaseCreateTaskViewModel : ViewModel(), ICreateTaskViewModel {
-    override val availableModules by mutableStateOf<List<String>>(listOf())
-    override var title by mutableStateOf("")
-    override var module by mutableStateOf("")
-    override var type by mutableStateOf(TaskType.OTHER)
-    override var weeklyTimeLoad by mutableIntStateOf(0)
-    override var sendNotification by mutableStateOf(false)
-    override var examDate by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    )
-    override var submissionDate by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    )
-    override var submissionCycle by mutableIntStateOf(0)
-    override var start by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    )
-    override var end by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    )
+abstract class BaseCreateTaskViewModel(
+    override val showDelete: Boolean = false,
+    override val availableModules: List<String> = emptyList(),
+    initialTitle: String = "",
+    initialModule: String = "",
+    initialType: TaskType = TaskType.OTHER,
+    initialWeeklyTimeLoad: Int = 0,
+    initialSendNotification: Boolean = false,
+    initialExamDate: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    initialSubmissionDate: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+    initialSubmissionCycle: Int = 0,
+    initialStart: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    initialEnd: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+) : ViewModel(), ICreateTaskViewModel {
+
+    override var title by mutableStateOf(initialTitle)
+    override var module by mutableStateOf(initialModule)
+    override var type by mutableStateOf(initialType)
+    override var weeklyTimeLoad by mutableIntStateOf(initialWeeklyTimeLoad)
+    override var sendNotification by mutableStateOf(initialSendNotification)
+
+    override var examDate by mutableStateOf(initialExamDate)
+    override var submissionDate by mutableStateOf(initialSubmissionDate)
+    override var submissionCycle by mutableIntStateOf(initialSubmissionCycle)
+
+    override var start by mutableStateOf(initialStart)
+    override var end by mutableStateOf(initialEnd)
+
+    abstract override fun submit()
+    abstract override fun delete()
 }

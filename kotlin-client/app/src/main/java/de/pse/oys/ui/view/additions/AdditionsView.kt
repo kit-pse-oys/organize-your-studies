@@ -15,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import de.pse.oys.R
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
@@ -24,26 +26,33 @@ import de.pse.oys.ui.util.ViewHeader
 @Composable
 fun AdditionsView(viewModel: IAdditionsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        val buttonLabels = listOf("Neues Modul", "Neue Aufgabe", "Neue Freizeit")
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(text = "Hinzufügen")
-            buttonLabels.forEach { label ->
-                AdditionsButton(label, viewModel)
-            }
+            ViewHeader(text = stringResource(id = R.string.additions_header))
+            AdditionsButton(
+                label = stringResource(id = R.string.new_module),
+                onClick = { viewModel.navigateToCreateModule() }
+            )
+            AdditionsButton(
+                label = stringResource(id = R.string.new_task),
+                onClick = { viewModel.navigateToCreateTask() }
+            )
+            AdditionsButton(
+                label = stringResource(id = R.string.new_freetime),
+                onClick = { viewModel.navigateToCreateFreeTime() }
+            )
         }
     }
 }
 
-
 @Composable
-private fun AdditionsButton(label: String, viewModel: IAdditionsViewModel) {
+private fun AdditionsButton(label: String, onClick: () -> Unit) {
     OutlinedButton(
-        onClick = { if (label == "Neues Modul") viewModel.navigateToCreateModule() else if (label == "Neue Aufgabe") viewModel.navigateToCreateTask() else viewModel.navigateToCreateFreeTime() },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp, horizontal = 20.dp)

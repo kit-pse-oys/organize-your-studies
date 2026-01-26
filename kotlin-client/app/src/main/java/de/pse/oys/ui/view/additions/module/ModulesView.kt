@@ -17,9 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.pse.oys.R
 import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -35,7 +37,7 @@ fun ModulesView(viewModel: IModulesViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                ViewHeader("Meine Module")
+                ViewHeader(stringResource(id = R.string.my_modules_button))
             }
             items(viewModel.modules) { module ->
                 ModuleButton(module, viewModel)
@@ -70,7 +72,7 @@ private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
                 )
             )
             Text(module.data.description)
-            Text("Priorität: " + module.data.priority.toGermanString())
+            Text(stringResource(id = R.string.priority_is) + module.data.priority.getLabelRes())
         }
     }
 }

@@ -22,8 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import de.pse.oys.R
+import de.pse.oys.data.RatingQuestions
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -40,7 +43,7 @@ fun RatingView(viewModel: IRatingViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            ViewHeader("Einheit bewerten")
+            ViewHeader(stringResource(id = R.string.rate_unit_header))
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -53,32 +56,23 @@ fun RatingView(viewModel: IRatingViewModel) {
                     selectedMissed = !selectedMissed
                 }) {
                 Text(
-                    "Ich habe diese Einheit verpasst.",
+                    stringResource(id = R.string.unit_missed_button),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
-            RatingQuestion(
-                1,
-                "Wie gut konntest du deine Ziele für diese Einheit umsetzten?",
-                viewModel.goalCompletion,
-                listOf("Gar nicht", "Eher nicht", "Teilweise", "Gut", "Sehr gut"),
-                selectedMissed,
-                onRatingChange = { viewModel.goalCompletion = it })
-            RatingQuestion(
-                2,
-                "Wie hast du die Länge der Einheit empfunden?",
-                viewModel.duration,
-                listOf("Viel zu kurz", "Zu kurz", "Gut", "Zu lang", "Viel zu lang"),
-                selectedMissed,
-                onRatingChange = { viewModel.duration = it })
-            RatingQuestion(
-                3,
-                "Wie konzentriert und motiviert warst du während dieser Einheit?",
-                viewModel.motivation,
-                listOf("Sehr gering", "Eher gering", "Mittel", "Eher hoch", "Sehr hoch"),
-                selectedMissed,
-                onRatingChange = { viewModel.motivation = it })
+            RatingQuestions.forEachIndexed { index, questionData ->
+                RatingQuestion(
+                    questionNumber = index + 1,
+                    question = stringResource(id = questionData.textRes),
+                    aspect = viewModel.getRatingById(questionData.id),
+                    labels = questionData.labelsRes.map { stringResource(id = it) },
+                    selectedMissed = selectedMissed,
+                    onRatingChange = { newRating ->
+                        viewModel.updateRatingById(questionData.id, newRating)
+                    }
+                )
+            }
         }
     }
 }
@@ -129,9 +123,9 @@ private fun RatingQuestion(
 }
 
 interface IRatingViewModel {
-    var goalCompletion: Rating
-    var duration: Rating
-    var motivation: Rating
+    fun getRatingById(id: String): Rating
+
+    fun updateRatingById(id: String, rating: Rating)
 
     fun submitRating()
     fun submitMissed()

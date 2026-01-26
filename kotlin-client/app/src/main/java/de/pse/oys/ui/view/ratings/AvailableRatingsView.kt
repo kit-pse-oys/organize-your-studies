@@ -17,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.pse.oys.R
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
 
@@ -33,7 +35,7 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
-                ViewHeader("Einheiten bewerten")
+                ViewHeader(stringResource(id = R.string.rate_units_header))
             }
             items(viewModel.available) { target ->
                 RatingSelectionItem(

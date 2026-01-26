@@ -212,10 +212,10 @@ fun LocalDate.toFormattedString(): String =
 fun LocalDateTime.toFormattedString() =
     "${date.toFormattedString()}, ${hour.toString().padStart(2, '0')}:${
         minute.toString().padStart(2, '0')
-    } Uhr"
+    }"
 
-fun Int.toFormattedString(): String {
+fun Int.toFormattedTimeString(): String {
     val hours = this / 60
     val minutes = this % 60
-    return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} h"
+    return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
 }
