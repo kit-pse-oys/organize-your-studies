@@ -23,6 +23,7 @@ public class LearningPreferences {
 
     /** Eindeutiger Identifikator der Präferenzen (readOnly). */
     @Id
+    @GeneratedValue
     @Column(name = "preference_id", updatable = false)
     private UUID preferenceId;
 
@@ -31,7 +32,7 @@ public class LearningPreferences {
     private int minUnitDurationMinutes;
 
     /** Maximale Dauer einer einzelnen Lerneinheit in Minuten. */
-    @Column(name = "max_unit_duration_minutes", nullable = false) //bin mir bei nullable nicht ganz sicher
+    @Column(name = "max_unit_duration_minutes", nullable = false) //fixme bin mir bei nullable nicht ganz sicher
     private int maxUnitDurationMinutes;
 
     /** Maximale tägliche Arbeitslast in Stunden. */
@@ -51,14 +52,14 @@ public class LearningPreferences {
     @CollectionTable(name = "preferred_time_slots", joinColumns = @JoinColumn(name = "preference_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "time_slot")
-    private List<TimeSlot> preferredTimeSlots = new ArrayList<>();
+    private Set<TimeSlot> preferredTimeSlots;
 
     // TODO: @Marcel kannst du mal drüber schauen ob das so passt mit den preferredDays?
     @ElementCollection(targetClass = DayOfWeek.class)
     @CollectionTable(name = "preferred_week_days", joinColumns = @JoinColumn(name = "preference_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "day_of_week")
-    private Set<DayOfWeek> preferredDays = new HashSet<>();
+    private Set<DayOfWeek> preferredDays;
 
     /**
      * Standardkonstruktor für JPA/Hibernate.
@@ -69,43 +70,32 @@ public class LearningPreferences {
 
     /**
      * Erzeugt eine neue Instanz der Lernpräferenzen mit den angegebenen Parametern.
+     * Die UUID wird durch ORM automatisch generiert.
      *
-     * @param preferenceId           Die eindeutige UUID zur Identifizierung dieses Präferenzsatzes.
      * @param minUnitDurationMinutes Die Untergrenze für die Dauer einer Lerneinheit (in Minuten).
      * @param maxUnitDurationMinutes Die Obergrenze für die Dauer einer Lerneinheit (in Minuten).
      * @param maxDailyWorkloadHours  Das angestrebte maximale Tagespensum an Lernzeit (in Stunden).
      * @param breakDurationMinutes   Die Standarddauer für Pausen zwischen Lerneinheiten (in Minuten).
      * @param deadlineBufferDays     Der Pufferzeitraum, der vor Abgabefristen eingeplant werden soll (in Tagen).
+     * @param preferredTimeSlots     Die Menge der bevorzugten Zeitfenster für Lerneinheiten.
+     * @param preferredDays          Die Menge der bevorzugten Wochentage für Lerneinheiten.
      */
-    public LearningPreferences(UUID preferenceId, int minUnitDurationMinutes, int maxUnitDurationMinutes, int maxDailyWorkloadHours, int breakDurationMinutes, int deadlineBufferDays) {
-        this.preferenceId = preferenceId;
+    public LearningPreferences(int minUnitDurationMinutes,
+                               int maxUnitDurationMinutes,
+                               int maxDailyWorkloadHours,
+                               int breakDurationMinutes,
+                               int deadlineBufferDays,
+                               Set<TimeSlot> preferredTimeSlots,
+                               Set<DayOfWeek> preferredDays
+
+    ) {
         this.minUnitDurationMinutes = minUnitDurationMinutes;
         this.maxUnitDurationMinutes = maxUnitDurationMinutes;
         this.maxDailyWorkloadHours = maxDailyWorkloadHours;
         this.breakDurationMinutes = breakDurationMinutes;
         this.deadlineBufferDays = deadlineBufferDays;
-    }
-
-    /**
-     * Überprüft die logische Konsistenz bei der Änderung der maximalen Lerndauer pro Einheit.
-     * Stellt sicher, dass der neue Wert nicht unter der aktuell definierten minimalen Dauer liegt.
-     *
-     * @param minutes Die geplante maximale Dauer in Minuten.
-     * @return true, wenn die neue maximale Dauer gültig ist.
-     */
-    public boolean isValidNewMaxDuration(int minutes) {
-        return minutes >= this.minUnitDurationMinutes;
-    }
-
-    /**
-     * Validiert die minimale Lerndauer.
-     * Garantiert, dass die Untergrenze für eine Lerneinheit die definierte Obergrenze nicht überschreitet.
-     *
-     * @param minutes Die geplante minimale Dauer in Minuten.
-     * @return true, wenn die neue minimale Dauer gültig ist.
-     */
-    public boolean isValidNewMinDuration(int minutes) {
-        return minutes <= this.maxUnitDurationMinutes;
+        this.preferredTimeSlots = preferredTimeSlots != null ? preferredTimeSlots : new HashSet<>();
+        this.preferredDays = preferredDays != null ? preferredDays : new HashSet<>();
     }
 
     /**
@@ -134,10 +124,12 @@ public class LearningPreferences {
     public Set<DayOfWeek> getPreferredDays() {
         return preferredDays;
     }
-    public List<TimeSlot> getPreferredTimeSlots() {
-        if (preferredTimeSlots.isEmpty()) {
-            return null;
-        }
+
+    /**
+     * Gibt die Menge der bevorzugten Zeitslots zurück.
+     * @return Die Menge der bevorzugten Zeitslots oder null, wenn keine definiert sind.
+     */
+    public Set<TimeSlot> getPreferredTimeSlots() {
         return preferredTimeSlots;
     }
 
@@ -161,5 +153,89 @@ public class LearningPreferences {
         return preferenceId;
     }
 
+    /**
+     * Setzt die Pausendauer zwischen Lerneinheiten.
+     * @param breakDurationMinutes Pausendauer in Minuten
+     */
+    public void setBreakDurationMinutes(int breakDurationMinutes) {
+        this.breakDurationMinutes = breakDurationMinutes;
+    }
 
+    /**
+     * Setzt den Puffer vor Deadlines.
+     * @param deadlineBufferDays Puffer in Tagen
+     */
+    public void setDeadlineBufferDays(int deadlineBufferDays) {
+        this.deadlineBufferDays = deadlineBufferDays;
+    }
+
+    /**
+     * Setzt die maximale tägliche Arbeitslast.
+     * @param maxDailyWorkloadHours Arbeitslast in Stunden
+     */
+    public void setMaxDailyWorkloadHours(int maxDailyWorkloadHours) {
+        this.maxDailyWorkloadHours = maxDailyWorkloadHours;
+    }
+
+    /**
+     * Setzt die maximale Dauer einer Lerneinheit.
+     * @param maxUnitDurationMinutes Dauer in Minuten
+     */
+    public void setMaxUnitDurationMinutes(int maxUnitDurationMinutes) {
+        this.maxUnitDurationMinutes = maxUnitDurationMinutes;
+    }
+
+    /**
+     * Setzt die minimale Dauer einer Lerneinheit.
+     * @param minUnitDurationMinutes Dauer in Minuten
+     */
+    public void setMinUnitDurationMinutes(int minUnitDurationMinutes) {
+        this.minUnitDurationMinutes = minUnitDurationMinutes;
+    }
+
+    /**
+     * Setzt die bevorzugten Zeitslots.
+     * @param preferredTimeSlots Menge der Zeitslots
+     */
+    public void setPreferredTimeSlots(Set<TimeSlot> preferredTimeSlots) {
+        this.preferredTimeSlots = preferredTimeSlots;
+    }
+
+    /**
+     * Gibt die minimale Dauer einer Lerneinheit in Minuten zurück.
+     * @return Minimale Dauer in Minuten
+     */
+    public int getMinUnitDurationMinutes() {
+        return minUnitDurationMinutes;
+    }
+    /**
+     * Gibt die maximale Dauer einer Lerneinheit in Minuten zurück.
+     * @return Maximale Dauer in Minuten
+     */
+    public int getMaxUnitDurationMinutes() {
+        return maxUnitDurationMinutes;
+    }
+    /**
+     * Gibt die maximale tägliche Arbeitslast in Stunden zurück.
+     * @return Maximale Arbeitslast in Stunden
+     */
+    public int getMaxDailyWorkloadHours() {
+        return maxDailyWorkloadHours;
+    }
+
+    /**
+     * Gibt die Pausendauer zwischen Lerneinheiten in Minuten zurück.
+     * @return Pausendauer in Minuten
+     */
+    public int getBreakDurationMinutes() {
+        return breakDurationMinutes;
+    }
+
+    /**
+     * Gibt die Pufferzeit vor Deadlines in Tagen zurück.
+     * @return Pufferzeit in Tagen
+     */
+    public int getDeadlineBufferDays() {
+        return deadlineBufferDays;
+    }
 }

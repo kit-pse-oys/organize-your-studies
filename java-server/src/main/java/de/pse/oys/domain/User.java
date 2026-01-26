@@ -38,7 +38,7 @@ public abstract class User {
     private String refreshTokenHash;
 
     /** Zeitpunkt, an dem der Refresh-Token seine Gültigkeit verliert. */
-    private LocalDateTime refreshTokenExpiration;
+    private LocalDateTime refreshTokenExpiration; //TODO noch unused?, evtl. entfernen
 
     /** Art des Benutzerkontos (LOCAL oder AUTH). */
     @Enumerated(EnumType.STRING)
@@ -158,7 +158,7 @@ public abstract class User {
         this.preferences = preferences;
     }
 
-    // GETTER
+    // GETTER & SETTER
 
     /**
      * Gibt die user id
