@@ -3,11 +3,6 @@ package de.pse.oys.domain.enums;
 /**
  * Beschreibt die subjektiv wahrgenommene Dauer einer Lerneinheit im Vergleich
  * zur tatsächlich geplanten Zeit. Dies dient der Optimierung zukünftiger Zeitfenster.
- *
- * @author uhupo
- * @version 2.0
- * Neu in Version 2.0: Hinzugefügte Anpassungswerte für jede Wahrnehmungskategorie, welche konkret dem
- * Enum zugeordnet sind.
  */
 public enum PerceivedDuration {
 
