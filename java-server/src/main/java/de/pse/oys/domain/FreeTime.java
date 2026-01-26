@@ -17,6 +17,7 @@ public abstract class FreeTime {
 
     /** Eindeutige Kennung des Freizeitblocks (readOnly). */
     @Id
+    @GeneratedValue
     @Column(name = "free_time_id", updatable = false)
     private UUID freeTimeId;
 
@@ -49,13 +50,11 @@ public abstract class FreeTime {
     /**
      * Erzeugt einen neuen Freizeitblock.
      *
-     * @param freeTimeId  Eindeutige ID.
-     * @param title Name/Beschreibung (z. B. "Fußballtraining").
-     * @param startTime   Beginn der Freizeit.
-     * @param endTime     Ende der Freizeit.
+     * @param title     Name/Beschreibung (z. B. "Fußballtraining").
+     * @param startTime Beginn der Freizeit.
+     * @param endTime   Ende der Freizeit.
      */
-    public FreeTime(UUID freeTimeId, String title, LocalTime startTime, LocalTime endTime, RecurrenceType type) {
-        this.freeTimeId = freeTimeId;
+    public FreeTime(String title, LocalTime startTime, LocalTime endTime, RecurrenceType type) {
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;

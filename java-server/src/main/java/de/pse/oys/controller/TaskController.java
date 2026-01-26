@@ -12,6 +12,8 @@ import java.util.UUID;
 /**
  * REST-Controller für die Aufgabenverwaltung.
  * Nutzt den BaseController, um auf die Identität des Nutzers zuzugreifen.
+ * @author utgid
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/tasks")
@@ -34,8 +36,6 @@ public class TaskController extends BaseController {
     @GetMapping
     public ResponseEntity<List<TaskDTO>> getTasks() {
         UUID userId = getAuthenticatedUserId();
-        // Hinweis: TaskService benötigt laut deiner Beschreibung eine Methode zum Abrufen.
-        // Falls diese noch fehlt, müsste sie im Service ergänzt werden.
         List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
         return ResponseEntity.ok(tasks);
     }

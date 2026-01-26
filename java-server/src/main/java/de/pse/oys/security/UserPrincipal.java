@@ -5,6 +5,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.UUID;
 
+/**
+ * UserPrincipal implementiert die UserDetails-Schnittstelle von Spring Security.
+ * Diese Klasse dient als Sicherheits-Container, der die Identität des authentifizierten
+ * Benutzers innerhalb der Anwendung repräsentiert.
+ * Im Gegensatz zum Standard-Principal speichert diese Klasse die {@link UUID} des Benutzers,
+ * um eine eindeutige Zuordnung in der Datenbank ohne erneute Abfragen zu ermöglichen.
+ */
 public class UserPrincipal implements UserDetails {
     private final UUID userId;
     private final String username;
@@ -16,7 +23,12 @@ public class UserPrincipal implements UserDetails {
         this.password = password;
     }
 
-    // Das ist die Methode, die dir im Controller gefehlt hat!
+    /**
+     * Gibt die eindeutige Identifikationsnummer (UUID) des Benutzers zurück.
+     * Diese ID wird aus dem JWT extrahiert und dient als Primärschlüssel für alle
+     * datenbankbezogenen Operationen in den Services.
+     * @return die UUID des authentifizierten Benutzers.
+     */
     public UUID getUserId() {
         return userId;
     }

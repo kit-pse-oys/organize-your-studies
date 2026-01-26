@@ -65,7 +65,7 @@ public class RatingService {
         PerceivedDuration perceivedDuration = ratingDTO.getPerceivedDuration();
         ConcentrationLevel concentration = ratingDTO.getConcentration();
 
-        UnitRating unitRating = new UnitRating(UUID.randomUUID(), concentration, perceivedDuration, goalCompletion);
+        UnitRating unitRating = new UnitRating(concentration, perceivedDuration, goalCompletion);
         learningUnit.setRating(unitRating);
 
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,

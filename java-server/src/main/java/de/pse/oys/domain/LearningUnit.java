@@ -19,6 +19,7 @@ public class LearningUnit {
 
     /** Eindeutige Kennung der Lerneinheit. */
     @Id
+    @GeneratedValue
     @Column(name = "unitid", updatable = false)
     private UUID unitId;
 
@@ -58,13 +59,11 @@ public class LearningUnit {
     /**
      * Erzeugt eine neue geplante Lerneinheit.
      *
-     * @param unitId    Eindeutige ID der Einheit.
      * @param task      Die zugeordnete Aufgabe.
      * @param startTime Geplanter Beginn.
      * @param endTime   Geplantes Ende.
      */
-    public LearningUnit(UUID unitId, Task task, LocalDateTime startTime, LocalDateTime endTime) {
-        this.unitId = unitId;
+    public LearningUnit(Task task, LocalDateTime startTime, LocalDateTime endTime) {
         this.task = task;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -73,7 +72,7 @@ public class LearningUnit {
 
     /**
      * Markiert die Einheit als abgeschlossen und speichert die tatsächliche Dauer.
-     * Wird aufgerufen wenn der Nutzer die Einheit frühzeitig bendet hat.
+     * Wird aufgerufen, wenn der Nutzer die Einheit frühzeitig bendet hat.
      * @param actualMinutes Die tatsächlich aufgewendete Zeit in Minuten.
      */
     public void markAsCompletedEarly(int actualMinutes) {

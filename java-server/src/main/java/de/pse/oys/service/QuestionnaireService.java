@@ -48,8 +48,8 @@ public class QuestionnaireService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(ERR_USER_NOT_FOUND, userId)));
 
-        // Validierung der Eingaben aus dem Fragebogen auf Semantik und Null-Safety
-        // Wenn ein Wert ungültig ist, wird eine IllegalArgumentException geworfen
+        // Validierung der Eingaben aus dem Fragebogen auf Semantik und Null-Safety,
+        // wenn ein Wert ungültig ist, wird eine IllegalArgumentException geworfen
         validatePreferences(questionnaireDTO);
 
         int maxUnitDuration = questionnaireDTO.getMaxUnitDuration();
@@ -104,7 +104,7 @@ public class QuestionnaireService {
             throw new IllegalArgumentException(ERR_INVALID_PREFERENCES);
         }
 
-        // Kein primitiv Typ, da null übergeben werden kann und geprüft werden muss
+        // Kein primitiver Typ, da null übergeben werden kann und geprüft werden muss
         Integer minUnitDuration = questionnaireDTO.getMinUnitDuration();
         Integer maxUnitDuration = questionnaireDTO.getMaxUnitDuration();
         Integer maxDayLoad = questionnaireDTO.getMaxDayLoad();

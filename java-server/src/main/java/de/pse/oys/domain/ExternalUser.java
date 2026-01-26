@@ -4,7 +4,6 @@ import de.pse.oys.domain.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import java.util.UUID;
 
 /**
  * Repräsentiert einen Nutzer, der über einen externen Identity Provider (OIDC) verwaltet wird.
@@ -29,13 +28,13 @@ public class ExternalUser extends User {
 
     /**
      * Spezialisierter Konstruktor für externe OIDC-Nutzer[cite: 800, 832].
-     * @param userId die eindeutige Nutzer-ID
+     *
      * @param username der Anzeigename des Nutzers
-     * @param extId die Subject-ID des externen Identity Providers
+     * @param extId    die Subject-ID des externen Identity Providers
      * @param userType der Benutzertyp, referenziert den Authentifizierungsanbieter des Benutzers
      */
-    public ExternalUser(UUID userId, String username, String extId, UserType userType) {
-        super(userId, username, userType);
+    public ExternalUser(String username, String extId, UserType userType) {
+        super(username, userType);
         this.externalSubjectId = extId;
     }
 

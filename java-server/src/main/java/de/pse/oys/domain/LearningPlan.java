@@ -18,6 +18,7 @@ public class LearningPlan {
 
     /** Eindeutige Kennung des Plans (planid). */
     @Id
+    @GeneratedValue
     @Column(name = "planid", updatable = false)
     private UUID planId;
 
@@ -54,12 +55,11 @@ public class LearningPlan {
 
     /**
      * Erzeugt einen neuen Lernplan.
-     * @param id    Die UUID des Plans.
+     *
      * @param start Der Starttag der Woche.
      * @param end   Der Endtag der Woche.
      */
-    public LearningPlan(UUID id, LocalDate start, LocalDate end) {
-        this.planId = id;
+    public LearningPlan(LocalDate start, LocalDate end) {
         this.weekStart = start;
         this.weekEnd = end;
     }

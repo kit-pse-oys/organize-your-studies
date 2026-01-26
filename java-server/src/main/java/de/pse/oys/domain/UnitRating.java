@@ -18,6 +18,7 @@ public class UnitRating {
 
     /** Eindeutige Kennung der Bewertung (ratingid). */
     @Id
+    @GeneratedValue
     @Column(name = "ratingid", updatable = false)
     private UUID ratingId;
 
@@ -45,13 +46,11 @@ public class UnitRating {
     /**
      * Erzeugt eine neue Bewertung für eine Lerneinheit.
      *
-     * @param id            Eindeutige ID der Bewertung.
      * @param concentration Stufe der Konzentration.
      * @param durPercept    Wahrnehmung der Dauer.
      * @param achievement   Grad der Zielerreichung.
      */
-    public UnitRating(UUID id, ConcentrationLevel concentration, PerceivedDuration durPercept, AchievementLevel achievement) {
-        this.ratingId = id;
+    public UnitRating(ConcentrationLevel concentration, PerceivedDuration durPercept, AchievementLevel achievement) {
         this.concentration = concentration;
         this.durationPerception = durPercept;
         this.achievement = achievement;

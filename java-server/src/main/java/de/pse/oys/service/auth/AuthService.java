@@ -106,7 +106,7 @@ public class AuthService {
                 user = optionalUser.get();
             } else {
                 // 4. Benutzer existiert nicht, neuen Benutzer anlegen (Just-in-Time-Provisioning).
-                user = new ExternalUser(UUID.randomUUID(), name, googleSub, UserType.GOOGLE);
+                user = new ExternalUser(name, googleSub, UserType.GOOGLE);
             }
             // 5. JWT und Refresh-Token generieren.
             String accessToken = jwtProvider.createAccessToken(user);

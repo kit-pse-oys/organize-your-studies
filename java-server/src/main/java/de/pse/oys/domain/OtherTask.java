@@ -3,7 +3,6 @@ package de.pse.oys.domain;
 import de.pse.oys.domain.enums.TaskCategory;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Repräsentiert eine allgemeine Aufgabe ohne punktuelle Deadline.
@@ -33,14 +32,13 @@ public class OtherTask extends Task {
     /**
      * Erzeugt eine neue allgemeine Aufgabe.
      *
-     * @param taskId                Eindeutige ID.
      * @param title                 Titel der Aufgabe.
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param startTime             Beginn des Zeitraums.
      * @param endTime               Ende des Zeitraums.
      */
-    public OtherTask(UUID taskId, String title, int weeklyDurationMinutes, LocalDateTime startTime, LocalDateTime endTime) {
-        super(taskId, title, weeklyDurationMinutes, TaskCategory.OTHER);
+    public OtherTask(String title, int weeklyDurationMinutes, LocalDateTime startTime, LocalDateTime endTime) {
+        super(title, weeklyDurationMinutes, TaskCategory.OTHER);
         this.startTime = startTime;
         this.endTime = endTime;
     }

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.UUID;
 
 /**
  * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
@@ -29,14 +28,13 @@ public class RecurringFreeTime extends FreeTime {
      * Erzeugt eine Instanz für eine wiederkehrende Freizeitbeschränkung.
      * Der Typ wird dabei automatisch auf WEEKLY gesetzt.
      *
-     * @param id    Eindeutige ID des Freizeitblocks (slot-id).
      * @param title Bezeichnung der Freizeit (z. B. "Wöchentliches Training").
      * @param start Beginn der Freizeit als Uhrzeit.
      * @param end   Ende der Freizeit als Uhrzeit.
      * @param day   Der Wochentag, an dem die Wiederholung stattfindet.
      */
-    public RecurringFreeTime(UUID id, String title, LocalTime start, LocalTime end, DayOfWeek day) {
-        super(id, title, start, end, RecurrenceType.WEEKLY);
+    public RecurringFreeTime(String title, LocalTime start, LocalTime end, DayOfWeek day) {
+        super(title, start, end, RecurrenceType.WEEKLY);
         this.dayOfWeek = day;
     }
 
