@@ -1,6 +1,8 @@
 package de.pse.oys;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -9,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author uhupo
  * @version 1.0
  */
+@SpringBootTest
+@ActiveProfiles("test")
 class SmokeTest {
     @Test
     void shouldRun() {

@@ -77,7 +77,7 @@ public abstract class User {
      * @param username Benutzername.
      * @param type     Typ des Accounts.
      */
-    public User(String username, UserType type) {
+    protected User(String username, UserType type) {
         this.username = username;
         this.userType = type;
     }
@@ -117,6 +117,11 @@ public abstract class User {
     public List<Task> getAllOpenTasks() {
         return null; // Skelett
     }
+
+    /**
+     * Gibt die Liste der Freizeiten zurück.
+     * @return Liste der Freizeiten
+     */
     public List<FreeTime> getFreeTimes() {
         return freeTimes;
     }

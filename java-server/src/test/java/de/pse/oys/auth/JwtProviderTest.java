@@ -4,6 +4,7 @@ package de.pse.oys.auth;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 
+import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.auth.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author uhupo
  * @version 1.0
  */
-@SpringBootTest(classes = JwtProvider.class)
+@SpringBootTest
 @ActiveProfiles("test")
 class JwtProviderTest {
 
    @Autowired
    private JwtProvider jwtProvider;
 
+   @Autowired
+   private UserRepository userRepository;
+
     @Test
     void createAccessToken_shouldReturnValidToken() {
 
         User user = new LocalUser("access_user", "hashed_password", "salt");
+        userRepository.save(user);
 
         String token = jwtProvider.createAccessToken(user);
 
@@ -45,6 +50,7 @@ class JwtProviderTest {
     @Test
     void createRefreshToken_shouldReturnValidToken() {
         User user = new LocalUser("refresh_user", "pw", "salt");
+        userRepository.save(user);
 
         String refreshToken = jwtProvider.createRefreshToken(user);
         assertNotNull(refreshToken);
@@ -67,6 +73,8 @@ class JwtProviderTest {
                 1000 // refreshTokenExpirationMs
         );
         User user = new LocalUser("expired_user", "pw", "salt");
+        userRepository.save(user);
+
         String token = shortLivedProvider.createAccessToken(user);
 
         Thread.sleep(5); // sicherstellen, dass Token abläuft

@@ -9,6 +9,8 @@ import de.pse.oys.service.QuestionnaireService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.DayOfWeek;
 import java.util.*;
@@ -22,6 +24,9 @@ import static org.mockito.Mockito.*;
  * @author uhupo
  * @version 1.0
  */
+
+@SpringBootTest
+@ActiveProfiles("test")
 class QuestionnaireServiceTest {
 
     private UserRepository userRepository;
