@@ -29,13 +29,12 @@ public class SubmissionTask extends Task {
     /**
      * Erzeugt eine neue Aufgabe mit Abgabefrist.
      *
-     * @param taskId                Eindeutige ID.
      * @param title                 Titel der Aufgabe.
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param deadline              Der feste Abgabetermin.
      */
-    public SubmissionTask(UUID taskId, String title, int weeklyDurationMinutes, LocalDateTime deadline) {
-        super(taskId, title, weeklyDurationMinutes, TaskCategory.SUBMISSION);
+    public SubmissionTask(String title, int weeklyDurationMinutes, LocalDateTime deadline) {
+        super(title, weeklyDurationMinutes, TaskCategory.SUBMISSION);
         this.deadline = deadline;
     }
 

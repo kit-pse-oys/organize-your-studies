@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,7 +32,7 @@ class JwtProviderTest {
     @Test
     void createAccessToken_shouldReturnValidToken() {
 
-        User user = new LocalUser(UUID.randomUUID(), "access_user", "hashed_password", "salt");
+        User user = new LocalUser("access_user", "hashed_password", "salt");
 
         String token = jwtProvider.createAccessToken(user);
 
@@ -46,7 +44,7 @@ class JwtProviderTest {
 
     @Test
     void createRefreshToken_shouldReturnValidToken() {
-        User user = new LocalUser(UUID.randomUUID(), "refresh_user", "pw", "salt");
+        User user = new LocalUser("refresh_user", "pw", "salt");
 
         String refreshToken = jwtProvider.createRefreshToken(user);
         assertNotNull(refreshToken);
@@ -68,7 +66,7 @@ class JwtProviderTest {
                 1, // accessTokenExpirationMs
                 1000 // refreshTokenExpirationMs
         );
-        User user = new LocalUser(UUID.randomUUID(), "expired_user", "pw", "salt");
+        User user = new LocalUser("expired_user", "pw", "salt");
         String token = shortLivedProvider.createAccessToken(user);
 
         Thread.sleep(5); // sicherstellen, dass Token abläuft

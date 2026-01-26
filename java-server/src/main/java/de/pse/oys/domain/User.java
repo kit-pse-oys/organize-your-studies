@@ -25,6 +25,7 @@ public abstract class User {
      * updatable = false stellt sicher, dass die ID nach der Erstellung nicht mehr geändert wird.
      */
     @Id
+    @GeneratedValue
     @Column(name = "user_id", updatable = false)
     private UUID userId;
 
@@ -72,12 +73,11 @@ public abstract class User {
 
     /**
      * Basiskonstruktor zur Initialisierung eines Nutzers.
-     * @param userId Eindeutige ID.
+     *
      * @param username Benutzername.
-     * @param type Typ des Accounts.
+     * @param type     Typ des Accounts.
      */
-    public User(UUID userId, String username, UserType type) {
-        this.userId = userId;
+    public User(String username, UserType type) {
         this.username = username;
         this.userType = type;
     }
@@ -85,9 +85,9 @@ public abstract class User {
     /**
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
      * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
-     * @param start
-     * @param end
-     * @return
+     * @param start Startdatum
+     * @param end Enddatum
+     * @return true, wenn der Plan erfolgreich erstellt wurde.
      */
     public boolean createNewLearningPlan(LocalDate start, LocalDate end) {
         return false; // Skelett

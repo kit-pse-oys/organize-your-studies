@@ -57,12 +57,11 @@ class RatingServiceTest {
         // LearningUnit direkt mit Konstruktor erstellen
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
-        LearningUnit unit = new LearningUnit(learningUnitId, task, start, end);
+        LearningUnit unit = new LearningUnit(task, start, end);
 
         // CostMatrix erstellen und Task zuweisen
-        UUID matrixId = UUID.randomUUID();
         String initialCosts = "{}"; // Dummy JSON
-        CostMatrix costMatrix = new CostMatrix(matrixId, initialCosts, task);
+        CostMatrix costMatrix = new CostMatrix(initialCosts, task);
 
         // RatingDTO erstellen
         RatingDTO ratingDTO = new RatingDTO(AchievementLevel.GOOD, PerceivedDuration.IDEAL, ConcentrationLevel.VERY_HIGH);
@@ -113,7 +112,7 @@ class RatingServiceTest {
 
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
-        LearningUnit unit = new LearningUnit(learningUnitId, task, start, end);
+        LearningUnit unit = new LearningUnit(task, start, end);
 
         when(learningUnitRepository.findById(learningUnitId)).thenReturn(Optional.of(unit));
         when(costMatrixRepository.findByTaskId(taskId)).thenReturn(Optional.empty());

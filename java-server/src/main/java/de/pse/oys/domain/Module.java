@@ -19,6 +19,7 @@ public class Module {
 
     /** Eindeutige Kennung des Moduls (readOnly). */
     @Id
+    @GeneratedValue
     @Column(name = "moduleid", updatable = false)
     private UUID moduleId;
 
@@ -56,12 +57,10 @@ public class Module {
     /**
      * Erzeugt ein neues Modul mit den erforderlichen Grunddaten.
      *
-     * @param moduleId    Eindeutige ID des Moduls.
-     * @param title       Name des Moduls.
-     * @param priority    Wichtigkeit des Moduls.
+     * @param title    Name des Moduls.
+     * @param priority Wichtigkeit des Moduls.
      */
-    public Module(UUID moduleId, String title, ModulePriority priority) {
-        this.moduleId = moduleId;
+    public Module(String title, ModulePriority priority) {
         this.title = title;
         this.priority = priority;
     }

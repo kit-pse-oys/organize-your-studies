@@ -262,7 +262,7 @@ public class PlanningService {
      * @param weekStart Das Startdatum der Woche.
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration) {
-        LearningPlan plan = new LearningPlan(UUID.randomUUID(), weekStart, weekStart.plusDays(6));
+        LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(6));
         List<LearningUnit> newLearningUnits = new ArrayList<>();
         for (PlanningResponseDTO result : results) {
             String id = result.getId();
@@ -276,7 +276,7 @@ public class PlanningService {
                 if (java.time.Duration.between(startDateTime, endDateTime).toMinutes() > breakDuration) {
                     endDateTime = endDateTime.minusMinutes(breakDuration);
                 }
-                LearningUnit unit = new LearningUnit(UUID.randomUUID(), task, startDateTime, endDateTime);
+                LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
                 newLearningUnits.add(unit);
                 task.addLearningUnit(unit);
                 taskRepository.save(task);

@@ -36,7 +36,7 @@ class QuestionnaireServiceTest {
     @Test
     void testSubmitQuestionnaire_createsNewPreferences() {
         UUID userId = UUID.randomUUID();
-        LocalUser user = new LocalUser(userId, "testuser", "hash", "salt");
+        LocalUser user = new LocalUser("testuser", "hash", "salt");
         when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(user));
 
         QuestionnaireDTO dto = new QuestionnaireDTO();
@@ -66,7 +66,7 @@ class QuestionnaireServiceTest {
     @Test
     void testSubmitQuestionnaire_updatesExistingPreferences() {
         UUID userId = UUID.randomUUID();
-        LocalUser user = new LocalUser(userId, "testuser", "hash", "salt");
+        LocalUser user = new LocalUser("testuser", "hash", "salt");
         LearningPreferences existing = new LearningPreferences(
                 15, 60, 4, 5, 1,
                 Set.of(TimeSlot.AFTERNOON),
@@ -115,12 +115,12 @@ class QuestionnaireServiceTest {
     void testHasLearningPreferences_trueFalse() {
         UUID userId = UUID.randomUUID();
 
-        LocalUser userWithPrefs = new LocalUser(userId, "testuser", "hash", "salt");
+        LocalUser userWithPrefs = new LocalUser("testuser", "hash", "salt");
         userWithPrefs.setPreferences(new LearningPreferences(10, 60, 4, 5, 1, new HashSet<>(), new HashSet<>()));
         when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(userWithPrefs));
         assertTrue(service.hasLearningPreferences(userId));
 
-        LocalUser userWithoutPrefs = new LocalUser(userId, "testuser2", "hash", "salt");
+        LocalUser userWithoutPrefs = new LocalUser("testuser2", "hash", "salt");
         when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(userWithoutPrefs));
         assertFalse(service.hasLearningPreferences(userId));
 

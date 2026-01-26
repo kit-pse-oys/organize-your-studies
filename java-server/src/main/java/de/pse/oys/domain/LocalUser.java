@@ -4,7 +4,6 @@ import de.pse.oys.domain.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import java.util.UUID;
 
 /**
  * Repräsentiert einen Nutzer, der sich lokal über Benutzername und Passwort authentifiziert.
@@ -37,13 +36,13 @@ public class LocalUser extends User {
 
     /**
      * Erzeugt eine Instanz für die lokale Authentifizierung.
-     * @param userId Eindeutige ID des Nutzers.
+     *
      * @param username Der gewählte Benutzername.
      * @param passHash Der bereits berechnete Passwort-Hash.
-     * @param salt Das verwendete Salt.
+     * @param salt     Das verwendete Salt.
      */
-    public LocalUser(UUID userId, String username, String passHash, String salt) {
-        super(userId, username, UserType.LOCAL);
+    public LocalUser(String username, String passHash, String salt) {
+        super(username, UserType.LOCAL);
         this.passwordHash = passHash;
         this.passwordSalt = salt;
     }

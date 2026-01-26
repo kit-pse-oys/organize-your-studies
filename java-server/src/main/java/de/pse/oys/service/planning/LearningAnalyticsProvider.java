@@ -179,7 +179,7 @@ public class LearningAnalyticsProvider {
         boolean newMatrix = false;
         if (costMatrix == null) {
             currentCosts = new ArrayList<>();
-            costMatrix = new CostMatrix(UUID.randomUUID(), "[]", task);
+            costMatrix = new CostMatrix( "[]", task);
             task.setCostMatrix(costMatrix);
             newMatrix = true;
         } else {

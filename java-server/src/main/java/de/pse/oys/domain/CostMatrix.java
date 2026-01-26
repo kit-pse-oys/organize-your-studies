@@ -19,6 +19,7 @@ public class CostMatrix {
 
     /** Eindeutige Kennung der Kostenmatrix (readOnly). */
     @Id
+    @GeneratedValue
     @Column(name = "matrixid", updatable = false)
     private UUID matrixId;
 
@@ -52,12 +53,10 @@ public class CostMatrix {
     /**
      * Erzeugt eine neue Kostenmatrix für eine spezifische Aufgabe.
      *
-     * @param matrixId Eindeutige ID.
      * @param costs    Initiales Kostenprofil als JSON-String.
      * @param task     Die zugehörige Aufgabe.
      */
-    public CostMatrix(UUID matrixId, String costs, Task task) {
-        this.matrixId = matrixId;
+    public CostMatrix(String costs, Task task) {
         this.costs = costs;
         this.task = task;
         this.lastUpdated = LocalDateTime.now();
