@@ -30,9 +30,16 @@ public class SecurityConfig {
     }
 
     /**
-     * Definiert die Sicherheitsfilterkette.
-     * Hier wird festgelegt, dass die API zustandslos ist und der JwtFilter
-     * vor dem Standard-Authentifizierungsfilter ausgeführt wird.
+     * Konfiguriert die zentrale Sicherheitsfilterkette.
+     * Der {@link JwtFilter} wird explizit vor dem {@link UsernamePasswordAuthenticationFilter}
+     * platziert, damit die Authentifizierung via JWT als primärer Identitätsnachweis
+     * Vorrang erhält. Dies stellt sicher, dass die Benutzer-UUID bereits aus dem Token
+     * extrahiert und im SecurityContext hinterlegt wurde, bevor die Standard-Prüfmechanismen
+     * von Spring Security greifen oder den Request mangels Session/Anmeldedaten abweisen.
+     *
+     * @param http das HttpSecurity-Objekt zur Konfiguration
+     * @return die konfigurierte SecurityFilterChain
+     * @throws Exception bei Konfigurationsfehlern
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,7 +56,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()            // Alles andere erfordert einen Token
                 );
 
-        // HIER WIRD DER FILTER EINGEHÄNGT:
         // Unser JwtFilter soll VOR dem UsernamePasswordAuthenticationFilter laufen.
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
