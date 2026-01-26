@@ -37,5 +37,5 @@ public enum TimeSlot {
      * Der Abendabschnitt.
      * Zeitrahmen: 17:00 Uhr bis 21:00 Uhr.
      */
-    EVENING
+    EVENING;
 }
