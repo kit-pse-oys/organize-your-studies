@@ -18,7 +18,7 @@ import java.util.UUID;
  * Ermöglicht die Registrierung neuer Nutzer sowie die Löschung von Konten.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController extends BaseController{
 
     private final UserService userService;

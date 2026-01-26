@@ -1,32 +1,47 @@
 package de.pse.oys.controller;
 
-import org.springframework.context.annotation.Profile;
+import de.pse.oys.dto.response.LearningPlanDTO;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 /**
- * PlanningController – Der PlanningController stellt Endpunkte für die übergeordnete Planungsebene dar.
- * Über diesen Controller wird die Generierung des Lernplans angestoßen.
- *
- * @author uhupo
+ * REST-Controller für die Steuerung der Lernplanung.
+ * Ermöglicht es dem Nutzer, die Generierung oder Aktualisierung seines
+ * persönlichen Lernplans manuell anzustoßen.
+ * @author utgid
  * @version 1.0
  */
-
 @RestController
 @RequestMapping("/plan")
-public class PlanningController {
+public class PlanningController extends BaseController {
 
+    private final PlanningService planningService;
 
     /**
-     * Generiert einen neuen Lernplan für den angemeldeten Benutzer.
-     *
-     * @return der neu generierte Lernplan im DTO-Format
+     * Erzeugt eine neue Instanz des PlanningControllers.
+     * @param planningService Der Service zur Berechnung des Lernplans.
      */
-    @GetMapping
-    public String forceUpdatePlan() {
-        return "pong"; //Aktuell Platzhalter nur zum Testen, Rückgabetyp entsprechend falsch
+    public PlanningController(PlanningService planningService) {
+        this.planningService = planningService;
+    }
+
+    /**
+     * Erzwingt die sofortige Neuberechnung des Lernplans für den aktuellen Nutzer.
+     * Nutzt die im System hinterlegten Präferenzen, Aufgaben und Freizeiträume.
+     * * @return Eine ResponseEntity, die das DTO des neu erstellten Lernplans enthält.
+     */
+    @PostMapping("/force-update")
+    public ResponseEntity<LearningPlanDTO> forceUpdatePlan() {
+        UUID userId = getAuthenticatedUserId();
+
+        // Der Service führt die komplexe Logik (ggf. Aufruf des Python-Algorithmus) aus
+        //todo: LearningPlanDTO updatedPlan = planningService.generatePlan(userId);
+
+        return null; //ResponseEntity.ok(updatedPlan);
     }
 }
-
