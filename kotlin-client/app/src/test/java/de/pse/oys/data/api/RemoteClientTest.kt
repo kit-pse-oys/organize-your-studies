@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 import de.pse.oys.data.Answer
 import de.pse.oys.data.Question
 import de.pse.oys.data.QuestionState
+import de.pse.oys.data.facade.FreeTime
+import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
@@ -479,11 +481,13 @@ class RemoteClientTest {
 
                 respondOk()
             }
-            val response = client.rateUnit(step1, UnitRatings(
-                goalCompletion = Rating.HIGH,
-                duration = Rating.LOWEST,
-                motivation = Rating.MEDIUM
-            ))
+            val response = client.rateUnit(
+                step1, UnitRatings(
+                    goalCompletion = Rating.HIGH,
+                    duration = Rating.LOWEST,
+                    motivation = Rating.MEDIUM
+                )
+            )
             assertEquals(200, response.status)
         }
     }
@@ -565,18 +569,22 @@ class RemoteClientTest {
 
     @Test
     fun queryModules() {
-        val module1 = Module(ModuleData(
-            title = "Module 1",
-            description = "Description 1",
-            priority = Priority.NEUTRAL,
-            color = Color(0xFF, 0x00, 0x00)
-        ), Uuid.random())
-        val module2 = Module(ModuleData(
-            title = "Module 2",
-            description = "Description 2",
-            priority = Priority.HIGH,
-            color = Color(0x00, 0xFF, 0xFF)
-        ), Uuid.random())
+        val module1 = Module(
+            ModuleData(
+                title = "Module 1",
+                description = "Description 1",
+                priority = Priority.NEUTRAL,
+                color = Color(0xFF, 0x00, 0x00)
+            ), Uuid.random()
+        )
+        val module2 = Module(
+            ModuleData(
+                title = "Module 2",
+                description = "Description 2",
+                priority = Priority.HIGH,
+                color = Color(0x00, 0xFF, 0xFF)
+            ), Uuid.random()
+        )
 
         runBlocking {
             val (engine, client) = createClient()
@@ -655,12 +663,14 @@ class RemoteClientTest {
                     )
                 )
             }
-            val response = client.createModule(ModuleData(
-                title = "Module 1",
-                description = "Description 1",
-                priority = Priority.NEUTRAL,
-                color = Color(0xFF, 0x00, 0x00)
-            ))
+            val response = client.createModule(
+                ModuleData(
+                    title = "Module 1",
+                    description = "Description 1",
+                    priority = Priority.NEUTRAL,
+                    color = Color(0xFF, 0x00, 0x00)
+                )
+            )
             assertEquals(200, response.status)
             assertEquals(uuid1, response.response)
         }
@@ -694,12 +704,16 @@ class RemoteClientTest {
 
                 respondOk()
             }
-            val response = client.updateModule(Module(ModuleData(
-                title = "Module 1",
-                description = "Description 1",
-                priority = Priority.NEUTRAL,
-                color = Color(0xFF, 0x00, 0x00)
-            ), uuid1))
+            val response = client.updateModule(
+                Module(
+                    ModuleData(
+                        title = "Module 1",
+                        description = "Description 1",
+                        priority = Priority.NEUTRAL,
+                        color = Color(0xFF, 0x00, 0x00)
+                    ), uuid1
+                )
+            )
             assertEquals(200, response.status)
         }
     }
@@ -733,33 +747,403 @@ class RemoteClientTest {
 
     @Test
     fun queryTasks() {
+        val task1 = RemoteTask(
+            RemoteExamTaskData(
+                title = "Task 1",
+                module = Uuid.random(),
+                weeklyTimeLoad = 2,
+                sendNotification = false,
+                examDate = LocalDate(2026, 1, 1)
+            ), Uuid.random()
+        )
+        val task2 = RemoteTask(
+            RemoteSubmissionTaskData(
+                title = "Task 2",
+                module = Uuid.random(),
+                weeklyTimeLoad = 6,
+                sendNotification = true,
+                firstDate = LocalDateTime(2026, 1, 1, 0, 0),
+                cycle = 1
+            ), Uuid.random()
+        )
+        val task3 = RemoteTask(
+            RemoteOtherTaskData(
+                title = "Task 3",
+                module = Uuid.random(),
+                weeklyTimeLoad = 3,
+                sendNotification = false,
+                start = LocalDate(2026, 1, 1),
+                end = LocalDate(2026, 2, 1)
+            ), Uuid.random()
+        )
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/tasks", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonArray {
+                        add(buildJsonObject {
+                            put("id", task1.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("type", "exam")
+                                put("title", "Task 1")
+                                put("module", task1.data.module.toHexDashString())
+                                put("weeklyTimeLoad", 2)
+                                put("sendNotification", false)
+                                put("examDate", "2026-01-01")
+                            })
+                        })
+                        add(buildJsonObject {
+                            put("id", task2.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("type", "submission")
+                                put("title", "Task 2")
+                                put("module", task2.data.module.toHexDashString())
+                                put("weeklyTimeLoad", 6)
+                                put("sendNotification", true)
+                                put("firstDate", "2026-01-01T00:00")
+                                put("cycle", 1)
+                            })
+                        })
+                        add(buildJsonObject {
+                            put("id", task3.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("type", "other")
+                                put("title", "Task 3")
+                                put("module", task3.data.module.toHexDashString())
+                                put("weeklyTimeLoad", 3)
+                                put("sendNotification", false)
+                                put("start", "2026-01-01")
+                                put("end", "2026-02-01")
+                            })
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.queryTasks()
+            assertEquals(200, response.status)
+            assertEquals(listOf(task1, task2, task3), response.response)
+        }
     }
 
     @Test
     fun createTask() {
+        val uuid1 = Uuid.random()
+        val uuid2 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/tasks", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("type", "exam")
+                    put("title", "Task 1")
+                    put("module", uuid2.toHexDashString())
+                    put("weeklyTimeLoad", 2)
+                    put("sendNotification", false)
+                    put("examDate", "2026-01-01")
+                }, json)
+
+                respond(
+                    buildJsonObject {
+                        put("id", uuid1.toHexDashString())
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.createTask(
+                RemoteExamTaskData(
+                    title = "Task 1",
+                    module = uuid2,
+                    weeklyTimeLoad = 2,
+                    sendNotification = false,
+                    examDate = LocalDate(2026, 1, 1)
+                )
+            )
+            assertEquals(200, response.status)
+            assertEquals(uuid1, response.response)
+        }
     }
 
     @Test
     fun updateTask() {
+        val uuid1 = Uuid.random()
+        val uuid2 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/tasks", request.url.encodedPath)
+                assertEquals(HttpMethod.Put, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                    put("data", buildJsonObject {
+                        put("type", "exam")
+                        put("title", "Task 1")
+                        put("module", uuid2.toHexDashString())
+                        put("weeklyTimeLoad", 2)
+                        put("sendNotification", false)
+                        put("examDate", "2026-01-01")
+                    })
+                }, json)
+
+                respondOk()
+            }
+            val response = client.updateTask(
+                RemoteTask(
+                    RemoteExamTaskData(
+                        title = "Task 1",
+                        module = uuid2,
+                        weeklyTimeLoad = 2,
+                        sendNotification = false,
+                        examDate = LocalDate(2026, 1, 1)
+                    ), uuid1
+                )
+            )
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun deleteTask() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/tasks", request.url.encodedPath)
+                assertEquals(HttpMethod.Delete, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                }, json)
+
+                respondOk()
+            }
+            val response = client.deleteTask(uuid1)
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun queryFreeTimes() {
+        val freeTime1 = FreeTime(
+            FreeTimeData(
+                title = "FreeTime 1",
+                date = LocalDate(2026, 1, 1),
+                start = LocalTime(0, 0, 0),
+                end = LocalTime(1, 0, 0),
+                weekly = false,
+            ), Uuid.random()
+        )
+        val freeTime2 = FreeTime(
+            FreeTimeData(
+                title = "FreeTime 2",
+                date = LocalDate(2026, 1, 1),
+                start = LocalTime(1, 0, 0),
+                end = LocalTime(2, 0, 0),
+                weekly = true,
+            ), Uuid.random()
+        )
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/freeTimes", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonArray {
+                        add(buildJsonObject {
+                            put("id", freeTime1.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("title", "FreeTime 1")
+                                put("date", "2026-01-01")
+                                put("start", "00:00:00")
+                                put("end", "01:00:00")
+                                put("weekly", false)
+                            })
+                        })
+                        add(buildJsonObject {
+                            put("id", freeTime2.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("title", "FreeTime 2")
+                                put("date", "2026-01-01")
+                                put("start", "01:00:00")
+                                put("end", "02:00:00")
+                                put("weekly", true)
+                            })
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.queryFreeTimes()
+            assertEquals(200, response.status)
+            assertEquals(listOf(freeTime1, freeTime2), response.response)
+        }
     }
 
     @Test
     fun createFreeTime() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/freeTimes", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("title", "FreeTime 1")
+                    put("date", "2026-01-01")
+                    put("start", "00:00")
+                    put("end", "01:00")
+                    put("weekly", false)
+                }, json)
+
+                respond(
+                    buildJsonObject {
+                        put("id", uuid1.toHexDashString())
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.createFreeTime(
+                FreeTimeData(
+                    title = "FreeTime 1",
+                    date = LocalDate(2026, 1, 1),
+                    start = LocalTime(0, 0, 0),
+                    end = LocalTime(1, 0, 0),
+                    weekly = false,
+                )
+            )
+            assertEquals(200, response.status)
+            assertEquals(uuid1, response.response)
+        }
     }
 
     @Test
     fun updateFreeTime() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/freeTimes", request.url.encodedPath)
+                assertEquals(HttpMethod.Put, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                    put("data", buildJsonObject {
+                        put("title", "FreeTime 1")
+                        put("date", "2026-01-01")
+                        put("start", "00:00")
+                        put("end", "01:00")
+                        put("weekly", false)
+                    })
+                }, json)
+
+                respondOk()
+            }
+            val response = client.updateFreeTime(
+                FreeTime(
+                    FreeTimeData(
+                        title = "FreeTime 1",
+                        date = LocalDate(2026, 1, 1),
+                        start = LocalTime(0, 0, 0),
+                        end = LocalTime(1, 0, 0),
+                        weekly = false,
+                    ), uuid1
+                )
+            )
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun deleteFreeTime() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/freeTimes", request.url.encodedPath)
+                assertEquals(HttpMethod.Delete, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                }, json)
+
+                respondOk()
+            }
+            val response = client.deleteFreeTime(uuid1)
+            assertEquals(200, response.status)
+        }
     }
 }

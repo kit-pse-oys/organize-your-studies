@@ -72,8 +72,8 @@ interface RemoteAPI {
     suspend fun deleteModule(module: Uuid): Response<Unit>
 
     suspend fun queryTasks(): Response<List<RemoteTask>>
-    suspend fun createTask(task: TaskData): Response<Uuid>
-    suspend fun updateTask(task: Task): Response<Unit>
+    suspend fun createTask(task: RemoteTaskData): Response<Uuid>
+    suspend fun updateTask(task: RemoteTask): Response<Unit>
     suspend fun deleteTask(task: Uuid): Response<Unit>
 
     suspend fun queryFreeTimes(): Response<List<FreeTime>>
@@ -323,7 +323,7 @@ internal constructor(
         }.responseAs()
     }
 
-    override suspend fun createTask(task: TaskData): Response<Uuid> {
+    override suspend fun createTask(task: RemoteTaskData): Response<Uuid> {
         return client.post(serverUrl) {
             url {
                 apiPath("tasks")
@@ -334,7 +334,7 @@ internal constructor(
         }.idResponse()
     }
 
-    override suspend fun updateTask(task: Task): Response<Unit> {
+    override suspend fun updateTask(task: RemoteTask): Response<Unit> {
         return client.put(serverUrl) {
             url {
                 apiPath("tasks")
