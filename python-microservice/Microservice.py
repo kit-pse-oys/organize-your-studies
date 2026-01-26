@@ -169,11 +169,11 @@ class COPSolver:
             selected_prefs = [p.strip() for p in pref_time_string.split(',')]
 
             time_windows = []
-            if "morgens" in selected_prefs:      time_windows.append((6, 9))
-            if "vormittags" in selected_prefs:   time_windows.append((9, 12))
-            if "mittags" in selected_prefs:      time_windows.append((12, 15))
-            if "nachmittags" in selected_prefs:  time_windows.append((15, 18))
-            if "abends" in selected_prefs:       time_windows.append((18, 22))
+            if "MORNING" in selected_prefs:      time_windows.append((6, 9))
+            if "FORENOON" in selected_prefs:   time_windows.append((9, 12))
+            if "NOON" in selected_prefs:      time_windows.append((12, 15))
+            if "AFTERNOON" in selected_prefs:  time_windows.append((15, 18))
+            if "EVENING" in selected_prefs:       time_windows.append((18, 22))
 
             for (h_start, h_end) in time_windows:
                 for day in range(7):
