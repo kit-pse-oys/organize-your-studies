@@ -40,7 +40,6 @@ public class PlanningService {
     private final TaskRepository taskRepository;
     private final LearningPlanRepository learningPlanRepository;
     private final UserRepository userRepository;
-    private final CostMatrixRepository costMatrixRepository;
     private final LearningAnalyticsProvider learningAnalyticsProvider;
     private final RestTemplate restTemplate;
 
@@ -48,14 +47,22 @@ public class PlanningService {
     @Value("${microservice.planning.url}")
     private String planningMicroserviceUrl;
 
+    /**
+     * Konstruktor für PlanningService.
+     * @param taskRepository
+     * @param learningPlanRepository
+     * @param userRepository
+     * @param learningAnalyticsProvider
+     * @param restTemplate
+     */
     public PlanningService(TaskRepository taskRepository,
-                           LearningPlanRepository learningPlanRepository, UserRepository userRepository,
-                           CostMatrixRepository costMatrixRepository,
-                           LearningAnalyticsProvider learningAnalyticsProvider, RestTemplate restTemplate) {
+                           LearningPlanRepository learningPlanRepository,
+                           UserRepository userRepository,
+                           LearningAnalyticsProvider learningAnalyticsProvider,
+                           RestTemplate restTemplate) {
         this.taskRepository = taskRepository;
         this.learningPlanRepository = learningPlanRepository;
         this.userRepository = userRepository;
-        this.costMatrixRepository = costMatrixRepository;
         this.learningAnalyticsProvider = learningAnalyticsProvider;
         this.restTemplate = restTemplate;
     }
@@ -421,7 +428,7 @@ public class PlanningService {
         for (LearningUnit unit : units) {
             if (unit.isRated() && unit.getRating() != null && unit.getRating().getPerceivedDuration() != null){
                 ratedUnitsCount++;
-                totalRating += unit.getRating().getPerceivedDuration().getAdjustmentFactor();
+                totalRating += unit.getRating().getPerceivedDuration().getAdjustmentValue();
             }
         }
         if (ratedUnitsCount == 0) {
@@ -539,7 +546,7 @@ public class PlanningService {
         List<String> slotStrings = new ArrayList<>();
 
         for (TimeSlot slot : preferredSlots) {
-            slotStrings.add(slot.getLabel());
+            slotStrings.add(slot.name());
         }
         return String.join(",", slotStrings);
     }
