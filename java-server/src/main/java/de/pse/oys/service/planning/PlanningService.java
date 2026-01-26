@@ -62,9 +62,9 @@ public class PlanningService {
 
 
     /** Kernfunktion. Lädt offene Tasks und Nutzer-Präferenzen sowie die aktuelle Kosten-
-        Matrix aus der Datenbank, berechnet den current_slot und transformiert diese in das
-        JSON-Format und sendet sie an den Python-Solver. Das Ergebnis wird als neuer Wochen-
-        plan gespeichert. Wirft eine EntityNotFoundException, falls der User nicht existiert.
+     Matrix aus der Datenbank, berechnet den current_slot und transformiert diese in das
+     JSON-Format und sendet sie an den Python-Solver. Das Ergebnis wird als neuer Wochen-
+     plan gespeichert. Wirft eine EntityNotFoundException, falls der User nicht existiert.
      *
      * @param userId    Die ID des Benutzers.
      * @param weekStart Das Startdatum der Woche.
@@ -450,11 +450,11 @@ public class PlanningService {
                 dayIndex = weekly.getDayOfWeek().getValue() - 1;
             }
             else if (type == RecurrenceType.ONCE) { // oder SINGLE, je nach Enum-Name
-                    SingleFreeTime single = (SingleFreeTime) freeTime;
-                    LocalDate date = single.getDate();
-                    if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
-                        dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
-                    }
+                SingleFreeTime single = (SingleFreeTime) freeTime;
+                LocalDate date = single.getDate();
+                if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+                    dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
+                }
             }
             if (dayIndex != null) {
                 int dayOffset = dayIndex * 288;

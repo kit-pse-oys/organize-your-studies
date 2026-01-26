@@ -13,29 +13,38 @@ public enum TimeSlot {
      * Der frühe Morgenabschnitt.
      * Zeitrahmen: 06:00 Uhr bis 09:00 Uhr.
      */
-    MORNING,
+    MORNING("morgens"),
 
     /**
      * Der klassische Vormittagsabschnitt.
      * Zeitrahmen: 09:00 Uhr bis 12:00 Uhr.
      */
-    FORENOON,
+    FORENOON("vormittags"),
 
     /**
      * Der Mittagsabschnitt.
      * Zeitrahmen: 12:00 Uhr bis 14:00 Uhr.
      */
-    NOON,
+    NOON("mittags"),
 
     /**
      * Der Nachmittagsabschnitt.
      * Zeitrahmen: 14:00 Uhr bis 17:00 Uhr.
      */
-    AFTERNOON,
+    AFTERNOON("nachmittags"),
 
     /**
      * Der Abendabschnitt.
      * Zeitrahmen: 17:00 Uhr bis 21:00 Uhr.
      */
-    EVENING
+    EVENING("abends");
+
+    private final String label;
+    TimeSlot(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }
