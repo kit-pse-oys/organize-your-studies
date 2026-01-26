@@ -3,13 +3,14 @@ package de.pse.oys.persistence;
 import java.util.Optional;
 import java.util.UUID;
 
+import de.pse.oys.domain.ExternalUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import de.pse.oys.domain.User;
-import de.pse.oys.domain.UserType;
+import de.pse.oys.domain.enums.UserType;
 
 /**
  * UserRepository – Repository-Schnittstelle für User-Entitäten.
@@ -33,4 +34,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @return true, wenn der Benutzer existiert, sonst false
      */
     boolean existsByUsername(String username);
+
+    /**
+     * Findet einen externen Benutzer anhand der externen Subjekt-ID und des Benutzertyps.
+     * @param externalSubjectId die externe Subjekt-ID
+     * @param userType der Benutzertyp, referenziert den Authentifizierungsanbieter des Benutzers
+     * @return
+     */
+    @Query("SELECT u FROM ExternalUser u WHERE u.externalSubjectId = :externalSubjectId AND u.userType = :userType")
+    Optional<ExternalUser> findByExternalSubjectIdAndType(@Param("externalSubjectId") String externalSubjectId,
+                                                          @Param("userType") UserType userType);
+
 }

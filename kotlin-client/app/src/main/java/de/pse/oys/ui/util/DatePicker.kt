@@ -72,7 +72,7 @@ fun LocalDatePickerDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalTimePickerDialog(
-    initialTime: LocalTime, // Jetzt kotlinx.datetime.LocalTime
+    initialTime: LocalTime,
     onTimeSelected: (LocalTime) -> Unit,
     onDismiss: () -> Unit
 ) {

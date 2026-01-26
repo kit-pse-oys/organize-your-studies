@@ -1,0 +1,20 @@
+package de.pse.oys.domain.enums;
+
+/**
+ * Repräsentiert den aktuellen Status einer Lerneinheit im Lernplan.
+ * Dieser Status gibt Auskunft darüber, ob eine Einheit noch bevorsteht,
+ * erfolgreich abgeschlossen wurde oder nicht wahrgenommen werden konnte.
+ * @author utgid
+ * @version 1.0
+ */
+public enum UnitStatus {
+
+    /** Die Lerneinheit ist für die Zukunft geplant. */
+    PLANNED,
+
+    /** Die Lerneinheit wurde vom Nutzer erfolgreich durchgeführt. */
+    COMPLETED,
+
+    /** Der geplante Zeitraum der Lerneinheit ist ohne Bearbeitung verstrichen. */
+    MISSED
+}
