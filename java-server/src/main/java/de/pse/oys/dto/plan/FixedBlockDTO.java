@@ -1,8 +1,8 @@
-package de.pse.oys.dto;
+package de.pse.oys.dto.plan;
 /**
  * Data Transfer Object (DTO) für freie Zeitblöcke im Lernplan.
  */
-public class FreetimeDTO {
+public class FixedBlockDTO {
     private int start;
     private int duration;
 
@@ -11,7 +11,7 @@ public class FreetimeDTO {
      * @param start    Startzeitpunkt des freien Zeitblocks.
      * @param duration Dauer des freien Zeitblocks.
      */
-    public FreetimeDTO(int start, int duration) {
+    public FixedBlockDTO(int start, int duration) {
         this.start = start;
         this.duration = duration;
     }

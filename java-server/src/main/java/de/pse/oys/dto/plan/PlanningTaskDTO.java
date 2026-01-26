@@ -1,12 +1,14 @@
-package de.pse.oys.dto;
+package de.pse.oys.dto.plan;
+
+import de.pse.oys.dto.CostDTO;
 
 import java.util.List;
 
 /**
  * Data Transfer Object (DTO) für Aufgaben im Lernplan.
  */
-public class TaskDTO {
-    private int id;
+public class PlanningTaskDTO {
+    private String id;
     private int duration;
     private int deadline;
     private List<CostDTO> costs;
@@ -17,14 +19,14 @@ public class TaskDTO {
      * @param deadline Abgabefrist der Aufgabe.
      * @param costs    Kosteninformationen der Aufgabe.
      */
-    public TaskDTO(int id, int duration, int deadline, List<CostDTO> costs) {
+    public PlanningTaskDTO(String id, int duration, int deadline, List<CostDTO> costs) {
         this.id = id;
         this.duration = duration;
         this.deadline = deadline;
         this.costs = costs;
     }
     /** @return Eindeutige ID der Aufgabe. */
-    public int getId() {
+    public String getId() {
         return id;
     }
     /** @return Dauer der Aufgabe. */

@@ -95,4 +95,6 @@ public class CostMatrix {
         this.isOutdated = false;
         this.lastUpdated = LocalDateTime.now();
     }
+
+
 }

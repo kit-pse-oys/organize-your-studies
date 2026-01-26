@@ -14,9 +14,8 @@ import de.pse.oys.persistence.CostMatrixRepository;
 import org.springframework.stereotype.Service;
 import de.pse.oys.persistence.TaskRepository;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 import de.pse.oys.domain.Module;
 
 
@@ -171,4 +170,44 @@ public class LearningAnalyticsProvider {
     }
 
 
+    public void applyPenaltyToCostMatrix(Task task, int penaltySlot, int penaltyCost) {
+        if (task == null) {
+            throw new IllegalArgumentException("Error: Task darf nicht null sein");
+        }
+        CostMatrix costMatrix = task.getCostMatrix();
+        List<CostDTO> currentCosts;
+        boolean newMatrix = false;
+        if (costMatrix == null) {
+            currentCosts = new ArrayList<>();
+            costMatrix = new CostMatrix(UUID.randomUUID(), "[]", task);
+            task.setCostMatrix(costMatrix);
+            newMatrix = true;
+        } else {
+            currentCosts = makeCostDTOList(costMatrix.getCosts());
+        }
+
+        Optional<CostDTO> existingCostOpt = currentCosts.stream()
+                .filter(c -> c.getT() == penaltySlot)
+                .findFirst();
+        if (existingCostOpt.isPresent()) {
+            CostDTO existingCost = existingCostOpt.get();
+            existingCost.setC(existingCost.getC() + penaltyCost);
+        } else {
+            currentCosts.add(new CostDTO(penaltySlot, penaltyCost));
+        }
+
+        currentCosts.sort(Comparator.comparingInt(CostDTO::getT));
+        try {
+            String jsonCosts = objectMapper.writeValueAsString(currentCosts);
+            costMatrix.setCosts(jsonCosts); // Setzt auch isOutdated auf false und lastUpdated auf jetzt
+            costMatrixRepository.save(costMatrix);
+
+            if (newMatrix) {
+                taskRepository.save(task);
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Speichern der Kosten-Daten oder der Task: " + e.getMessage());
+        }
+
+    }
 }
