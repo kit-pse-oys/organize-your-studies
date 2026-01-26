@@ -184,7 +184,7 @@ internal constructor(
 
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
-                for (question in Questions) {
+                for (question in questions.questions) { // Use <questions.questions> instead of <Questions> for Testability
                     put(question.id, buildJsonObject {
                         for (answer in question.answers) {
                             put(answer.id, questions.selected(question, answer))

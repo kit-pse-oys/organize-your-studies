@@ -1,12 +1,13 @@
 package de.pse.oys.data
 
 val Questions: List<Question> = listOf(
-    TODO()
+    // TODO
 )
 
 class QuestionState(
-    val answers: Array<BooleanArray> = Array(Questions.size) {
-        BooleanArray(Questions[it].answers.size)
+    val questions: List<Question> = Questions,
+    val answers: Array<BooleanArray> = Array(questions.size) {
+        BooleanArray(questions[it].answers.size)
     }
 ) {
     fun selected(question: Question, answer: Answer): Boolean {
@@ -24,7 +25,7 @@ class QuestionState(
     }
 
     private val Question.index: Int
-        get() = Questions.indexOf(this)
+        get() = questions.indexOf(this)
 
 
     private operator fun Question.rem(answer: Answer): Int {
