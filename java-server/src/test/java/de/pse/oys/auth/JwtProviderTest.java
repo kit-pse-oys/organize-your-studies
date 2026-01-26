@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author uhupo
  * @version 1.0
  */
-@SpringBootTest
+@SpringBootTest(classes = JwtProvider.class)
 @ActiveProfiles("test")
 class JwtProviderTest {
 
