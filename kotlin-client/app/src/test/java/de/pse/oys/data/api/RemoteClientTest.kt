@@ -1,8 +1,14 @@
 package de.pse.oys.data.api
 
+import androidx.compose.ui.graphics.Color
 import de.pse.oys.data.Answer
 import de.pse.oys.data.Question
 import de.pse.oys.data.QuestionState
+import de.pse.oys.data.facade.Module
+import de.pse.oys.data.facade.ModuleData
+import de.pse.oys.data.facade.Priority
+import de.pse.oys.data.facade.Rating
+import de.pse.oys.data.facade.UnitRatings
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondOk
@@ -15,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.io.readString
 import kotlinx.serialization.json.Json
@@ -301,14 +308,114 @@ class RemoteClientTest {
 
     @Test
     fun markUnitFinished() {
+        val step1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", step1.toHexDashString())
+                    put("finished", true)
+                }, json)
+
+                respondOk()
+            }
+            val response = client.markUnitFinished(step1)
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun moveUnitAutomatically() {
+        val step1 = Uuid.random()
+        val task1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", step1.toHexDashString())
+                    put("automaticNewTime", true)
+                }, json)
+
+                respond(
+                    buildJsonObject {
+                        put("id", step1.toHexDashString())
+                        put("data", buildJsonObject {
+                            put("task", task1.toHexDashString())
+                            put("date", "2026-01-01")
+                            put("start", "00:00")
+                            put("end", "01:00")
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.moveUnitAutomatically(step1)
+            assertEquals(200, response.status)
+            assertEquals(
+                RemoteStep(
+                    RemoteStepData(
+                        task1,
+                        LocalDate(2026, 1, 1),
+                        LocalTime(0, 0, 0),
+                        LocalTime(1, 0, 0)
+                    ), step1
+                ), response.response
+            )
+        }
     }
 
     @Test
     fun moveUnit() {
+        val step1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", step1.toHexDashString())
+                    put("newTime", "2026-01-01T00:00")
+                }, json)
+
+                respondOk()
+            }
+            val response = client.moveUnit(step1, LocalDateTime(2026, 1, 1, 0, 0))
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
@@ -346,6 +453,39 @@ class RemoteClientTest {
 
     @Test
     fun rateUnit() {
+        val step1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units/ratings", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", step1.toHexDashString())
+                    put("ratings", buildJsonObject {
+                        put("goalCompletion", "HIGH")
+                        put("duration", "LOWEST")
+                        put("motivation", "MEDIUM")
+                    })
+                }, json)
+
+                respondOk()
+            }
+            val response = client.rateUnit(step1, UnitRatings(
+                goalCompletion = Rating.HIGH,
+                duration = Rating.LOWEST,
+                motivation = Rating.MEDIUM
+            ))
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
@@ -425,18 +565,170 @@ class RemoteClientTest {
 
     @Test
     fun queryModules() {
+        val module1 = Module(ModuleData(
+            title = "Module 1",
+            description = "Description 1",
+            priority = Priority.NEUTRAL,
+            color = Color(0xFF, 0x00, 0x00)
+        ), Uuid.random())
+        val module2 = Module(ModuleData(
+            title = "Module 2",
+            description = "Description 2",
+            priority = Priority.HIGH,
+            color = Color(0x00, 0xFF, 0xFF)
+        ), Uuid.random())
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/modules", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonArray {
+                        add(buildJsonObject {
+                            put("id", module1.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("title", "Module 1")
+                                put("description", "Description 1")
+                                put("priority", "NEUTRAL")
+                                put("color", "#FF0000")
+                            })
+                        })
+                        add(buildJsonObject {
+                            put("id", module2.id.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("title", "Module 2")
+                                put("description", "Description 2")
+                                put("priority", "HIGH")
+                                put("color", "#00FFFF")
+                            })
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.queryModules()
+            assertEquals(200, response.status)
+            assertEquals(listOf(module1, module2), response.response)
+        }
     }
 
     @Test
     fun createModule() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/modules", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("title", "Module 1")
+                    put("description", "Description 1")
+                    put("priority", "NEUTRAL")
+                    put("color", "#FF0000")
+                }, json)
+
+                respond(
+                    buildJsonObject {
+                        put("id", uuid1.toHexDashString())
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.createModule(ModuleData(
+                title = "Module 1",
+                description = "Description 1",
+                priority = Priority.NEUTRAL,
+                color = Color(0xFF, 0x00, 0x00)
+            ))
+            assertEquals(200, response.status)
+            assertEquals(uuid1, response.response)
+        }
     }
 
     @Test
     fun updateModule() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/modules", request.url.encodedPath)
+                assertEquals(HttpMethod.Put, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                    put("data", buildJsonObject {
+                        put("title", "Module 1")
+                        put("description", "Description 1")
+                        put("priority", "NEUTRAL")
+                        put("color", "#FF0000")
+                    })
+                }, json)
+
+                respondOk()
+            }
+            val response = client.updateModule(Module(ModuleData(
+                title = "Module 1",
+                description = "Description 1",
+                priority = Priority.NEUTRAL,
+                color = Color(0xFF, 0x00, 0x00)
+            ), uuid1))
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun deleteModule() {
+        val uuid1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/modules", request.url.encodedPath)
+                assertEquals(HttpMethod.Delete, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", uuid1.toHexDashString())
+                }, json)
+
+                respondOk()
+            }
+            val response = client.deleteModule(uuid1)
+            assertEquals(200, response.status)
+        }
     }
 
     @Test

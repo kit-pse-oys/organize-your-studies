@@ -35,6 +35,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.uuid.Uuid
@@ -55,7 +57,7 @@ interface RemoteAPI {
     suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit>
 
     suspend fun markUnitFinished(unit: Uuid): Response<Unit>
-    suspend fun moveUnitAutomatically(unit: Uuid): Response<Step>
+    suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep>
     suspend fun moveUnit(unit: Uuid, newTime: LocalDateTime): Response<Unit>
 
     suspend fun queryRateable(): Response<List<Uuid>>
@@ -130,7 +132,9 @@ internal constructor(
         }
 
         install(ContentNegotiation) {
-            json()
+            json(Json(from = DefaultJson) {
+                explicitNulls = false
+            })
         }
     }
 
@@ -207,7 +211,7 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun moveUnitAutomatically(unit: Uuid): Response<Step> {
+    override suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep> {
         return client.post(serverUrl) {
             url {
                 apiPath("plan/units")
