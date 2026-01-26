@@ -2,7 +2,6 @@ package de.pse.oys.ui.view.additions.task
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,6 @@ import de.pse.oys.data.facade.Task
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
-import de.pse.oys.ui.util.toFormattedString
 
 @Composable
 fun TasksView(viewModel: ITasksViewModel) {
@@ -71,33 +69,24 @@ private fun TaskButton(task: Task, viewModel: ITasksViewModel) {
                 .fillMaxWidth()
                 .padding(vertical = 4.dp, horizontal = 2.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    task.data.title, style = typography.titleLarge.copy(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            Text(
+                task.data.title, style = typography.titleLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
-                Text(stringResource(id = R.string.task_from_module) + task.data.module.data.title)
-            }
+            )
+            Text(stringResource(id = R.string.task_from_module) + task.data.module.data.title)
             when (task.data) {
                 is ExamTaskData -> {
                     Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.examTask))
-                    Text(stringResource(id = R.string.enter_exam_date) + task.data.examDate.toFormattedString())
                 }
 
                 is SubmissionTaskData -> {
                     Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.submissionTask))
-                    Text(stringResource(id = R.string.submission_task_since) + task.data.firstDate.toFormattedString())
-                    Text(task.data.cycle.toString() + stringResource(id = R.string.submission_weekcycle_is))
                 }
 
                 is OtherTaskData -> {
                     Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.otherTask))
-                    Text(task.data.start.toFormattedString() + " - " + task.data.end.toFormattedString())
                 }
             }
         }

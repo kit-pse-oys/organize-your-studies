@@ -72,7 +72,6 @@ private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
                 )
             )
             Text(module.data.description)
-            Text(stringResource(id = R.string.priority_is) + module.data.priority.getLabelRes())
         }
     }
 }
