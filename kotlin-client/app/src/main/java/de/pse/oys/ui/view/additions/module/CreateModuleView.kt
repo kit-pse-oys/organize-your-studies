@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
@@ -44,16 +45,16 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeaderBig(text = "Neues Modul")
-            InputLabel(text = "Titel:")
+            ViewHeaderBig(text = stringResource(id = R.string.new_module))
+            InputLabel(text = stringResource(id = R.string.enter_title))
             SingleLineInput(viewModel.title) { viewModel.title = it }
-            InputLabel("Beschreibung:")
+            InputLabel(stringResource(id = R.string.enter_description))
             SingleLineInput(viewModel.description) { viewModel.description = it }
-            InputLabel("Priorität wählen:")
+            InputLabel(stringResource(id = R.string.select_priority))
             PriorityChips(
                 current = viewModel.priority,
                 onSelect = { viewModel.priority = it })
-            InputLabel("Modulfarbe wählen:")
+            InputLabel(stringResource(id = R.string.select_color))
             ColorPicker(onColorChanged = { viewModel.color = it })
         }
     }
@@ -66,21 +67,21 @@ private fun PriorityChips(current: Priority, onSelect: (Priority) -> Unit) {
             priority = Priority.HIGH,
             current = current,
             icon = painterResource(R.drawable.outline_expand_circle_up_24),
-            label = "Hoch",
+            label = stringResource(id = R.string.priority_high),
             onSelect = onSelect
         )
         PriorityChip(
             priority = Priority.NEUTRAL,
             current = current,
             icon = painterResource(R.drawable.outline_expand_circle_right_24),
-            label = "Neutral",
+            label = stringResource(id = R.string.priority_neutral),
             onSelect = onSelect
         )
         PriorityChip(
             priority = Priority.LOW,
             current = current,
             icon = painterResource(R.drawable.outline_expand_circle_down_24),
-            label = "Niedrig",
+            label = stringResource(id = R.string.priority_low),
             onSelect = onSelect
         )
     }
@@ -129,12 +130,17 @@ interface ICreateModuleViewModel {
     fun delete()
 }
 
-abstract class BaseCreateModuleViewModel : ViewModel(),
-    ICreateModuleViewModel {
-    override var title by mutableStateOf("")
-    override var description by mutableStateOf("")
-    override var priority by mutableStateOf(Priority.NEUTRAL)
-    override var color by mutableStateOf(Color.Unspecified)
+abstract class BaseCreateModuleViewModel(
+    initialTitle: String = "",
+    initialDescription: String = "",
+    initialPriority: Priority = Priority.NEUTRAL,
+    initialColor: Color = Color.Black
+) : ViewModel(), ICreateModuleViewModel {
+
+    override var title by mutableStateOf(initialTitle)
+    override var description by mutableStateOf(initialDescription)
+    override var priority by mutableStateOf(initialPriority)
+    override var color by mutableStateOf(initialColor)
 }
 
 class CreateModuleViewModel(val api: RemoteAPI, val navController: NavController) :
@@ -154,16 +160,13 @@ class EditModuleViewModel(
     val api: RemoteAPI,
     val target: Module,
     val navController: NavController
-) :
-    BaseCreateModuleViewModel() {
+) : BaseCreateModuleViewModel(
+    initialTitle = target.data.title,
+    initialDescription = target.data.description,
+    initialPriority = target.data.priority,
+    initialColor = target.data.color
+) {
     override val showDelete = true
-
-    init {
-        title = target.data.title
-        description = target.data.description
-        priority = target.data.priority
-        color = target.data.color
-    }
 
     override fun submit() {
         TODO("Not yet implemented")

@@ -11,6 +11,8 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import de.pse.oys.R
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -19,14 +21,11 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-
-// Hilfsfunktion: Kotlin LocalDate -> Millisekunden für den Picker
 fun LocalDate?.toMillis(): Long {
     return this?.atStartOfDayIn(TimeZone.UTC)?.toEpochMilliseconds()
         ?: Clock.System.now().toEpochMilliseconds()
 }
 
-// Hilfsfunktion: Millisekunden vom Picker -> Kotlin LocalDate
 fun Long?.toLocalDate(): LocalDate? {
     return this?.let {
         Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date
@@ -45,7 +44,6 @@ fun LocalDatePickerDialog(
         initialSelectedDateMillis = currentDate.toMillis(),
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                // Erlaubt nur Daten ab heute
                 val today = Clock.System.now()
                     .toLocalDateTime(TimeZone.UTC).date
                     .atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
@@ -60,10 +58,10 @@ fun LocalDatePickerDialog(
             TextButton(onClick = {
                 onDateSelected(datePickerState.selectedDateMillis.toLocalDate())
                 onDismiss()
-            }) { Text("OK") }
+            }) { Text(text = stringResource(id = R.string.confirm_ok)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Abbrechen") }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.confirm_cancel)) }
         }
     ) {
         DatePicker(state = datePickerState)
@@ -87,13 +85,12 @@ fun LocalTimePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
-                // Erstellt eine neue kotlinx.datetime.LocalTime
                 onTimeSelected(LocalTime(timePickerState.hour, timePickerState.minute))
                 onDismiss()
-            }) { Text("OK") }
+            }) { Text(text = stringResource(id = R.string.confirm_ok)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Abbrechen") }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(id = R.string.confirm_cancel)) }
         },
         text = { TimePicker(state = timePickerState) }
     )

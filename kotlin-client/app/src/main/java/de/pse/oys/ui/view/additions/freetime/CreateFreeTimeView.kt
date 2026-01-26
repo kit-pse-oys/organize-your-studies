@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
+import de.pse.oys.R
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
 import de.pse.oys.ui.util.InputLabel
@@ -40,7 +42,9 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    val dateText = viewModel.date?.toFormattedString() ?: "Nicht gewählt"
+    val dateText =
+        viewModel.date?.toFormattedString() ?: stringResource(id = R.string.nothing_chosen)
+
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -49,24 +53,32 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeaderBig(text = "Neue Freizeit")
-            InputLabel(text = "Titel:")
+            ViewHeaderBig(text = stringResource(id = R.string.new_freetime))
+            InputLabel(text = stringResource(id = R.string.enter_title))
             SingleLineInput(viewModel.title) { viewModel.title = it }
-            DateSelectionRow("Datum wählen:", dateText) { showDatePicker = true }
-            InputLabel(text = "Zeitraum wählen:")
+            DateSelectionRow(stringResource(id = R.string.select_Date), dateText) {
+                showDatePicker = true
+            }
+            InputLabel(text = stringResource(id = R.string.select_time_period))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TimePickerButton(label = "Von:", time = viewModel.start) {
+                TimePickerButton(
+                    label = stringResource(id = R.string.select_start_time_from),
+                    time = viewModel.start
+                ) {
                     showStartTimePicker = true
                 }
                 Text("-", style = typography.headlineLarge)
-                TimePickerButton(label = "Bis:", time = viewModel.end) { showEndTimePicker = true }
+                TimePickerButton(
+                    label = stringResource(id = R.string.select_end_time_to),
+                    time = viewModel.end
+                ) { showEndTimePicker = true }
             }
             NotifyCheckbox(
-                "Freizeit wöchentlich wiederholen",
+                stringResource(id = R.string.repeat_freetime_weekly),
                 viewModel.weekly
             ) { viewModel.weekly = it }
 
@@ -121,16 +133,24 @@ interface ICreateFreeTimeViewModel {
     fun delete()
 }
 
-abstract class BaseCreateFreeTimeViewModel : ViewModel(), ICreateFreeTimeViewModel {
-    override var title by mutableStateOf("")
-    override var date by mutableStateOf<LocalDate?>(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    )
-    override var start by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
-    )
-    override var end by mutableStateOf(
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
-    )
-    override var weekly by mutableStateOf(false)
+abstract class BaseCreateFreeTimeViewModel(
+    override val showDelete: Boolean = false,
+    initialTitle: String = "",
+    initialDate: LocalDate? = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    initialStart: LocalTime = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()).time,
+    initialEnd: LocalTime = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()).time,
+    initialWeekly: Boolean = false
+) : ViewModel(), ICreateFreeTimeViewModel {
+
+    override var title by mutableStateOf(initialTitle)
+    override var date by mutableStateOf(initialDate)
+    override var start by mutableStateOf(initialStart)
+    override var end by mutableStateOf(initialEnd)
+    override var weekly by mutableStateOf(initialWeekly)
+
+    abstract override fun submit()
+    abstract override fun delete()
 }

@@ -17,9 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.pse.oys.R
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -36,7 +38,7 @@ fun FreeTimesView(viewModel: IFreeTimesViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                ViewHeader(text = "Meine Freizeiten")
+                ViewHeader(text = stringResource(id = R.string.my_free_times_button))
             }
             items(viewModel.freeTimes) { freeTime ->
                 FreeTimeButton(freeTime, viewModel)
@@ -55,8 +57,7 @@ private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(2.dp, Blue),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = LightBlue,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            containerColor = LightBlue, contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(
@@ -66,16 +67,15 @@ private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
         ) {
             Text(
                 freeTime.data.title, style = typography.titleLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold
                 )
             )
             if (freeTime.data.weekly) {
-                Text("wöchentliche Freizeit (seit " + freeTime.data.date.toFormattedString() + ")")
+                Text(stringResource(id = R.string.weekly_freetime_since) + freeTime.data.date.toFormattedString())
             } else {
-                Text("Freizeit am " + freeTime.data.date.toFormattedString())
+                Text(stringResource(id = R.string.freetime_on_date) + freeTime.data.date.toFormattedString())
             }
-            Text("Uhrzeit: " + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
+            Text(stringResource(id = R.string.at_time) + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
         }
     }
 }
