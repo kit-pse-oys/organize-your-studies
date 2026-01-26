@@ -81,7 +81,8 @@ public class LearningUnitService {
             LocalDateTime start = LocalDateTime.of(dto.getDate(), dto.getStart());
             LocalDateTime end = LocalDateTime.of(dto.getDate(), dto.getEnd());
             validateTimeRange(start, end);
-            unit.reschedule(start, end);
+            unit.setStartTime(start);
+            unit.setEndTime(end);
         }
 
         // Titeländerung wirkt fachlich auf die Aufgabe (nicht auf die Unit selbst).
@@ -116,7 +117,8 @@ public class LearningUnitService {
         requireUnitInPlan(plan, unit);
         validateTimeRange(start, end);
 
-        unit.reschedule(start, end);
+        unit.setStartTime(start);
+        unit.setEndTime(end);
         learningUnitRepository.save(unit);
 
         return mapToLearningPlanDTO(plan, user);
