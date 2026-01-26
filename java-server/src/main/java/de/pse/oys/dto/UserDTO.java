@@ -9,6 +9,7 @@ public class UserDTO {
     private String username;
     private String password;
 
+
     /**
      * Setzt die eindeutige ID des Nutzers.
      * @param id die ID des Nutzers

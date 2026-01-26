@@ -1,11 +1,9 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.ModuleDTO;
-import de.pse.oys.security.UserPrincipal;
 import de.pse.oys.service.ModuleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -17,7 +15,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/modules")
-public class ModuleController {
+public class ModuleController extends BaseController {
 
     private final ModuleService moduleService;
 
@@ -63,17 +61,5 @@ public class ModuleController {
         UUID userId = getAuthenticatedUserId();
         moduleService.deleteModule(userId, null); //todo irgendwie an die UUID des moduls rankommen
         return ResponseEntity.noContent().build();
-    }
-
-
-    /**
-     * Hilfsmethode, um die UUID des aktuell authentifizierten Nutzers
-     * aus dem SecurityContext zu extrahieren.
-     * @return Die UUID des Nutzers.
-     */
-    private UUID getAuthenticatedUserId() {
-        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        return principal.getUserId();
     }
 }

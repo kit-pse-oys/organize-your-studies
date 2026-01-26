@@ -1,13 +1,15 @@
 package de.pse.oys.controller;
 
-import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.UserDTO;
-import de.pse.oys.security.UserPrincipal;
+import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -17,7 +19,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/users")
-public class UserController {
+public class UserController extends BaseController{
 
     private final UserService userService;
 
@@ -47,11 +49,7 @@ public class UserController {
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount(@RequestBody UserDTO dto) {
-
-        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        UUID userId = principal.getUserId();
+        UUID userId = getAuthenticatedUserId();
 
         userService.deleteAccount(userId, dto);
         return ResponseEntity.noContent().build();
