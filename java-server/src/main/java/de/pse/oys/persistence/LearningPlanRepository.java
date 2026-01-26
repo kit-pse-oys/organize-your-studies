@@ -1,5 +1,6 @@
 package de.pse.oys.persistence;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,4 +31,17 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
             """, nativeQuery = true)
     Optional<LearningPlan> findByUserIdAndStatus(@Param("uid") UUID userId,
                                                  @Param("status") String status);
+
+    /**
+     * Findet einen LearningPlan für einen bestimmten Benutzer und eine bestimmte Startwoche.
+     * @param userId die ID des Benutzers
+     * @param weekStart das Startdatum der Woche
+     * @return Optional des LearningPlans für den angegebenen Benutzer und die Woche
+     */
+    @Query(value = """
+            SELECT * FROM learning_plans
+            WHERE userid = :uid AND week_start = :weekStart
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<LearningPlan> findByUserIdAndWeekStart(@Param("uid") UUID userId, @Param("weekStart") LocalDate weekStart);
 }

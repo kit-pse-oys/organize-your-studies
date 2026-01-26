@@ -1,16 +1,17 @@
-package de.pse.oys.dto;
+package de.pse.oys.dto.plan;
+
 import java.util.List;
-import java.util.UUID;
-public class PlanningRequest {
+
+public class PlanningRequestDTO {
     private int horizon;
     private int current_slot;
     private List<Integer> blocked_days;
     private  String preference_time;
-    private List<FreetimeDTO> fixed_blocks;
-    private List<TaskDTO> tasks;
+    private List<FixedBlockDTO> fixed_blocks;
+    private List<PlanningTaskDTO> tasks;
 
-    public PlanningRequest(int horizon, int current_slot, List<Integer> blocked_days, String preference_time,
-                           List<FreetimeDTO> fixed_blocks, List<TaskDTO> tasks) {
+    public PlanningRequestDTO(int horizon, int current_slot, List<Integer> blocked_days, String preference_time,
+                              List<FixedBlockDTO> fixed_blocks, List<PlanningTaskDTO> tasks) {
         this.horizon = horizon;
         this.current_slot = current_slot;
         this.blocked_days = blocked_days;
@@ -23,7 +24,7 @@ public class PlanningRequest {
         return horizon;
     }
 
-    public List<TaskDTO> getTasks() {
+    public List<PlanningTaskDTO> getTasks() {
         return tasks;
     }
 
@@ -39,8 +40,15 @@ public class PlanningRequest {
         return current_slot;
     }
 
-    public List<FreetimeDTO> getFixed_blocks() {
+    public List<FixedBlockDTO> getFixed_blocks() {
         return fixed_blocks;
     }
 
+    public String getPreferredSlots() {
+        return preference_time;
+    }
+
+    public List<FixedBlockDTO> getFixedBlocks() {
+        return fixed_blocks;
+    }
 }

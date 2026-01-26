@@ -1,6 +1,6 @@
 package de.pse.oys.dto.response;
 
-import de.pse.oys.dto.TaskDTO;
+import de.pse.oys.dto.plan.PlanningTaskDTO;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +26,7 @@ public class ModuleResponseDTO {
     private String color;
 
     /** Die Liste der Aufgaben, die diesem Modul zugeordnet sind. */
-    private List<TaskDTO> tasks;
+    private List<PlanningTaskDTO> tasks;
 
     /**
      * Standardkonstruktor für die Deserialisierung.
@@ -49,7 +49,7 @@ public class ModuleResponseDTO {
     public String getColor() { return color; }
 
     /** @return Die Liste der zugehörigen Aufgaben. */
-    public List<TaskDTO> getTasks() { return tasks; }
+    public List<PlanningTaskDTO> getTasks() { return tasks; }
 
     // Setter
 
@@ -66,5 +66,5 @@ public class ModuleResponseDTO {
     public void setColor(String color) { this.color = color; }
 
     /** @param tasks Die Liste der Aufgaben für dieses Modul. */
-    public void setTasks(List<TaskDTO> tasks) { this.tasks = tasks; }
+    public void setTasks(List<PlanningTaskDTO> tasks) { this.tasks = tasks; }
 }
