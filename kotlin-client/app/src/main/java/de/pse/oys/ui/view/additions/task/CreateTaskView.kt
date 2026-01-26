@@ -81,41 +81,45 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 onSelect = { viewModel.type = it }
             )
 
-            if (viewModel.type == TaskType.EXAM) {
-                DateSelectionRow(
-                    stringResource(id = R.string.enter_exam_date),
-                    viewModel.examDate.toFormattedString()
-                ) { showExamDatePicker = true }
-                NotifyCheckbox(
-                    stringResource(id = R.string.notify_before_exam),
-                    viewModel.sendNotification
-                ) {
-                    viewModel.sendNotification = it
+            when (viewModel.type) {
+                TaskType.EXAM -> {
+                    DateSelectionRow(
+                        stringResource(id = R.string.enter_exam_date),
+                        viewModel.examDate.toFormattedString()
+                    ) { showExamDatePicker = true }
+                    NotifyCheckbox(
+                        stringResource(id = R.string.notify_before_exam),
+                        viewModel.sendNotification
+                    ) {
+                        viewModel.sendNotification = it
+                    }
                 }
-            }
-            if (viewModel.type == TaskType.SUBMISSION) {
-                InputLabel(text = stringResource(id = R.string.enter_submission_date))
-                SubmissionDateSelection(viewModel)
-                SubmissionCycleSelection(viewModel)
-                NotifyCheckbox(
-                    stringResource(id = R.string.notify_before_submission),
-                    viewModel.sendNotification
-                ) {
-                    viewModel.sendNotification = it
+
+                TaskType.SUBMISSION -> {
+                    InputLabel(text = stringResource(id = R.string.enter_submission_date))
+                    SubmissionDateSelection(viewModel)
+                    SubmissionCycleSelection(viewModel)
+                    NotifyCheckbox(
+                        stringResource(id = R.string.notify_before_submission),
+                        viewModel.sendNotification
+                    ) {
+                        viewModel.sendNotification = it
+                    }
                 }
-            }
-            if (viewModel.type == TaskType.OTHER) {
-                InputLabel(text = stringResource(id = R.string.select_time_period))
-                DateSelectionRow(
-                    stringResource(id = R.string.select_start_date),
-                    viewModel.start.toFormattedString()
-                ) {
-                    showStartDatePicker = true
+
+                TaskType.OTHER -> {
+                    InputLabel(text = stringResource(id = R.string.select_time_period))
+                    DateSelectionRow(
+                        stringResource(id = R.string.select_start_date),
+                        viewModel.start.toFormattedString()
+                    ) {
+                        showStartDatePicker = true
+                    }
+                    DateSelectionRow(
+                        stringResource(id = R.string.select_end_date),
+                        viewModel.end.toFormattedString()
+                    ) { showEndDatePicker = true }
                 }
-                DateSelectionRow(
-                    stringResource(id = R.string.select_end_date),
-                    viewModel.end.toFormattedString()
-                ) { showEndDatePicker = true }
             }
 
             if (showExamDatePicker) {
@@ -423,10 +427,13 @@ abstract class BaseCreateTaskViewModel(
     initialType: TaskType = TaskType.OTHER,
     initialWeeklyTimeLoad: Int = 0,
     initialSendNotification: Boolean = false,
-    initialExamDate: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
-    initialSubmissionDate: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+    initialExamDate: LocalDate = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    initialSubmissionDate: LocalDateTime = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()),
     initialSubmissionCycle: Int = 0,
-    initialStart: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    initialStart: LocalDate = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
     initialEnd: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 ) : ViewModel(), ICreateTaskViewModel {
 

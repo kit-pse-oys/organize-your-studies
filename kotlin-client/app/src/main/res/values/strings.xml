@@ -69,7 +69,7 @@
     <string name="submissionTask">Submission</string>
     <string name="otherTask">Other</string>
     <string name="task_type_is">Task Type:\u0020</string>
-    <string name="task_from_module">\u0020from Module:\u0020</string>
+    <string name="task_from_module">Module:\u0020</string>
     <string name="enter_exam_date">Exam Date:\u0020</string>
     <string name="notify_before_exam">I want to be notified before the exam.</string>
     <string name="enter_submission_date">Submission Date:</string>

@@ -69,7 +69,7 @@
     <string name="submissionTask">Abgabe</string>
     <string name="otherTask">Sonstige</string>
     <string name="task_type_is">Aufgabentyp:\u0020</string>
-    <string name="task_from_module">\u0020aus Modul:\u0020</string>
+    <string name="task_from_module">Modul:\u0020</string>
     <string name="enter_exam_date">Klausurdatum:\u0020</string>
     <string name="notify_before_exam">Ich möchte vor der Klausur benachrichtigt werden.</string>
     <string name="enter_submission_date">Abgabedatum:</string>

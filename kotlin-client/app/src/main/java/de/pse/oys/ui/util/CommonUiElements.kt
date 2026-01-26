@@ -32,6 +32,9 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.number
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -203,16 +206,23 @@ fun RatingSlider(
     }
 }
 
-fun LocalTime.toFormattedString(): String =
-    "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+fun LocalTime.toFormattedString(): String {
+    val javaTime = java.time.LocalTime.of(hour, minute)
+    val formatter =
+        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault())
+    return javaTime.format(formatter)
+}
 
-fun LocalDate.toFormattedString(): String =
-    "${day.toString().padStart(2, '0')}.${month.number.toString().padStart(2, '0')}.${year}"
+fun LocalDate.toFormattedString(): String {
+    val javaDate = java.time.LocalDate.of(year, month.number, day)
+    val formatter =
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault())
+    return javaDate.format(formatter)
+}
 
-fun LocalDateTime.toFormattedString() =
-    "${date.toFormattedString()}, ${hour.toString().padStart(2, '0')}:${
-        minute.toString().padStart(2, '0')
-    }"
+fun LocalDateTime.toFormattedString(): String {
+    return "${date.toFormattedString()}, ${time.toFormattedString()}"
+}
 
 fun Int.toFormattedTimeString(): String {
     val hours = this / 60
