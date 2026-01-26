@@ -1,6 +1,6 @@
 package de.pse.oys.dto.response;
 
-import de.pse.oys.dto.plan.FixedBlockDTO;
+import de.pse.oys.dto.plan.FreeTimeDTO;
 import de.pse.oys.dto.UnitDTO;
 
 import java.time.LocalDate;
@@ -33,7 +33,7 @@ public class LearningPlanDTO {
      * Liste der für diesen Zeitraum verfügbaren Freizeitfenster (Slots).
      * Nutzt das FreeTimeDTO, welches separat implementiert wird.
      */
-    private List<FixedBlockDTO> availableSlots;
+    private List<FreeTimeDTO> availableSlots;
 
     /**
      * Standardkonstruktor für die JSON-Deserialisierung.
@@ -56,7 +56,7 @@ public class LearningPlanDTO {
     public List<UnitDTO> getUnits() { return units; }
 
     /** @return Die verfügbaren Freizeit-Slots. */
-    public List<FixedBlockDTO> getAvailableSlots() { return availableSlots; }
+    public List<FreeTimeDTO> getAvailableSlots() { return availableSlots; }
 
     // Setter
 
@@ -73,5 +73,5 @@ public class LearningPlanDTO {
     public void setUnits(List<UnitDTO> units) { this.units = units; }
 
     /** @param availableSlots Die Liste der verfügbaren Zeitfenster (FreeTimeDTOs). */
-    public void setAvailableSlots(List<FixedBlockDTO> availableSlots) { this.availableSlots = availableSlots; }
+    public void setAvailableSlots(List<FreeTimeDTO> availableSlots) { this.availableSlots = availableSlots; }
 }
