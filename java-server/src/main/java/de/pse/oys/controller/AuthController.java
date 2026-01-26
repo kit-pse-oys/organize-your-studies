@@ -1,5 +1,6 @@
 package de.pse.oys.controller;
 
+import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.service.auth.AuthService;
@@ -33,9 +34,13 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO dto) {
-        // Logik zur Validierung gegen UserRepository und Token-Erstellung
-        AuthResponseDTO response = authService.login(dto); // Beispielhafter Aufruf
-        return ResponseEntity.ok(response);
+
+        try {
+            AuthResponseDTO response = authService.login(dto);
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException | IllegalArgumentException e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -55,8 +60,13 @@ public class AuthController {
      * @return Eine ResponseEntity mit dem neuen Access-Token.
      */
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody AuthResponseDTO dto) {
-        // Logik zur Prüfung von refresh_token_expires_at und Neuausstellung
-        return ResponseEntity.ok(new AuthResponseDTO());
+    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshTokenDTO dto) {
+
+        try{
+            AuthResponseDTO response = authService.refreshToken(dto);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

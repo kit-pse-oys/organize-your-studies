@@ -114,7 +114,7 @@ public class JwtProvider {
 
             return UUID.fromString(subject);
         } catch (JwtException e) {
-            throw new InvalidTokenException(ERR_TOKEN_INVALID, e);
+            throw new InvalidTokenException(ERR_TOKEN_INVALID);
         }
     }
 }
