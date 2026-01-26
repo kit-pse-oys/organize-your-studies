@@ -13,14 +13,20 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.headersOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.io.readString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.uuid.Uuid
 
 class RemoteClientTest {
     private object MockSessionStore : SessionStore {
@@ -228,7 +234,10 @@ class RemoteClientTest {
             engine += { request ->
                 assertEquals("/api/v1/users", request.url.encodedPath)
                 assertEquals(HttpMethod.Delete, request.method)
-                assertEquals("Bearer ${MockSessionStore.session.accessToken}", request.headers[HttpHeaders.Authorization])
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
 
                 respondOk()
             }
@@ -258,7 +267,10 @@ class RemoteClientTest {
             engine += { request ->
                 assertEquals("/api/v1/questionnaire", request.url.encodedPath)
                 assertEquals(HttpMethod.Put, request.method)
-                assertEquals("Bearer ${MockSessionStore.session.accessToken}", request.headers[HttpHeaders.Authorization])
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
                 assertEquals(ContentType.Application.Json, request.body.contentType)
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
@@ -301,6 +313,35 @@ class RemoteClientTest {
 
     @Test
     fun queryRateable() {
+        val uuid1 = Uuid.random()
+        val uuid2 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units/rateable", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonArray {
+                        add(uuid1.toHexDashString())
+                        add(uuid2.toHexDashString())
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.queryRateable()
+            assertEquals(200, response.status)
+            assertEquals(listOf(uuid1, uuid2), response.response)
+        }
     }
 
     @Test
@@ -309,10 +350,77 @@ class RemoteClientTest {
 
     @Test
     fun updatePlan() {
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan", request.url.encodedPath)
+                assertEquals(HttpMethod.Put, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respondOk()
+            }
+            val response = client.updatePlan()
+            assertEquals(200, response.status)
+        }
     }
 
     @Test
     fun queryUnits() {
+        val task1 = Uuid.random()
+        val step1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonObject {
+                        put("MONDAY", buildJsonArray {
+                            add(buildJsonObject {
+                                put("id", step1.toHexDashString())
+                                put("data", buildJsonObject {
+                                    put("task", task1.toHexDashString())
+                                    put("date", "2026-01-01")
+                                    put("start", "00:00:00")
+                                    put("end", "01:00:00")
+                                })
+                            })
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+            val response = client.queryUnits()
+            assertEquals(200, response.status)
+            assertEquals(buildMap {
+                put(
+                    DayOfWeek.MONDAY, listOf(
+                        RemoteStep(
+                            RemoteStepData(
+                                task1,
+                                LocalDate(2026, 1, 1),
+                                LocalTime(0, 0, 0),
+                                LocalTime(1, 0, 0)
+                            ), step1
+                        )
+                    )
+                )
+            }, response.response)
+        }
     }
 
     @Test

@@ -4,6 +4,7 @@ import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
+import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Step
@@ -61,14 +62,14 @@ interface RemoteAPI {
     suspend fun rateUnit(unit: Uuid, ratings: UnitRatings): Response<Unit>
 
     suspend fun updatePlan(): Response<Unit>
-    suspend fun queryUnits(): Response<Map<DayOfWeek, List<Step>>>
+    suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>>
 
     suspend fun queryModules(): Response<List<Module>>
     suspend fun createModule(module: ModuleData): Response<Uuid>
     suspend fun updateModule(module: Module): Response<Unit>
     suspend fun deleteModule(module: Uuid): Response<Unit>
 
-    suspend fun queryTasks(): Response<List<Task>>
+    suspend fun queryTasks(): Response<List<RemoteTask>>
     suspend fun createTask(task: TaskData): Response<Uuid>
     suspend fun updateTask(task: Task): Response<Unit>
     suspend fun deleteTask(task: Uuid): Response<Unit>
@@ -261,7 +262,7 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<Step>>> {
+    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>> {
         return client.get(serverUrl) {
             url {
                 apiPath("plan")
@@ -310,7 +311,7 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun queryTasks(): Response<List<Task>> {
+    override suspend fun queryTasks(): Response<List<RemoteTask>> {
         return client.get(serverUrl) {
             url {
                 apiPath("tasks")

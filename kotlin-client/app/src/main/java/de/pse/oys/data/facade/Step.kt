@@ -7,4 +7,4 @@ import kotlinx.serialization.Serializable
 typealias Step = Identified<StepData>
 
 @Serializable
-data class StepData(val task: Task, val data: LocalDate, val start: LocalTime, val end: LocalTime)
+data class StepData(val task: Task, val date: LocalDate, val start: LocalTime, val end: LocalTime)
