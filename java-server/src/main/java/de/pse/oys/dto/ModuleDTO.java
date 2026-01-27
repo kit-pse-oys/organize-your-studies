@@ -24,6 +24,7 @@ public class ModuleDTO {
      * Standardkonstruktor für die Deserialisierung.
      */
     public ModuleDTO() {
+        // Standardkonstruktor
     }
 
     // Getter
