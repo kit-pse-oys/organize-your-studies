@@ -20,6 +20,35 @@ import uvicorn
 from fastapi import FastAPI, Body
 from ortools.sat.python import cp_model
 
+SLOT_DURATION_MINUTES = 5
+MINUTES_PER_HOUR = 60
+HOURS_PER_DAY = 24
+DAYS_PER_WEEK = 7
+
+SLOTS_PER_HOUR = MINUTES_PER_HOUR // SLOT_DURATION_MINUTES
+SLOTS_PER_DAY = HOURS_PER_DAY * SLOTS_PER_HOUR
+DEFAULT_HORIZON = DAYS_PER_WEEK * SLOTS_PER_DAY
+
+HOUR_MORNING_END = 6
+HOUR_EVENING_START = 22
+
+SLOT_MORNING_END = HOUR_MORNING_END * SLOTS_PER_HOUR
+SLOT_EVENING_START = HOUR_EVENING_START * SLOTS_PER_HOUR
+
+SOLVER_TIME_LIMIT_SECONDS = 4.0
+COST_BONUS_PREFERENCE = -10
+COST_MIN_BOUND = -1000000
+COST_MAX_BOUND = 1000000
+
+KEY_MORNING = "MORNING"
+KEY_FORENOON = "FORENOON"
+KEY_NOON = "NOON"
+KEY_AFTERNOON = "AFTERNOON"
+KEY_EVENING = "EVENING"
+
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 5001
+
 
 # Component DataTransformer
 
@@ -107,7 +136,7 @@ class COPSolver:
         3. Constraints (keine Überlappung, Deadlines).
         4. Zielfunktion (Minimierung der Kosten basierend auf Präferenzen).
         """
-        horizon = self.data.get('horizon', 2016)
+        horizon = self.data.get('horizon', DEFAULT_HORIZON)
         current_slot = self.data.get('current_slot', 0)
         tasks = self.data.get('tasks', [])
         fixed_blocks = self.data.get('fixed_blocks', [])
@@ -124,25 +153,21 @@ class COPSolver:
             fixed_int = self.model.NewIntervalVar(start, duration, start + duration, f"Block_{start}")
             all_intervals.append(fixed_int)
 
-        slots_per_day = 288
-        morning_end = 72
-        evening_start = 264
-
-        for day in range(7):
-            offset = day * slots_per_day
+        for day in range(DAYS_PER_WEEK):
+            offset = day * SLOTS_PER_DAY
 
             if day in blocked_days:
-                block_int = self.model.NewIntervalVar(offset, slots_per_day, offset + slots_per_day,
+                block_int = self.model.NewIntervalVar(offset, SLOTS_PER_DAY, offset + SLOTS_PER_DAY,
                                                       f"BlockedDay_{day}")
                 all_intervals.append(block_int)
 
                 continue
 
-            night_a = self.model.NewIntervalVar(offset, morning_end, offset + morning_end, f"NightA_d{day}")
+            night_a = self.model.NewIntervalVar(offset, SLOT_MORNING_END, offset + SLOT_MORNING_END, f"NightA_d{day}")
             all_intervals.append(night_a)
 
-            night_b_duration = slots_per_day - evening_start
-            night_b = self.model.NewIntervalVar(offset + evening_start, night_b_duration, offset + slots_per_day,
+            night_b_duration = SLOTS_PER_DAY - SLOT_EVENING_START
+            night_b = self.model.NewIntervalVar(offset + SLOT_EVENING_START, night_b_duration, offset + SLOTS_PER_DAY,
                                                 f"NightB_d{day}")
 
             all_intervals.append(night_b)
@@ -169,19 +194,19 @@ class COPSolver:
             selected_prefs = [p.strip() for p in pref_time_string.split(',')]
 
             time_windows = []
-            if "MORNING" in selected_prefs:      time_windows.append((6, 9))
-            if "FORENOON" in selected_prefs:   time_windows.append((9, 12))
-            if "NOON" in selected_prefs:      time_windows.append((12, 15))
-            if "AFTERNOON" in selected_prefs:  time_windows.append((15, 18))
-            if "EVENING" in selected_prefs:       time_windows.append((18, 22))
+            if KEY_MORNING in selected_prefs:      time_windows.append((6, 9))
+            if KEY_FORENOON in selected_prefs:   time_windows.append((9, 12))
+            if KEY_NOON in selected_prefs:      time_windows.append((12, 15))
+            if KEY_AFTERNOON in selected_prefs:  time_windows.append((15, 18))
+            if KEY_EVENING in selected_prefs:       time_windows.append((18, 22))
 
             for (h_start, h_end) in time_windows:
-                for day in range(7):
-                    s_slot = (day * 24 + h_start) * 12
-                    e_slot = (day * 24 + h_end) * 12
+                for day in range(DAYS_PER_WEEK):
+                    s_slot = (day * HOURS_PER_DAY + h_start) * SLOTS_PER_HOUR
+                    e_slot = (day * HOURS_PER_DAY + h_end) * SLOTS_PER_HOUR
                     for t in range(s_slot, e_slot):
                         if t < horizon:
-                            cost_array[t] += -10
+                            cost_array[t] += COST_BONUS_PREFERENCE
 
             if 'costs' in task:
                 for c in task['costs']:
@@ -190,7 +215,7 @@ class COPSolver:
                     if 0 <= t_idx < horizon:
                         cost_array[t_idx] += cost_val
 
-            cost_var = self.model.NewIntVar(-1000000, 1000000, f'cost_{t_id}')
+            cost_var = self.model.NewIntVar(COST_MIN_BOUND, COST_MAX_BOUND, f'cost_{t_id}')
 
             self.model.AddElement(start_var, cost_array, cost_var)
 
@@ -210,7 +235,7 @@ class COPSolver:
         """
         solver = cp_model.CpSolver()
 
-        solver.parameters.max_time_in_seconds = 4.0
+        solver.parameters.max_time_in_seconds = SOLVER_TIME_LIMIT_SECONDS
 
         status = solver.Solve(self.model)
 
@@ -249,4 +274,4 @@ async def optimize(data: dict = Body(...)):
 # --- 4. Server Starten ---
 if __name__ == '__main__':
     # FastAPI braucht Uvicorn als Server
-    uvicorn.run(app, host="0.0.0.0", port=5001)
+    uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
