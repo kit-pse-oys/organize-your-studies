@@ -4,6 +4,7 @@ import de.pse.oys.domain.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Repräsentiert einen Nutzer, der über einen externen Identity Provider (OIDC) verwaltet wird.
