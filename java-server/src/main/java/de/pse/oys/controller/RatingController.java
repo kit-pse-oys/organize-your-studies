@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -32,16 +33,14 @@ public class RatingController extends BaseController {
     /**
      * Übermittelt eine Bewertung für eine Lerneinheit.
      * Das Feedback wird genutzt, um die Effizienz der Planung zu steigern.
-     * * @param dto Das DTO mit den Bewertungsinformationen (Konzentration, Dauer, Erfolg).
+     * @param learningUnitId Die ID der bewerteten Lerneinheit.
+     * @param dto Das DTO mit den Bewertungsinformationen (Konzentration, Dauer, Erfolg).
      * @return Eine leere ResponseEntity bei Erfolg.
      */
     @PostMapping
-    public ResponseEntity<Void> rateUnit(@RequestBody RatingDTO dto) {
-        // Wir prüfen die Identität, um sicherzustellen, dass nur eigene Einheiten bewertet werden
-        UUID userId = getAuthenticatedUserId();
-
+    public ResponseEntity<Void> rateUnit(@RequestBody UUID learningUnitId, @RequestBody RatingDTO dto) {
         // Der RatingService verarbeitet die Logik und aktualisiert ggf. die CostMatrix
-        ratingService.submitRating(null, dto); //todo: learningUnitId hinzufügen
+        ratingService.submitRating(learningUnitId, dto);
 
         return ResponseEntity.ok().build();
     }

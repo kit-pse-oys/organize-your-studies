@@ -161,6 +161,21 @@ public class FreeTimeService {
         userRepository.save(user);
     }
 
+    /**
+     * Ruft alle Freizeitblöcke eines bestimmten Nutzers ab.
+     * @param userId Die ID des Nutzers, dessen Freizeitblöcke geladen werden sollen.
+     * @return Eine Liste aller Freizeitblöcke als {@link FreeTimeDTO}.
+     */
+    public List<FreeTimeDTO> getFreeTimesByUserId(UUID userId) {
+        // Lädt alle FreeTime-Entitäten über das Repository anhand der Nutzer-ID
+        List<FreeTime> entities = freeTimeRepository.findByUserId(userId);
+
+        // Wandelt die Liste der Entitäten in eine Liste von DTOs um
+        return entities.stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
     private User loadUser(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(
