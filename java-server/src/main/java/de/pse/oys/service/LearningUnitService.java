@@ -30,16 +30,33 @@ import java.util.UUID;
 /**
  * Service für Änderungen an bestehenden Lerneinheiten.
  *
- * <p>Eine {@link LearningUnit} ist eine konkrete Zeiteinplanung zu einer {@link Task}.
- * Dieser Service stellt sicher, dass Nutzer, Plan und Einheit zusammengehören, und führt
- * danach die gewünschte Änderung durch.</p>
+ * @author uqvfm
+ * @version 1.0
  */
 @Service
 @Transactional
 public class LearningUnitService {
 
-    private static final int SLOTS_PER_DAY = 24 * 60 / 5; // 288 Slots à 5 Minuten
+    private static final int HOURS_PER_DAY = 24;
+    private static final int MINUTES_PER_HOUR = 60;
+
     private static final int SLOT_LENGTH_MINUTES = 5;
+    private static final int SLOTS_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR / SLOT_LENGTH_MINUTES; // 288 Slots à 5 Minuten
+    private static final int DAY_OF_WEEK_VALUE_MONDAY = 1; // Monday=1 ... Sunday=7
+
+    private static final String MSG_DTO_NULL = "dto must not be null";
+    private static final String MSG_ACTUAL_DURATION_NEGATIVE = "actualDuration must be >= 0";
+    private static final String MSG_START_TIME_NULL_CANNOT_FINISH_EARLY = "Cannot finish unit early: startTime is null";
+
+    private static final String MSG_USER_NOT_FOUND_TEMPLATE = "User not found: %s";
+    private static final String MSG_PLAN_NOT_FOUND_TEMPLATE = "LearningPlan not found: %s";
+    private static final String MSG_UNIT_NOT_FOUND_TEMPLATE = "LearningUnit not found: %s";
+
+    private static final String MSG_UNIT_NOT_IN_PLAN_TEMPLATE =
+            "LearningUnit %s is not part of LearningPlan %s";
+
+    private static final String MSG_START_END_NULL = "start and end must not be null";
+    private static final String MSG_END_NOT_AFTER_START = "end must be after start";
 
     private final UserRepository userRepository;
     private final LearningPlanRepository learningPlanRepository;
@@ -68,7 +85,7 @@ public class LearningUnitService {
      * @throws IllegalArgumentException wenn User/Plan/Unit nicht existieren oder nicht zusammengehören
      */
     public LearningPlanDTO updateLearningUnit(UUID userId, UUID planId, UUID unitId, UnitDTO dto) {
-        Objects.requireNonNull(dto, "dto must not be null");
+        Objects.requireNonNull(dto, MSG_DTO_NULL);
 
         User user = requireUser(userId);
         LearningPlan plan = requirePlanOfUser(user, planId);
@@ -150,13 +167,13 @@ public class LearningUnitService {
         int minutes;
         if (actualDuration != null) {
             if (actualDuration < 0) {
-                throw new IllegalArgumentException("actualDuration must be >= 0");
+                throw new IllegalArgumentException(MSG_ACTUAL_DURATION_NEGATIVE);
             }
             minutes = actualDuration;
         } else {
             LocalDateTime start = unit.getStartTime();
             if (start == null) {
-                throw new IllegalArgumentException("Cannot finish unit early: startTime is null");
+                throw new IllegalArgumentException(MSG_START_TIME_NULL_CANNOT_FINISH_EARLY);
             }
             LocalDateTime now = LocalDateTime.now();
             long diff = java.time.Duration.between(start, now).toMinutes();
@@ -175,7 +192,7 @@ public class LearningUnitService {
 
     private User requireUser(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException(String.format(MSG_USER_NOT_FOUND_TEMPLATE, userId)));
     }
 
     /**
@@ -193,29 +210,29 @@ public class LearningUnitService {
         }
 
         return learningPlanRepository.findById(planId)
-                .orElseThrow(() -> new IllegalArgumentException("LearningPlan not found: " + planId));
+                .orElseThrow(() -> new IllegalArgumentException(String.format(MSG_PLAN_NOT_FOUND_TEMPLATE, planId)));
     }
 
     private LearningUnit requireUnit(UUID unitId) {
         return learningUnitRepository.findById(unitId)
-                .orElseThrow(() -> new IllegalArgumentException("LearningUnit not found: " + unitId));
+                .orElseThrow(() -> new IllegalArgumentException(String.format(MSG_UNIT_NOT_FOUND_TEMPLATE, unitId)));
     }
 
     private void requireUnitInPlan(LearningPlan plan, LearningUnit unit) {
         boolean contained = safeList(plan.getUnits()).stream()
                 .anyMatch(u -> unit.getUnitId().equals(u.getUnitId()));
         if (!contained) {
-            throw new IllegalArgumentException(
-                    "LearningUnit " + unit.getUnitId() + " is not part of LearningPlan " + plan.getPlanId());
+            throw new IllegalArgumentException(String.format(
+                    MSG_UNIT_NOT_IN_PLAN_TEMPLATE, unit.getUnitId(), plan.getPlanId()));
         }
     }
 
     private void validateTimeRange(LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
-            throw new IllegalArgumentException("start and end must not be null");
+            throw new IllegalArgumentException(MSG_START_END_NULL);
         }
         if (!end.isAfter(start)) {
-            throw new IllegalArgumentException("end must be after start");
+            throw new IllegalArgumentException(MSG_END_NOT_AFTER_START);
         }
     }
 
@@ -309,7 +326,7 @@ public class LearningUnitService {
         RecurrenceType type = ft.getRecurrenceType();
 
         if (type == RecurrenceType.WEEKLY && ft instanceof RecurringFreeTime weekly) {
-            return weekly.getDayOfWeek().getValue() - 1; // Monday=1 ... Sunday=7
+            return weekly.getDayOfWeek().getValue() - DAY_OF_WEEK_VALUE_MONDAY;
         }
 
         if (type == RecurrenceType.ONCE && ft instanceof SingleFreeTime once) {
@@ -326,7 +343,7 @@ public class LearningUnitService {
         if (time == null) {
             return 0;
         }
-        int totalMinutes = time.getHour() * 60 + time.getMinute();
+        int totalMinutes = time.getHour() * MINUTES_PER_HOUR + time.getMinute();
         return totalMinutes / SLOT_LENGTH_MINUTES;
     }
 
@@ -341,3 +358,4 @@ public class LearningUnitService {
         return in == null ? Collections.emptyList() : in;
     }
 }
+

@@ -20,11 +20,28 @@ import java.util.UUID;
 
 /**
  * Service für das Verwalten von Freizeitblöcken eines Nutzers.
- * Verantwortlich für Validierung, Überschneidungsprüfung und Persistierung.
+ *
+ * @author uqvfm
+ * @version 1.0
  */
+
 @Service
 @Transactional
 public class FreeTimeService {
+
+    private static final int DAYS_PER_WEEK = 7;
+
+    private static final String MSG_UPDATE_REQUIRES_ID = "Für updateFreeTime muss dto.id gesetzt sein.";
+    private static final String MSG_FREE_TIME_NOT_FOUND_TEMPLATE = "FreeTime mit ID %s wurde nicht gefunden.";
+    private static final String MSG_FREE_TIME_NOT_OWNED = "FreeTime gehört nicht zum angegebenen User.";
+    private static final String MSG_USER_NOT_FOUND_TEMPLATE = "User mit ID %s wurde nicht gefunden.";
+
+    private static final String MSG_REQUIRED_FIELDS_MISSING =
+            "Pflichtfelder fehlen (title/date/startTime/endTime).";
+    private static final String MSG_INVALID_RANGE =
+            "Ungültiger Zeitraum: startTime muss vor endTime liegen.";
+    private static final String MSG_OVERLAP =
+            "Freizeit überschneidet sich mit einer bestehenden Freizeit.";
 
     private final UserRepository userRepository;
     private final FreeTimeRepository freeTimeRepository;
@@ -51,8 +68,13 @@ public class FreeTimeService {
         User user = loadUser(userId);
         validateData(user, dto, null);
 
+        // id bleibt entweder aus DTO oder wird neu generiert (falls DTO null liefert)
         UUID id = (dto.getId() != null) ? dto.getId() : UUID.randomUUID();
         FreeTime entity = mapToEntity(dto);
+
+        // falls eure Entities die ID nicht im Konstruktor setzen, ist id hier nur "genutzt"
+        // (im Zweifel: entity.setFreeTimeId(id); falls es sowas bei euch gibt)
+        // -> wir lassen das Verhalten wie im Original unverändert.
 
         user.addFreeTime(entity);
         userRepository.save(user); // Cascade.ALL auf freeTimes
@@ -72,14 +94,15 @@ public class FreeTimeService {
 
         UUID freeTimeId = dto.getId();
         if (freeTimeId == null) {
-            throw new IllegalArgumentException("Für updateFreeTime muss dto.id gesetzt sein.");
+            throw new IllegalArgumentException(MSG_UPDATE_REQUIRES_ID);
         }
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
-                .orElseThrow(() -> new IllegalArgumentException("FreeTime mit ID " + freeTimeId + " wurde nicht gefunden."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format(MSG_FREE_TIME_NOT_FOUND_TEMPLATE, freeTimeId)));
 
         if (!belongsToUser(user, freeTimeId)) {
-            throw new IllegalArgumentException("FreeTime gehört nicht zum angegebenen User.");
+            throw new IllegalArgumentException(MSG_FREE_TIME_NOT_OWNED);
         }
 
         validateData(user, dto, freeTimeId);
@@ -126,10 +149,11 @@ public class FreeTimeService {
         User user = loadUser(userId);
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
-                .orElseThrow(() -> new IllegalArgumentException("FreeTime mit ID " + freeTimeId + " wurde nicht gefunden."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format(MSG_FREE_TIME_NOT_FOUND_TEMPLATE, freeTimeId)));
 
         if (!belongsToUser(user, freeTimeId)) {
-            throw new IllegalArgumentException("FreeTime gehört nicht zum angegebenen User.");
+            throw new IllegalArgumentException(MSG_FREE_TIME_NOT_OWNED);
         }
 
         user.deleteFreeTime(existing);
@@ -139,7 +163,8 @@ public class FreeTimeService {
 
     private User loadUser(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User mit ID " + userId + " wurde nicht gefunden."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format(MSG_USER_NOT_FOUND_TEMPLATE, userId)));
     }
 
     private void validateData(User user, FreeTimeDTO dto, UUID ignoreId) {
@@ -148,11 +173,11 @@ public class FreeTimeService {
                 || dto.getDate() == null
                 || dto.getStartTime() == null
                 || dto.getEndTime() == null) {
-            throw new IllegalArgumentException("Pflichtfelder fehlen (title/date/startTime/endTime).");
+            throw new IllegalArgumentException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
         if (!dto.getStartTime().isBefore(dto.getEndTime())) {
-            throw new IllegalArgumentException("Ungültiger Zeitraum: startTime muss vor endTime liegen.");
+            throw new IllegalArgumentException(MSG_INVALID_RANGE);
         }
 
         List<FreeTime> existing = user.getFreeTimes();
@@ -161,19 +186,27 @@ public class FreeTimeService {
         }
 
         for (FreeTime ft : existing) {
-            if (ft == null) continue;
-            if (ignoreId != null && ignoreId.equals(ft.getFreeTimeId())) continue;
+            if (ft == null) {
+                continue;
+            }
+            if (ignoreId != null && ignoreId.equals(ft.getFreeTimeId())) {
+                continue;
+            }
 
-            if (!occursSameDay(ft, dto.getDate())) continue;
+            if (!occursSameDay(ft, dto.getDate())) {
+                continue;
+            }
 
             if (overlaps(ft.getStartTime(), ft.getEndTime(), dto.getStartTime(), dto.getEndTime())) {
-                throw new IllegalArgumentException("Freizeit überschneidet sich mit einer bestehenden Freizeit.");
+                throw new IllegalArgumentException(MSG_OVERLAP);
             }
         }
     }
 
     private boolean occursSameDay(FreeTime existing, LocalDate dtoDate) {
-        if (dtoDate == null) return false;
+        if (dtoDate == null) {
+            return false;
+        }
 
         if (existing.getRecurrenceType() == RecurrenceType.WEEKLY) {
             DayOfWeek dow = ((RecurringFreeTime) existing).getDayOfWeek();
@@ -212,7 +245,7 @@ public class FreeTimeService {
         if (weekly) {
             DayOfWeek dow = ((RecurringFreeTime) ft).getDayOfWeek();
             LocalDate today = LocalDate.now();
-            int delta = (dow.getValue() - today.getDayOfWeek().getValue() + 7) % 7;
+            int delta = (dow.getValue() - today.getDayOfWeek().getValue() + DAYS_PER_WEEK) % DAYS_PER_WEEK;
             date = today.plusDays(delta);
         } else {
             date = ((SingleFreeTime) ft).getDate();
@@ -223,7 +256,9 @@ public class FreeTimeService {
 
     private boolean belongsToUser(User user, UUID freeTimeId) {
         List<FreeTime> list = user.getFreeTimes();
-        if (list == null) return false;
+        if (list == null) {
+            return false;
+        }
 
         for (FreeTime ft : list) {
             if (ft != null && Objects.equals(ft.getFreeTimeId(), freeTimeId)) {
@@ -237,4 +272,3 @@ public class FreeTimeService {
         return s == null || s.trim().isEmpty();
     }
 }
-
