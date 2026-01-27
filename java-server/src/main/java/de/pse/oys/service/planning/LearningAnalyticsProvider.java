@@ -1,26 +1,44 @@
 package de.pse.oys.service.planning;
 
 
-import de.pse.oys.domain.enums.AchievementLevel;
-import de.pse.oys.domain.enums.ConcentrationLevel;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.pse.oys.domain.CostMatrix;
-import de.pse.oys.domain.LearningUnit;
-import de.pse.oys.domain.Task;
-import de.pse.oys.domain.UnitRating;
+import de.pse.oys.domain.*;
+import de.pse.oys.domain.Module;
+import de.pse.oys.domain.enums.AchievementLevel;
+import de.pse.oys.domain.enums.ConcentrationLevel;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.persistence.CostMatrixRepository;
-import org.springframework.stereotype.Service;
 import de.pse.oys.persistence.TaskRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.*;
-
-import de.pse.oys.domain.Module;
 
 
 @Service
 public class LearningAnalyticsProvider {
+    private static final double CONCENTRATION_WEIGHT = 1.5;
+    private static final int COST_INVERSION_FACTOR = -1;
+
+    private static final int MINUTES_PER_HOUR = 60;
+    private static final int SLOT_DURATION_MINUTES = 5;
+    private static final String EMPTY_JSON_ARRAY = "[]";
+
+    private static final int VAL_CONCENTRATION_VERY_LOW = -2;
+    private static final int VAL_CONCENTRATION_LOW = -1;
+    private static final int VAL_CONCENTRATION_MEDIUM = 0;
+    private static final int VAL_CONCENTRATION_HIGH = 1;
+    private static final int VAL_CONCENTRATION_VERY_HIGH = 2;
+    private static final int VAL_CONCENTRATION_DEFAULT = 1;
+
+    private static final int VAL_ACHIEVEMENT_NONE = -2;
+    private static final int VAL_ACHIEVEMENT_POOR = -1;
+    private static final int VAL_ACHIEVEMENT_PARTIAL = 0;
+    private static final int VAL_ACHIEVEMENT_GOOD = 1;
+    private static final int VAL_ACHIEVEMENT_EXCELLENT = 2;
+    private static final int VAL_ACHIEVEMENT_DEFAULT = 1;
+
     private final CostMatrixRepository costMatrixRepository;
     private final ObjectMapper objectMapper;
     private final TaskRepository taskRepository;
@@ -47,7 +65,7 @@ public class LearningAnalyticsProvider {
             }
             return calculateHeuristiksFromTask(task);
         }
-        if (!costMatrix.isOutdated()){
+        if (!costMatrix.isOutdated()) {
             return makeCostDTOList(costMatrix.getCosts());
         }
         return calculateCostsFromRatings(task);
@@ -56,13 +74,13 @@ public class LearningAnalyticsProvider {
     }
 
 
-
     private List<CostDTO> makeCostDTOList(String jsonCosts) {
         if (jsonCosts == null || jsonCosts.isEmpty()) {
             return Collections.emptyList();
         }
         try {
-            return objectMapper.readValue(jsonCosts, new TypeReference<List<CostDTO>>() {});
+            return objectMapper.readValue(jsonCosts, new TypeReference<List<CostDTO>>() {
+            });
         } catch (Exception e) {
 
             System.err.println("Fehler beim Lesen der Kosten-Daten: " + e.getMessage());
@@ -71,7 +89,7 @@ public class LearningAnalyticsProvider {
 
     }
 
-    private List<CostDTO> calculateCostsFromRatings (Task task) {
+    private List<CostDTO> calculateCostsFromRatings(Task task) {
         List<CostDTO> costs = new ArrayList<>();
         List<LearningUnit> units = task.getLearningUnits();
 
@@ -83,13 +101,13 @@ public class LearningAnalyticsProvider {
             if (unit.isRated()) {
                 UnitRating rating = unit.getRating();
 
-                double concentration = mapConcentrationToValue(rating.getConcentration()) * 1.5;
+                double concentration = mapConcentrationToValue(rating.getConcentration()) * CONCENTRATION_WEIGHT;
                 double achievement = mapAchievementToValue(rating.getAchievement());
-                int totalCost = ((int) (concentration + achievement) * -1);
+                int totalCost = ((int) (concentration + achievement) * COST_INVERSION_FACTOR);
 
                 LocalDateTime start = unit.getStartTime();
                 if (start != null) {
-                    int slot = (start.getHour() * 60 + start.getMinute()) / 5;
+                    int slot = (start.getHour() * MINUTES_PER_HOUR + start.getMinute()) / SLOT_DURATION_MINUTES;
                     costs.add(new CostDTO(slot, totalCost));
                 }
             }
@@ -100,7 +118,7 @@ public class LearningAnalyticsProvider {
         return costs;
     }
 
-    private void persist (Task task, CostMatrix costMatrix, List<CostDTO> costs) {
+    private void persist(Task task, CostMatrix costMatrix, List<CostDTO> costs) {
         if (costMatrix == null) {
             return;
         }
@@ -117,29 +135,41 @@ public class LearningAnalyticsProvider {
     }
 
 
-
     private int mapConcentrationToValue(ConcentrationLevel level) {
-        if (level == null) return 1; // Fallback
+        if (level == null) return VAL_CONCENTRATION_DEFAULT; // Fallback
 
         switch (level) {
-            case VERY_LOW:  return -2;
-            case LOW:       return -1;
-            case MEDIUM:    return 0;
-            case HIGH:      return 1;
-            case VERY_HIGH: return 2;
-            default:        return 1;
+            case VERY_LOW:
+                return VAL_CONCENTRATION_VERY_LOW;
+            case LOW:
+                return VAL_CONCENTRATION_LOW;
+            case MEDIUM:
+                return VAL_CONCENTRATION_MEDIUM;
+            case HIGH:
+                return VAL_CONCENTRATION_HIGH;
+            case VERY_HIGH:
+                return VAL_CONCENTRATION_VERY_HIGH;
+            default:
+                return VAL_CONCENTRATION_DEFAULT;
         }
     }
+
     private int mapAchievementToValue(AchievementLevel level) {
-        if (level == null) return 1; // Fallback
+        if (level == null) return VAL_ACHIEVEMENT_DEFAULT; // Fallback
 
         switch (level) {
-            case NONE:  return -2;
-            case POOR:       return -1;
-            case PARTIAL:    return 0;
-            case GOOD:      return 1;
-            case EXCELLENT: return 2;
-            default:        return 1;
+            case NONE:
+                return VAL_ACHIEVEMENT_NONE;
+            case POOR:
+                return VAL_ACHIEVEMENT_POOR;
+            case PARTIAL:
+                return VAL_ACHIEVEMENT_PARTIAL;
+            case GOOD:
+                return VAL_ACHIEVEMENT_GOOD;
+            case EXCELLENT:
+                return VAL_ACHIEVEMENT_EXCELLENT;
+            default:
+                return VAL_ACHIEVEMENT_DEFAULT;
         }
     }
 
@@ -179,7 +209,7 @@ public class LearningAnalyticsProvider {
         boolean newMatrix = false;
         if (costMatrix == null) {
             currentCosts = new ArrayList<>();
-            costMatrix = new CostMatrix( "[]", task);
+            costMatrix = new CostMatrix("[]", task);
             task.setCostMatrix(costMatrix);
             newMatrix = true;
         } else {
@@ -199,7 +229,7 @@ public class LearningAnalyticsProvider {
         currentCosts.sort(Comparator.comparingInt(CostDTO::getT));
         try {
             String jsonCosts = objectMapper.writeValueAsString(currentCosts);
-            costMatrix.setCosts(jsonCosts); // Setzt auch isOutdated auf false und lastUpdated auf jetzt
+            costMatrix.setCosts(jsonCosts);
             costMatrixRepository.save(costMatrix);
 
             if (newMatrix) {
