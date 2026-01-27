@@ -1,9 +1,23 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.UserType;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,6 +96,7 @@ public abstract class User {
         this.userType = type;
     }
 
+
     /**
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
      * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
@@ -129,12 +144,18 @@ public abstract class User {
     /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
      * @param module das hinzuzufügende Modul
      */
-    public void addModule(Module module) { /* Skelett */ }
+    public void addModule(Module module) {
+        modules.add(module);
+    }
 
     /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817].
      * @param module das zu entfernende Modul
      */
-    public void deleteModule(Module module) { /* Skelett */ }
+    public void deleteModule(Module module) {
+        if (module != null) {
+            this.modules.remove(module);
+        }
+    }
 
     /** Fügt eine neue Zeitrestriktion (Freizeit) hinzu[cite: 788, 819].
      * @param freeTime die hinzuzufügende Freizeit
@@ -191,7 +212,7 @@ public abstract class User {
 
     /**
      * Gibt den Hash des Refresh-Tokens zurück.
-     * @return
+     * @return den Hash des Refresh-Tokens
      */
     public String getRefreshTokenHash() {
         return refreshTokenHash;
@@ -212,4 +233,13 @@ public abstract class User {
     public List<LearningPlan> getLearningPlans() {
         return learningPlans;
     }
+
+    /**
+     * Gibt die Liste der dem Nutzer zugeordneten Studienmodule zurück.
+     * @return Liste der dem Nutzer zugeordneten Studienmodule
+     */
+    public List<Module> getModules() {
+        return modules;
+    }
+
 }

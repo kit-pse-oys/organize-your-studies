@@ -4,6 +4,7 @@ import de.pse.oys.domain.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Repräsentiert einen Nutzer, der sich lokal über Benutzername und Passwort authentifiziert.
@@ -19,12 +20,6 @@ public class LocalUser extends User {
      */
     @Column(name = "password_hash", updatable = false)
     private String passwordHash;
-
-    /** * Nutzerabhängige Zufallsvariable für das Hashing (Salt).
-     * Auch dieses Feld kann nach der Erstellung nicht mehr geändert werden.
-     */
-    @Column(name = "password_salt", updatable = false)
-    private String passwordSalt;
 
     /**
      * Standardkonstruktor ohne Argumente für JPA/Hibernate.
@@ -47,18 +42,10 @@ public class LocalUser extends User {
 
     // Getter Methoden
 
-
-    /**
-     * @return den Salt-Wert des Passwort-Hashings.
-     */
-    public String getSalt() {
-        return passwordSalt;
-    }
-
     /**
      * @return den Passwort-Hash.
      */
-    public String getHashedPassword() {
+    public String getPasswordHash() {
         return passwordHash;
     }
 }

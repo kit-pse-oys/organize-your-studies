@@ -16,7 +16,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/tasks")
 public class TaskController extends BaseController {
 
     private final TaskService taskService;

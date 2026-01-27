@@ -14,7 +14,7 @@ import java.util.UUID;
  * Bietet Endpunkte zum Abrufen, Erstellen, Aktualisieren und Löschen von Modulen.
  */
 @RestController
-@RequestMapping("/api/modules")
+@RequestMapping("/modules")
 public class ModuleController extends BaseController {
 
     private final ModuleService moduleService;
