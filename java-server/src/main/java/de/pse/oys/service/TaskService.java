@@ -14,10 +14,9 @@ import de.pse.oys.dto.TaskDTO;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
-import org.springframework.http.HttpStatus;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,11 +29,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Service-Klasse zur Verwaltung von Aufgaben.
- * Verarbeitet die Geschäftslogik für das Erstellen, Aktualisieren,
- * Löschen und Abfragen von Tasks.
+ * Service für Tasks: erstellen, ändern, löschen und abrufen.
  *
- * @author utgid
+ * @author uqvfm
  * @version 1.0
  */
 @Service
@@ -48,11 +45,11 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
     /**
-     * Erzeugt eine neue Instanz des TaskService.
+     * Erstellt den Service.
      *
-     * @param userRepository   Repository für Benutzerdaten
-     * @param moduleRepository Repository für Moduldaten
-     * @param taskRepository   Repository für Aufgabendaten
+     * @param userRepository Repository für User
+     * @param moduleRepository Repository für Module
+     * @param taskRepository Repository für Tasks
      */
     public TaskService(UserRepository userRepository,
                        ModuleRepository moduleRepository,
@@ -63,11 +60,11 @@ public class TaskService {
     }
 
     /**
-     * Erstellt eine neue Aufgabe für einen Benutzer.
+     * Legt eine neue Task für den User an.
      *
-     * @param userId Die UUID des authentifizierten Benutzers
-     * @param dto    Die Daten der zu erstellenden Aufgabe
-     * @return Das erstellte TaskDTO
+     * @param userId User-ID
+     * @param dto Task-Daten
+     * @return gespeicherte Task als DTO
      */
     @Transactional
     public TaskDTO createTask(UUID userId, TaskDTO dto) {
@@ -75,6 +72,7 @@ public class TaskService {
         validateData(dto);
 
         Module module = resolveModuleForUser(userId, dto.getModuleTitle());
+
         Task entity = mapToEntity(dto);
         entity.setModule(module);
 
@@ -83,11 +81,11 @@ public class TaskService {
     }
 
     /**
-     * Aktualisiert eine bestehende Aufgabe.
+     * Aktualisiert eine bestehende Task.
      *
-     * @param userId Die UUID des Benutzers (Ownership-Check)
-     * @param dto    Die neuen Daten der Aufgabe
-     * @return Das aktualisierte TaskDTO
+     * @param userId User-ID
+     * @param dto neue Daten
+     * @return aktualisierte Task als DTO
      */
     @Transactional
     public TaskDTO updateTask(UUID userId, TaskDTO dto) {
@@ -103,23 +101,32 @@ public class TaskService {
 
         switch (dto.getCategory()) {
             case EXAM -> {
+                if (!(existing instanceof ExamTask exam)) {
+                    throw new IllegalArgumentException("Task-Typ kann nicht geändert werden.");
+                }
                 ExamTaskDTO examDto = (ExamTaskDTO) dto;
-                ((ExamTask) existing).setExamDate(examDto.getExamDate());
+                exam.setExamDate(examDto.getExamDate());
             }
+
             case SUBMISSION -> {
+                if (!(existing instanceof SubmissionTask sub)) {
+                    throw new IllegalArgumentException("Task-Typ kann nicht geändert werden.");
+                }
                 SubmissionTaskDTO subDto = (SubmissionTaskDTO) dto;
-                LocalDateTime deadline = computeNextSubmissionDeadline(
-                        subDto.getSubmissionDay(),
-                        subDto.getSubmissionTime()
-                );
-                ((SubmissionTask) existing).setDeadline(deadline);
+                LocalDateTime deadline = computeNextSubmissionDeadline(subDto.getSubmissionDay(), subDto.getSubmissionTime());
+                sub.setDeadline(deadline);
             }
+
             case OTHER -> {
+                if (!(existing instanceof OtherTask other)) {
+                    throw new IllegalArgumentException("Task-Typ kann nicht geändert werden.");
+                }
                 OtherTaskDTO otherDto = (OtherTaskDTO) dto;
-                ((OtherTask) existing).setStartTime(otherDto.getStartDate().atStartOfDay());
-                ((OtherTask) existing).setEndTime(otherDto.getEndDate().atTime(LATEST_TIME));
+                other.setStartTime(otherDto.getStartDate().atStartOfDay());
+                other.setEndTime(otherDto.getEndDate().atTime(LATEST_TIME));
             }
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unbekannte TaskCategory");
+
+            default -> throw new IllegalArgumentException("Unbekannte TaskCategory.");
         }
 
         Task saved = taskRepository.save(existing);
@@ -127,35 +134,35 @@ public class TaskService {
     }
 
     /**
-     * Löscht eine Aufgabe aus dem System.
+     * Löscht eine Task, wenn sie dem User gehört.
      *
-     * @param userId Die UUID des Benutzers
-     * @param taskId Die UUID der zu löschenden Aufgabe
+     * @param userId User-ID
+     * @param taskId Task-ID
      */
     @Transactional
     public void deleteTask(UUID userId, UUID taskId) {
         requireExistingUser(userId);
 
         if (taskId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "taskId darf nicht null sein");
+            throw new IllegalArgumentException("taskId darf nicht null sein.");
         }
 
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task nicht gefunden"));
+                .orElseThrow(() -> new EntityNotFoundException("Task nicht gefunden."));
 
-        UUID moduleId = task.getModule().getModuleId();
-        if (!userOwnsModule(userId, moduleId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kein Zugriff auf diese Aufgabe");
+        UUID moduleId = (task.getModule() != null) ? task.getModule().getModuleId() : null;
+        if (moduleId == null || !userOwnsModule(userId, moduleId)) {
+            throw new SecurityException("Kein Zugriff auf diese Aufgabe.");
         }
 
         taskRepository.delete(task);
     }
 
     /**
-     * Ruft alle Aufgaben ab, die einem bestimmten Benutzer zugeordnet sind.
+     * Liefert alle Tasks des Users.
      *
-     * @param userId Die UUID des authentifizierten Benutzers
-     * @return Liste aller Tasks des Benutzers als DTOs
+     * @param userId User-ID
+     * @return Tasks als DTO-Liste
      */
     @Transactional(readOnly = true)
     public List<TaskDTO> getTasksByUserId(UUID userId) {
@@ -171,111 +178,198 @@ public class TaskService {
             }
         }
 
-        result.sort(Comparator
-                .comparing(TaskDTO::getModuleTitle, String.CASE_INSENSITIVE_ORDER)
+        result.sort(Comparator.comparing(TaskDTO::getModuleTitle, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(TaskDTO::getTitle, String.CASE_INSENSITIVE_ORDER));
 
         return result;
     }
 
     /**
-     * Validiert die Eingabedaten eines TaskDTOs.
+     * Prüft die DTO-Daten.
      *
-     * @param dto Das zu prüfende DTO
+     * @param dto TaskDTO
      */
     private void validateData(TaskDTO dto) {
         if (dto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "TaskDTO darf nicht null sein");
+            throw new IllegalArgumentException("TaskDTO darf nicht null sein.");
         }
 
-        if (isBlank(dto.getTitle()) || isBlank(dto.getModuleTitle())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Titel und Modul dürfen nicht leer sein");
+        if (isBlank(dto.getTitle())) {
+            throw new IllegalArgumentException("title darf nicht leer sein.");
+        }
+        if (isBlank(dto.getModuleTitle())) {
+            throw new IllegalArgumentException("moduleTitle darf nicht leer sein.");
+        }
+        if (dto.getCategory() == null) {
+            throw new IllegalArgumentException("category darf nicht null sein.");
         }
 
-        if (dto.getWeeklyTimeLoad() == null || dto.getWeeklyTimeLoad() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "weeklyTimeLoad muss > 0 sein");
+        Integer weekly = dto.getWeeklyTimeLoad();
+        if (weekly == null || weekly <= 0) {
+            throw new IllegalArgumentException("weeklyTimeLoad muss > 0 sein.");
         }
-
-        if (dto.getWeeklyTimeLoad() > MAX_WEEKLY_MINUTES) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "weeklyTimeLoad zu groß");
+        if (weekly > MAX_WEEKLY_MINUTES) {
+            throw new IllegalArgumentException("weeklyTimeLoad darf nicht größer als " + MAX_WEEKLY_MINUTES + " Minuten sein.");
         }
 
         switch (dto.getCategory()) {
             case EXAM -> {
-                if (!(((ExamTaskDTO) dto).getExamDate() != null)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "examDate fehlt");
+                if (!(dto instanceof ExamTaskDTO exam)) {
+                    throw new IllegalArgumentException("EXAM erfordert ExamTaskDTO.");
+                }
+                if (exam.getExamDate() == null) {
+                    throw new IllegalArgumentException("examDate darf nicht null sein.");
                 }
             }
+
             case SUBMISSION -> {
-                SubmissionTaskDTO sub = (SubmissionTaskDTO) dto;
+                if (!(dto instanceof SubmissionTaskDTO sub)) {
+                    throw new IllegalArgumentException("SUBMISSION erfordert SubmissionTaskDTO.");
+                }
+                if (sub.getSubmissionDay() == null) {
+                    throw new IllegalArgumentException("submissionDay darf nicht null sein.");
+                }
+                if (sub.getSubmissionTime() == null) {
+                    throw new IllegalArgumentException("submissionTime darf nicht null sein.");
+                }
                 if (sub.getSubmissionTime().isAfter(LATEST_TIME)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "submissionTime > 23:59");
+                    throw new IllegalArgumentException("submissionTime darf nicht nach 23:59 sein.");
                 }
             }
+
             case OTHER -> {
-                OtherTaskDTO other = (OtherTaskDTO) dto;
+                if (!(dto instanceof OtherTaskDTO other)) {
+                    throw new IllegalArgumentException("OTHER erfordert OtherTaskDTO.");
+                }
+                if (other.getStartDate() == null || other.getEndDate() == null) {
+                    throw new IllegalArgumentException("startDate/endDate dürfen nicht null sein.");
+                }
                 if (other.getEndDate().isBefore(other.getStartDate())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "endDate < startDate");
+                    throw new IllegalArgumentException("endDate muss >= startDate sein.");
                 }
             }
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unbekannte TaskCategory");
+
+            default -> throw new IllegalArgumentException("Unbekannte TaskCategory.");
         }
     }
 
     /**
-     * Überführt ein TaskDTO in eine Task-Entität.
+     * DTO -> Entity.
      *
-     * @param dto Das Quelldaten-Objekt
-     * @return Die vorbereitete Task-Entität
+     * @param dto TaskDTO
+     * @return Entity
      */
     private Task mapToEntity(TaskDTO dto) {
         UUID id = UUID.randomUUID();
 
         return switch (dto.getCategory()) {
-            case EXAM -> new ExamTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(),
-                    ((ExamTaskDTO) dto).getExamDate());
-            case SUBMISSION -> new SubmissionTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(),
-                    computeNextSubmissionDeadline(
-                            ((SubmissionTaskDTO) dto).getSubmissionDay(),
-                            ((SubmissionTaskDTO) dto).getSubmissionTime()
-                    ));
-            case OTHER -> new OtherTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(),
-                    ((OtherTaskDTO) dto).getStartDate().atStartOfDay(),
-                    ((OtherTaskDTO) dto).getEndDate().atTime(LATEST_TIME));
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unbekannte TaskCategory");
+            case EXAM -> {
+                ExamTaskDTO exam = (ExamTaskDTO) dto;
+                yield new ExamTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(), exam.getExamDate());
+            }
+
+            case SUBMISSION -> {
+                SubmissionTaskDTO sub = (SubmissionTaskDTO) dto;
+                LocalDateTime deadline = computeNextSubmissionDeadline(sub.getSubmissionDay(), sub.getSubmissionTime());
+                yield new SubmissionTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(), deadline);
+            }
+
+            case OTHER -> {
+                OtherTaskDTO other = (OtherTaskDTO) dto;
+                yield new OtherTask(
+                        id,
+                        dto.getTitle(),
+                        dto.getWeeklyTimeLoad(),
+                        other.getStartDate().atStartOfDay(),
+                        other.getEndDate().atTime(LATEST_TIME)
+                );
+            }
+
+            default -> throw new IllegalArgumentException("Unbekannte TaskCategory.");
         };
     }
 
     /**
-     * Prüft, ob ein Benutzer existiert.
+     * Entity -> DTO.
+     *
+     * @param task Entity
+     * @return passendes DTO
      */
+    private TaskDTO mapToDto(Task task) {
+        if (task == null) {
+            return null;
+        }
+
+        String moduleTitle = (task.getModule() != null) ? task.getModule().getTitle() : null;
+
+        boolean sendNotification = false;
+        int submissionCycle = 1;
+
+        if (task instanceof ExamTask exam) {
+            return new ExamTaskDTO(
+                    task.getTitle(),
+                    moduleTitle,
+                    task.getWeeklyDurationMinutes(),
+                    sendNotification,
+                    exam.getExamDate()
+            );
+        }
+
+        if (task instanceof SubmissionTask sub) {
+            LocalDateTime deadline = sub.getDeadline();
+
+            Weekday day = (deadline != null) ? fromDayOfWeek(deadline.getDayOfWeek()) : null;
+            LocalTime time = (deadline != null) ? deadline.toLocalTime().withSecond(0).withNano(0) : null;
+
+            return new SubmissionTaskDTO(
+                    task.getTitle(),
+                    moduleTitle,
+                    task.getWeeklyDurationMinutes(),
+                    sendNotification,
+                    day,
+                    time,
+                    submissionCycle
+            );
+        }
+
+        if (task instanceof OtherTask other) {
+            LocalDate start = (other.getStartTime() != null) ? other.getStartTime().toLocalDate() : null;
+            LocalDate end = (other.getEndTime() != null) ? other.getEndTime().toLocalDate() : null;
+
+            return new OtherTaskDTO(
+                    task.getTitle(),
+                    moduleTitle,
+                    task.getWeeklyDurationMinutes(),
+                    sendNotification,
+                    start,
+                    end
+            );
+        }
+
+        throw new IllegalArgumentException("Unbekannter Task-Typ: " + task.getClass().getSimpleName());
+    }
+
     private void requireExistingUser(UUID userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId darf nicht null sein.");
+        }
         if (!userRepository.existsById(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User nicht gefunden");
+            throw new EntityNotFoundException("User nicht gefunden.");
         }
     }
 
-    /**
-     * Ermittelt ein Modul eines Benutzers anhand des Titels.
-     */
     private Module resolveModuleForUser(UUID userId, String moduleTitle) {
         return moduleRepository.findByUserId(userId).stream()
                 .filter(m -> Objects.equals(m.getTitle(), moduleTitle))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modul nicht gefunden"));
+                .orElseThrow(() -> new EntityNotFoundException("Modul nicht gefunden: " + moduleTitle));
     }
 
-    /**
-     * Prüft, ob ein Modul dem Benutzer gehört.
-     */
     private boolean userOwnsModule(UUID userId, UUID moduleId) {
         return moduleRepository.findByUserId(userId).stream()
                 .anyMatch(m -> Objects.equals(m.getModuleId(), moduleId));
     }
 
-    /**
-     * Findet einen Task über natürlichen Schlüssel (Modul, Titel, Kategorie).
-     */
     private Task findTaskByNaturalKey(UUID userId, UUID moduleId, String title, TaskCategory category) {
         List<Task> matches = taskRepository.findByModuleId(userId, moduleId).stream()
                 .filter(t -> t.getCategory() == category)
@@ -283,17 +377,14 @@ public class TaskService {
                 .toList();
 
         if (matches.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task nicht gefunden");
+            throw new EntityNotFoundException("Task nicht gefunden.");
         }
         if (matches.size() > 1) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Mehrdeutiger Task");
+            throw new IllegalArgumentException("Mehrere Tasks mit gleichem Titel im Modul gefunden.");
         }
         return matches.get(0);
     }
 
-    /**
-     * Berechnet den nächsten Abgabetermin für einen wöchentlichen Submission-Task.
-     */
     private static LocalDateTime computeNextSubmissionDeadline(Weekday weekday, LocalTime time) {
         LocalDate today = LocalDate.now();
         DayOfWeek target = toDayOfWeek(weekday);
@@ -303,9 +394,6 @@ public class TaskService {
         return candidate.isBefore(LocalDateTime.now()) ? candidate.plusWeeks(1) : candidate;
     }
 
-    /**
-     * Konvertiert Weekday nach DayOfWeek.
-     */
     private static DayOfWeek toDayOfWeek(Weekday d) {
         return switch (d) {
             case MONDAY -> DayOfWeek.MONDAY;
@@ -318,9 +406,18 @@ public class TaskService {
         };
     }
 
-    /**
-     * Liefert das nächste Datum für einen Wochentag.
-     */
+    private static Weekday fromDayOfWeek(DayOfWeek d) {
+        return switch (d) {
+            case MONDAY -> Weekday.MONDAY;
+            case TUESDAY -> Weekday.TUESDAY;
+            case WEDNESDAY -> Weekday.WEDNESDAY;
+            case THURSDAY -> Weekday.THURSDAY;
+            case FRIDAY -> Weekday.FRIDAY;
+            case SATURDAY -> Weekday.SATURDAY;
+            case SUNDAY -> Weekday.SUNDAY;
+        };
+    }
+
     private static LocalDate nextOccurrence(LocalDate from, DayOfWeek target) {
         int current = from.getDayOfWeek().getValue();
         int wanted = target.getValue();
@@ -328,9 +425,6 @@ public class TaskService {
         return from.plusDays(delta);
     }
 
-    /**
-     * Prüft, ob ein String leer ist.
-     */
     private static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
     }
