@@ -5,6 +5,8 @@ import de.pse.oys.domain.enums.UserType;
 /**
  * DTO für den Login-Request vom Client.
  * Unterstützt lokale Authentifizierung und externe Provider.
+ * Da für externe Accounts das Login und die Registrierung äquivalent sind,
+ * wird dieses DTO sowohl für Login als auch Registrierung dieser Accounts genutzt.
  */
 public class LoginDTO {
 
@@ -70,14 +72,14 @@ public class LoginDTO {
     /**
      * @return den Authentifizierungsprovider
      */
-    public UserType getAuthProvider() {
+    public UserType getProvider() {
         return provider;
     }
 
     /**
      * @param provider den Authentifizierungsprovider
      */
-    public void setAuthProvider(UserType provider) {
+    public void setProvider(UserType provider) {
         this.provider = provider;
     }
 

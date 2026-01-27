@@ -12,6 +12,8 @@ import de.pse.oys.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.*;
  * @author uhupo
  * @version 1.0
  */
+@SpringBootTest
+@ActiveProfiles("test")
 class RatingServiceTest {
 
     private RatingRepository ratingRepository;
@@ -57,12 +61,11 @@ class RatingServiceTest {
         // LearningUnit direkt mit Konstruktor erstellen
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
-        LearningUnit unit = new LearningUnit(learningUnitId, task, start, end);
+        LearningUnit unit = new LearningUnit(task, start, end);
 
         // CostMatrix erstellen und Task zuweisen
-        UUID matrixId = UUID.randomUUID();
         String initialCosts = "{}"; // Dummy JSON
-        CostMatrix costMatrix = new CostMatrix(matrixId, initialCosts, task);
+        CostMatrix costMatrix = new CostMatrix(initialCosts, task);
 
         // RatingDTO erstellen
         RatingDTO ratingDTO = new RatingDTO(AchievementLevel.GOOD, PerceivedDuration.IDEAL, ConcentrationLevel.VERY_HIGH);
@@ -113,7 +116,7 @@ class RatingServiceTest {
 
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.plusHours(1);
-        LearningUnit unit = new LearningUnit(learningUnitId, task, start, end);
+        LearningUnit unit = new LearningUnit(task, start, end);
 
         when(learningUnitRepository.findById(learningUnitId)).thenReturn(Optional.of(unit));
         when(costMatrixRepository.findByTaskId(taskId)).thenReturn(Optional.empty());

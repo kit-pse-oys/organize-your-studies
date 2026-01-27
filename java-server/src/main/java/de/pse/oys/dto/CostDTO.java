@@ -16,6 +16,7 @@ public class CostDTO {
     }
     /*** Standardkonstruktor für CostDTO. */
     public CostDTO(){
+        // Standardkonstruktor
     }
 /** @return Kostenwert. */
     public int getC() {
@@ -25,10 +26,19 @@ public class CostDTO {
     public int getT() {
         return t;
     }
+
+    /**
+     * Setzt die Zeitkomponente der Kosten.
+     * @param t Die neue Zeitkomponente der Kosten.
+     */
     public void setT(int t) {
         this.t = t;
     }
 
+    /**
+     * Setzt den Kostenwert.
+     * @param c Der neue Kostenwert.
+     */
     public void setC(int c) {
         this.c = c;
     }

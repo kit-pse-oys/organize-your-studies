@@ -1,14 +1,12 @@
 package de.pse.oys.planning;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.pse.oys.domain.CostMatrix;
-import de.pse.oys.domain.LearningUnit;
+import de.pse.oys.domain.*;
 import de.pse.oys.domain.Module;
-import de.pse.oys.domain.Task;
-import de.pse.oys.domain.UnitRating;
 import de.pse.oys.domain.enums.AchievementLevel;
 import de.pse.oys.domain.enums.ConcentrationLevel;
-import de.pse.oys.domain.enums.TaskCategory; // Annahme: Enum existiert
+import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.persistence.CostMatrixRepository;
 import de.pse.oys.persistence.TaskRepository;
@@ -18,10 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class LearningAnalyticsProviderTest {
 
@@ -48,7 +49,7 @@ class LearningAnalyticsProviderTest {
         provider = new LearningAnalyticsProvider(costMatrixRepository, objectMapper, taskRepository);
     }
 
-/*** --- TEST 1: Task ist null -> Exception ---
+    /*** --- TEST 1: Task ist null -> Exception ---
      */
 
     @Test
@@ -59,7 +60,7 @@ class LearningAnalyticsProviderTest {
         assertEquals("Error: Task darf nicht null sein", exception.getMessage());
     }
 
-  /*** --- TEST 2: Matrix aktuell -> Parsed JSON zurückgeben ---
+    /*** --- TEST 2: Matrix aktuell -> Parsed JSON zurückgeben ---
      */
 
     @Test
@@ -83,7 +84,7 @@ class LearningAnalyticsProviderTest {
         verify(costMatrixRepository, never()).save(any());
     }
 
-/*** --- TEST 3: Matrix veraltet -> Berechnung aus Ratings und Persistenz ---
+    /*** --- TEST 3: Matrix veraltet -> Berechnung aus Ratings und Persistenz ---
      */
     @Test
     void getCostMatrixForTask_MatrixOutdated_CalculatesFromRatingsAndPersists() throws JsonProcessingException {
@@ -167,7 +168,7 @@ class LearningAnalyticsProviderTest {
 
     @Test
     void calculateHeuristiksFromTask_IgnoresSelf() {
-        // Setup: Nur der Task selbst ist im Modul
+
         Task currentTask = mock(Task.class);
         UUID currentId = UUID.randomUUID();
         when(currentTask.getTaskId()).thenReturn(currentId);

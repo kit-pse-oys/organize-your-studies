@@ -1,32 +1,27 @@
 package de.pse.oys.service.planning;
+
+import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
 import de.pse.oys.dto.plan.PlanningTaskDTO;
-
+import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.TaskRepository;
+import de.pse.oys.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import de.pse.oys.persistence.*;
-import de.pse.oys.domain.*;
-import de.pse.oys.domain.enums.TaskStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpEntity;
-
-import org.springframework.http.HttpMethod;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.core.ParameterizedTypeReference;
 
 
 /**
@@ -37,6 +32,19 @@ import org.springframework.core.ParameterizedTypeReference;
  */
 @Service
 public class PlanningService {
+
+    // --- MagicNumbers & Strings --- //
+    private static final int SLOT_DURATION_MINUTES = 5;
+    private static final int PLANNING_HORIZON_SLOTS = 2016;
+    private static final int SLOTS_PER_DAY = 288;
+    private static final int MINUTES_PER_DAY = 1440;
+    private static final int DAYS_IN_WEEK_OFFSET = 6;
+    private static final int RESCHEDULE_PENALTY_COST = 10;
+
+    private static final String ID_SEPERATOR = "_";
+    private static final String RESCHEDULE_SUFFIX = "_reschedule";
+
+
     private final TaskRepository taskRepository;
     private final LearningPlanRepository learningPlanRepository;
     private final UserRepository userRepository;
@@ -49,6 +57,7 @@ public class PlanningService {
 
     /**
      * Konstruktor für PlanningService.
+     *
      * @param taskRepository
      * @param learningPlanRepository
      * @param userRepository
@@ -68,23 +77,23 @@ public class PlanningService {
     }
 
 
-    /** Kernfunktion. Lädt offene Tasks und Nutzer-Präferenzen sowie die aktuelle Kosten-
-        Matrix aus der Datenbank, berechnet den current_slot und transformiert diese in das
-        JSON-Format und sendet sie an den Python-Solver. Das Ergebnis wird als neuer Wochen-
-        plan gespeichert. Wirft eine EntityNotFoundException, falls der User nicht existiert.
+    /**
+     * Kernfunktion. Lädt offene Tasks und Nutzer-Präferenzen sowie die aktuelle Kosten-
+     * Matrix aus der Datenbank, berechnet den current_slot und transformiert diese in das
+     * JSON-Format und sendet sie an den Python-Solver. Das Ergebnis wird als neuer Wochen-
+     * plan gespeichert. Wirft eine EntityNotFoundException, falls der User nicht existiert.
      *
      * @param userId    Die ID des Benutzers.
      * @param weekStart Das Startdatum der Woche.
      * @throws IllegalArgumentException wenn der Benutzer nicht gefunden wird.
      */
     @Transactional
-    public void generateWeeklyPlan (UUID userId, LocalDate weekStart) {
+    public void generateWeeklyPlan(UUID userId, LocalDate weekStart) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
         LocalDateTime now = LocalDateTime.now();
-        int horizon = 2016;
         int currentSlot = calculateCurrentSlot(weekStart, now);
 
         LearningPreferences userPreferences = user.getPreferences();
@@ -95,7 +104,7 @@ public class PlanningService {
         List<PlanningTaskDTO> planningTaskDTOS = fetchOpenTasksAsDTOs(user, now, weekStart);
 
         PlanningRequestDTO planningInput = new PlanningRequestDTO(
-                horizon,
+                PLANNING_HORIZON_SLOTS,
                 currentSlot,
                 blockedDays,
                 preferredTimeSlots,
@@ -112,16 +121,14 @@ public class PlanningService {
             System.out.println("Keine Planungsergebnisse empfangen.");
 
         }
-
-
-
-
     }
-    /** Reschedult eine einzelne Lerneinheit innerhalb eines bestehenden Lernplans.
+
+    /**
+     * Reschedult eine einzelne Lerneinheit innerhalb eines bestehenden Lernplans.
      *
-     * @param userId               Die ID des Benutzers.
-     * @param weekStart            Das Startdatum der Woche.
-     * @param unitIdToReschedule   Die ID der Lerneinheit, die neu terminiert werden soll.
+     * @param userId             Die ID des Benutzers.
+     * @param weekStart          Das Startdatum der Woche.
+     * @param unitIdToReschedule Die ID der Lerneinheit, die neu terminiert werden soll.
      * @throws IllegalArgumentException wenn der Benutzer, Lernplan oder Lerneinheit nicht gefunden wird.
      */
 
@@ -129,7 +136,7 @@ public class PlanningService {
     public void rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
-            throw  new IllegalArgumentException("User not found");
+            throw new IllegalArgumentException("User not found");
         }
         LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(unitIdToReschedule, weekStart).orElse(null);
         if (plan == null) {
@@ -151,8 +158,8 @@ public class PlanningService {
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
         int unitDurationMinutes = (int) ChronoUnit.MINUTES.between(unitToReschedule.getStartTime(), unitToReschedule.getEndTime());
-        int durationSlots = (int) Math.ceil(unitDurationMinutes / 5.0);
-        String chunkId = parentTask.getTaskId().toString() + "_reschedule";
+        int durationSlots = (int) Math.ceil(unitDurationMinutes / (double) SLOT_DURATION_MINUTES);
+        String chunkId = parentTask.getTaskId().toString() + RESCHEDULE_SUFFIX;
         LocalDateTime softDeadline = parentTask.getSoftDeadline(user.getPreferences().getDeadlineBufferDays());
         int deadlineSlot = mapLocalDateTimeToSlot(softDeadline, weekStart);
         List<CostDTO> costs = learningAnalyticsProvider.getCostMatrixForTask(parentTask);
@@ -160,7 +167,7 @@ public class PlanningService {
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         planningTaskDTOS.add(planningTaskDTO);
         LocalDateTime now = LocalDateTime.now();
-        int horizon = 2016;
+        int horizon = PLANNING_HORIZON_SLOTS;
         int currentSlot = calculateCurrentSlot(weekStart, now);
 
         PlanningRequestDTO planningInput = new PlanningRequestDTO(
@@ -198,10 +205,12 @@ public class PlanningService {
     private void applyPenaltyToCostMatrix(Task task, LearningUnit unit, LocalDate weekStart) {
         LocalDateTime startTime = unit.getStartTime();
         int penaltySlot = mapLocalDateTimeToSlot(startTime, weekStart);
-        int penaltyCost = 10;
+        int penaltyCost = RESCHEDULE_PENALTY_COST;
         learningAnalyticsProvider.applyPenaltyToCostMatrix(task, penaltySlot, penaltyCost);
     }
-    /** Erstellt feste Blöcke aus einem bestehenden Lernplan, um sie dem Solver zu übergeben.
+
+    /**
+     * Erstellt feste Blöcke aus einem bestehenden Lernplan, um sie dem Solver zu übergeben.
      *
      * @param freeTimes Die Liste der Lerneinheiten, die als feste Blöcke betrachtet werden sollen.
      * @param weekStart Das Startdatum der Woche.
@@ -218,16 +227,18 @@ public class PlanningService {
 
             int startSlot = mapLocalDateTimeToSlot(unitStart, weekStart);
             long durationMinutes = Duration.between(unitStart, unitEnd).toMinutes();
-            int durationSlots = (int) (durationMinutes / 5);
+            int durationSlots = (int) (durationMinutes / SLOT_DURATION_MINUTES);
 
-            if (startSlot >= 0 &&  durationSlots > 0) {
+            if (startSlot >= 0 && durationSlots > 0) {
                 fixedBlocksDTO.add(new FixedBlockDTO(startSlot, durationSlots));
             }
 
         }
         return fixedBlocksDTO;
     }
-    /** Sendet die Planungseingabedaten an den Python-Solver und empfängt die Planungsergebnisse.
+
+    /**
+     * Sendet die Planungseingabedaten an den Python-Solver und empfängt die Planungsergebnisse.
      *
      * @param requestDTO Die Planungseingabedaten.
      * @return Liste der Planungsergebnisse vom Solver.
@@ -244,7 +255,8 @@ public class PlanningService {
                     planningMicroserviceUrl,
                     HttpMethod.POST,
                     requestEntity,
-                    new ParameterizedTypeReference<List<PlanningResponseDTO>>() {}
+                    new ParameterizedTypeReference<List<PlanningResponseDTO>>() {
+                    }
             );
             return responseEntity.getBody();
         } catch (Exception e) {
@@ -254,19 +266,19 @@ public class PlanningService {
     }
 
 
-
-    /**     * Speichert die Planungsergebnisse als neue Lerneinheiten und verknüpft sie mit den
+    /**
+     * Speichert die Planungsergebnisse als neue Lerneinheiten und verknüpft sie mit den
      * entsprechenden Aufgaben. Erstellt einen neuen LearningPlan für die Woche.
      *
      * @param results   Die Liste der Planungsergebnisse vom Solver.
      * @param weekStart Das Startdatum der Woche.
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration) {
-        LearningPlan plan = new LearningPlan(UUID.randomUUID(), weekStart, weekStart.plusDays(6));
+        LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
         List<LearningUnit> newLearningUnits = new ArrayList<>();
         for (PlanningResponseDTO result : results) {
             String id = result.getId();
-            String originalTaskIdStr = id.split("_")[0];
+            String originalTaskIdStr = id.split(ID_SEPERATOR)[0];
             UUID originalTaskId = UUID.fromString(originalTaskIdStr);
 
             Task task = taskRepository.findById(originalTaskId).orElse(null);
@@ -276,7 +288,7 @@ public class PlanningService {
                 if (java.time.Duration.between(startDateTime, endDateTime).toMinutes() > breakDuration) {
                     endDateTime = endDateTime.minusMinutes(breakDuration);
                 }
-                LearningUnit unit = new LearningUnit(UUID.randomUUID(), task, startDateTime, endDateTime);
+                LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
                 newLearningUnits.add(unit);
                 task.addLearningUnit(unit);
                 taskRepository.save(task);
@@ -285,23 +297,27 @@ public class PlanningService {
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
     }
-    /** Mappt einen Slot auf ein LocalDateTime-Objekt basierend auf dem Wochenstartdatum.
+
+    /**
+     * Mappt einen Slot auf ein LocalDateTime-Objekt basierend auf dem Wochenstartdatum.
      *
      * @param slot      Der zu mappende Slot.
      * @param weekStart Das Startdatum der Woche.
      * @return Das entsprechende LocalDateTime-Objekt.
      */
     private LocalDateTime mapSlotToDateTime(int slot, LocalDate weekStart) {
-        int totalMinutes = slot * 5;
-        int daysToAdd = totalMinutes / (24 * 60);
-        int minutesInDay = totalMinutes % (24 * 60);
+        int totalMinutes = slot * SLOT_DURATION_MINUTES;
+        int daysToAdd = totalMinutes / MINUTES_PER_DAY;
+        int minutesInDay = totalMinutes % MINUTES_PER_DAY;
         int hours = minutesInDay / 60;
         int minutes = minutesInDay % 60;
 
         LocalDate targetDate = weekStart.plusDays(daysToAdd);
         return LocalDateTime.of(targetDate, LocalTime.of(hours, minutes));
     }
-    /** Lädt alle offenen Aufgaben eines Nutzers, berechnet die verbleibende Dauer
+
+    /**
+     * Lädt alle offenen Aufgaben eines Nutzers, berechnet die verbleibende Dauer
      * und teilt sie in Lerneinheiten auf, die als TaskDTOs zurückgegeben werden.
      *
      * @param user      Der Nutzer, dessen Aufgaben geladen werden sollen.
@@ -313,7 +329,7 @@ public class PlanningService {
         List<Task> openTasks = taskRepository.findAllByUserAndStatus(user.getId(), TaskStatus.OPEN.toString());
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
-        LocalDate endOfWeek = weekStart.plusDays(6);
+        LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
 
         for (Task task : openTasks) {
@@ -349,7 +365,7 @@ public class PlanningService {
 
 
             List<PlanningTaskDTO> unitChunks = splitIntoChunks(task, restDuration,
-                    targetUnitDuration,userPreferences.getBreakDurationMinutes(),
+                    targetUnitDuration, userPreferences.getBreakDurationMinutes(),
                     userPreferences.getDeadlineBufferDays(), weekStart);
             planningTaskDTOS.addAll(unitChunks);
 
@@ -357,15 +373,17 @@ public class PlanningService {
 
         return planningTaskDTOS;
     }
-    /** Teilt eine Aufgabe in mehrere Chunks auf, basierend auf der verbleibenden Dauer und
+
+    /**
+     * Teilt eine Aufgabe in mehrere Chunks auf, basierend auf der verbleibenden Dauer und
      * der Ziel-Dauer pro Lerneinheit.
      *
-     * @param task                Die Aufgabe, die aufgeteilt werden soll.
-     * @param restDuration        Die verbleibende Dauer der Aufgabe in Minuten.
-     * @param targetUnitDuration  Die Ziel-Dauer pro Lerneinheit in Minuten.
-     * @param breakDuration       Die Pausendauer zwischen den Lerneinheiten in Minuten.
-     * @param bufferDays          Die Pufferzeit vor Deadlines in Tagen.
-     * @param weekStart           Das Startdatum der Woche.
+     * @param task               Die Aufgabe, die aufgeteilt werden soll.
+     * @param restDuration       Die verbleibende Dauer der Aufgabe in Minuten.
+     * @param targetUnitDuration Die Ziel-Dauer pro Lerneinheit in Minuten.
+     * @param breakDuration      Die Pausendauer zwischen den Lerneinheiten in Minuten.
+     * @param bufferDays         Die Pufferzeit vor Deadlines in Tagen.
+     * @param weekStart          Das Startdatum der Woche.
      * @return Liste der aufgeteilten TaskDTOs.
      */
     private List<PlanningTaskDTO> splitIntoChunks(Task task, int restDuration, int targetUnitDuration, int breakDuration, int bufferDays, LocalDate weekStart) {
@@ -373,7 +391,7 @@ public class PlanningService {
 
         long n = Math.round((double) restDuration / targetUnitDuration);
 
-        if (n == 0){
+        if (n == 0) {
             n = 1;
         }
         int baseChunkDuration = restDuration / (int) n;
@@ -385,9 +403,9 @@ public class PlanningService {
                 duration += 1; // Verteile den Rest auf die ersten Chunks
             }
             int chunkDurationWithBreakPadding = duration + breakDuration;
-            int durationSlots =  (int) Math.ceil(chunkDurationWithBreakPadding / 5.0) ;
+            int durationSlots = (int) Math.ceil(chunkDurationWithBreakPadding / (double) SLOT_DURATION_MINUTES);
 
-            String chunkId = task.getTaskId().toString() + "_" + i;
+            String chunkId = task.getTaskId().toString() + ID_SEPERATOR + i;
 
             LocalDateTime softDeadline = task.getSoftDeadline(bufferDays);
             int deadlineSlot = mapLocalDateTimeToSlot(softDeadline, weekStart);
@@ -398,6 +416,7 @@ public class PlanningService {
         return chunks;
 
     }
+
     /*** Berechnet die Ziel-Dauer für Lerneinheiten basierend auf Nutzerpräferenzen und Feedback.
      *
      * @param prefs Die Lernpräferenzen des Nutzers.
@@ -412,7 +431,9 @@ public class PlanningService {
         int baseDuration = (dMin + dMax) / 2;
         return (int) Math.max(dMin, Math.min(baseDuration * (1 + feedbackFactor), dMax));
     }
-    /** Berechnet den Feedback-Faktor basierend auf den Bewertungen der Lerneinheiten einer Aufgabe.
+
+    /**
+     * Berechnet den Feedback-Faktor basierend auf den Bewertungen der Lerneinheiten einer Aufgabe.
      *
      * @param task Die Aufgabe, für die der Feedback-Faktor berechnet werden soll.
      * @return Der berechnete Feedback-Faktor als double-Wert.
@@ -426,7 +447,7 @@ public class PlanningService {
         int ratedUnitsCount = 0;
 
         for (LearningUnit unit : units) {
-            if (unit.isRated() && unit.getRating() != null && unit.getRating().getPerceivedDuration() != null){
+            if (unit.isRated() && unit.getRating() != null && unit.getRating().getPerceivedDuration() != null) {
                 ratedUnitsCount++;
                 totalRating += unit.getRating().getPerceivedDuration().getAdjustmentValue();
             }
@@ -435,7 +456,6 @@ public class PlanningService {
             return 0.0; // Kein Feedback, Standardfaktor
         }
         return totalRating / ratedUnitsCount;
-
 
 
     }
@@ -447,7 +467,7 @@ public class PlanningService {
     private List<FixedBlockDTO> calculateFixedBlocksDTO(List<FreeTime> freeTimes, LocalDate weekStart) {
         List<FixedBlockDTO> dtos = new ArrayList<>();
 
-        LocalDate weekEnd = weekStart.plusDays(6);
+        LocalDate weekEnd = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
         for (FreeTime freeTime : freeTimes) {
             Integer dayIndex = null;
@@ -455,27 +475,28 @@ public class PlanningService {
             if (type == RecurrenceType.WEEKLY) {
                 RecurringFreeTime weekly = (RecurringFreeTime) freeTime;
                 dayIndex = weekly.getDayOfWeek().getValue() - 1;
-            }
-            else if (type == RecurrenceType.ONCE) { // oder SINGLE, je nach Enum-Name
-                    SingleFreeTime single = (SingleFreeTime) freeTime;
-                    LocalDate date = single.getDate();
-                    if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
-                        dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
-                    }
+            } else if (type == RecurrenceType.ONCE) {
+                SingleFreeTime single = (SingleFreeTime) freeTime;
+                LocalDate date = single.getDate();
+                if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
+                    dayIndex = (int) ChronoUnit.DAYS.between(weekStart, date);
+                }
             }
             if (dayIndex != null) {
-                int dayOffset = dayIndex * 288;
+                int dayOffset = dayIndex * SLOTS_PER_DAY;
 
                 int timeSlot = mapTimeToSlot(freeTime.getStartTime());
                 int absoluteStart = dayOffset + timeSlot;
                 long durationMinutes = Duration.between(freeTime.getStartTime(), freeTime.getEndTime()).toMinutes();
-                int durationSlots = (int) (durationMinutes / 5);
+                int durationSlots = (int) (durationMinutes / SLOT_DURATION_MINUTES);
                 dtos.add(new FixedBlockDTO(absoluteStart, durationSlots));
             }
         }
         return dtos;
     }
-    /** Mappt eine LocalTime-Objekt auf einen Slot.
+
+    /**
+     * Mappt eine LocalTime-Objekt auf einen Slot.
      *
      * @param time Das zu mappende LocalTime-Objekt.
      * @return Der entsprechende Slot als Integer-Wert.
@@ -483,26 +504,29 @@ public class PlanningService {
 
     private int mapTimeToSlot(LocalTime time) {
         int totalMinutes = time.getHour() * 60 + time.getMinute();
-        return totalMinutes / 5;
+        return totalMinutes / SLOT_DURATION_MINUTES;
     }
-    /** Mappt ein LocalDateTime-Objekt auf einen Slot basierend auf dem Wochenstartdatum.
+
+    /**
+     * Mappt ein LocalDateTime-Objekt auf einen Slot basierend auf dem Wochenstartdatum.
      *
      * @param targetTime Das zu mappende LocalDateTime-Objekt.
      * @param weekStart  Das Startdatum der Woche.
      * @return Der entsprechende Slot als Integer-Wert.
      */
     private int mapLocalDateTimeToSlot(LocalDateTime targetTime, LocalDate weekStart) {
-        // 1. Referenzpunkt erstellen: Montag 00:00 Uhr
-        LocalDateTime startAnchor = LocalDateTime.of(weekStart, LocalTime.MIN); // 00:00 Uhr
 
-        // 2. Differenz in Minuten berechnen
-        // ChronoUnit.MINUTES kümmert sich um Tages- und Monatsübergänge
+        LocalDateTime startAnchor = LocalDateTime.of(weekStart, LocalTime.MIN);
+
+
         long minutesBetween = ChronoUnit.MINUTES.between(startAnchor, targetTime);
 
         // 3. In Slots umrechnen
-        return (int) (minutesBetween / 5);
+        return (int) (minutesBetween / SLOT_DURATION_MINUTES);
     }
-    /** Berechnet die blockierten Wochentage basierend auf den Nutzerpräferenzen.
+
+    /**
+     * Berechnet die blockierten Wochentage basierend auf den Nutzerpräferenzen.
      *
      * @param user            Der Nutzer.
      * @param userPreferences Die Lernpräferenzen des Nutzers.
@@ -515,27 +539,32 @@ public class PlanningService {
 
         for (DayOfWeek day : DayOfWeek.values()) {
             if (!preferredDays.contains(day)) {
-                blockedDays.add(day.getValue() -1);
-            };
+                blockedDays.add(day.getValue() - 1);
+            }
+            ;
         }
 
         return blockedDays;
 
     }
-    /** Berechnet den aktuellen Slot basierend auf dem Wochenstartdatum.
+
+    /**
+     * Berechnet den aktuellen Slot basierend auf dem Wochenstartdatum.
      *
      * @param weekStart Das Startdatum der Woche.
      * @return Der aktuelle Slot als Integer-Wert.
      */
     private int calculateCurrentSlot(LocalDate weekStart, LocalDateTime now) {
-        // Slot 0 ist Montag, 00:00 Uhr
+
         LocalDateTime weekStartDateTime = LocalDateTime.of(weekStart, LocalTime.of(0, 0));
 
         long minutesBetween = ChronoUnit.MINUTES.between(weekStartDateTime, now);
-        int currentSlot = (int) (minutesBetween / 5);
+        int currentSlot = (int) (minutesBetween / SLOT_DURATION_MINUTES);
         return currentSlot;
     }
-    /** Mappt die bevorzugten Zeitslots des Nutzers in eine kommagetrennte String-Darstellung.
+
+    /**
+     * Mappt die bevorzugten Zeitslots des Nutzers in eine kommagetrennte String-Darstellung.
      *
      * @param preferences Die Lernpräferenzen des Nutzers.
      * @return Kommagetrennter String der bevorzugten Zeitslots.

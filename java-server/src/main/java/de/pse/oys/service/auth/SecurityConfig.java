@@ -25,14 +25,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
+    /**
+     * Konstruktor mit Dependency Injection.
+     * @param jwtFilter der JWT-Filter zur Validierung von Tokens und extrahierung der Benutzer-UUID
+     */
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
 
     /**
-     * Definiert die Sicherheitsfilterkette.
-     * Hier wird festgelegt, dass die API zustandslos ist und der JwtFilter
-     * vor dem Standard-Authentifizierungsfilter ausgeführt wird.
+     * Konfiguriert die zentrale Sicherheitsfilterkette.
+     * Der {@link JwtFilter} wird explizit vor dem {@link UsernamePasswordAuthenticationFilter}
+     * platziert, damit die Authentifizierung via JWT als primärer Identitätsnachweis
+     * Vorrang erhält. Dies stellt sicher, dass die Benutzer-UUID bereits aus dem Token
+     * extrahiert und im SecurityContext hinterlegt wurde, bevor die Standard-Prüfmechanismen
+     * von Spring Security greifen oder den Request mangels Session/Anmeldedaten abweisen.
+     *
+     * @param http das HttpSecurity-Objekt zur Konfiguration
+     * @return die konfigurierte SecurityFilterChain
+     * @throws Exception bei Konfigurationsfehlern
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,8 +60,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()            // Alles andere erfordert einen Token
                 );
 
-        // HIER WIRD DER FILTER EINGEHÄNGT:
-        // Unser JwtFilter soll VOR dem UsernamePasswordAuthenticationFilter laufen.
+
+        // Der JwtFilter wird vor dem UsernamePasswordAuthenticationFilter eingefügt,
+        // damit JWT-Token bereits vor der Standard-Authentifizierung geprüft werden.
+        // So kann die Benutzer-Identität aus dem Token extrahiert und im SecurityContext
+        // hinterlegt werden, bevor Spring Security eine sessionbasierte Authentifizierung versucht.
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

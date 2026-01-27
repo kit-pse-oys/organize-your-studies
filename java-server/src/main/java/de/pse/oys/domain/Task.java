@@ -20,6 +20,7 @@ import java.util.UUID;
 public abstract class Task {
 
     @Id
+    @GeneratedValue
     @Column(name = "taskid", updatable = false)
     private UUID taskId;
 
@@ -64,13 +65,11 @@ public abstract class Task {
 
     /**
      * Erzeugt eine neue Aufgabe.
-     * @param taskId                Eindeutige ID.
      * @param title                 Bezeichnung der Aufgabe.
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param category              Fachliche Kategorie der Aufgabe.
      */
-    public Task(UUID taskId, String title, int weeklyDurationMinutes, TaskCategory category) {
-        this.taskId = taskId;
+    public Task(String title, int weeklyDurationMinutes, TaskCategory category) {
         this.title = title;
         this.weeklyDurationMinutes = weeklyDurationMinutes;
         this.category = category;

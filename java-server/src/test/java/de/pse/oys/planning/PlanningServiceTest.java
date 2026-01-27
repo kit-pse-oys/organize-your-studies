@@ -6,7 +6,10 @@ import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
 import de.pse.oys.dto.plan.PlanningTaskDTO;
-import de.pse.oys.persistence.*;
+import de.pse.oys.persistence.CostMatrixRepository;
+import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.TaskRepository;
+import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.planning.LearningAnalyticsProvider;
 import de.pse.oys.service.planning.PlanningService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,10 +19,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,15 +38,23 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class PlanningServiceTest {
 
-    @Mock private TaskRepository taskRepository;
-    @Mock private LearningPlanRepository learningPlanRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private CostMatrixRepository costMatrixRepository;
-    @Mock private LearningAnalyticsProvider learningAnalyticsProvider;
-    @Mock private RestTemplate restTemplate;
+    @Mock
+    private TaskRepository taskRepository;
+    @Mock
+    private LearningPlanRepository learningPlanRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private CostMatrixRepository costMatrixRepository;
+    @Mock
+    private LearningAnalyticsProvider learningAnalyticsProvider;
+    @Mock
+    private RestTemplate restTemplate;
 
     private PlanningService planningService;
 
@@ -49,14 +62,17 @@ class PlanningServiceTest {
     private ArgumentCaptor<HttpEntity<PlanningRequestDTO>> requestCaptor;
 
 
-    @Mock private User testUser;
-    @Mock private Task testTask;
-    @Mock private LearningPreferences testPreferences; // Auch das ist jetzt ein Mock
+    @Mock
+    private User testUser;
+    @Mock
+    private Task testTask;
+    @Mock
+    private LearningPreferences testPreferences; // Auch das ist jetzt ein Mock
 
     private final UUID userId = UUID.randomUUID();
     private final UUID taskId = UUID.randomUUID();
 
-/*** --- SETUP --- */
+    /*** --- SETUP --- */
     @BeforeEach
     void setUp() {
 
@@ -96,7 +112,8 @@ class PlanningServiceTest {
                 .thenReturn(LocalDate.of(2026, 1, 30).atTime(12, 0));
 
     }
-/*** --- TESTS --- */
+
+    /*** --- TESTS --- */
 
     @Test
     /** Testet, ob der wöchentliche Plan korrekt generiert wird und die richtige Anfrage an den Solver gesendet wird.
@@ -142,6 +159,7 @@ class PlanningServiceTest {
 
         verify(learningPlanRepository).save(any(LearningPlan.class));
     }
+
     @Test
     void generateWeeklyPlan_ShouldAddPaddingToRequest_AndRemoveItFromPersistence() {
         LocalDate weekStart = LocalDate.of(2026, 1, 26);
@@ -149,12 +167,10 @@ class PlanningServiceTest {
         lenient().when(testPreferences.getBreakDurationMinutes()).thenReturn(15);
 
 
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(taskRepository.findAllByUserAndStatus(eq(userId), anyString())).thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
-
 
 
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
@@ -199,7 +215,6 @@ class PlanningServiceTest {
     }
 
 
-
     @Test
     /** Testet die Verschiebung einer Lerneinheit und überprüft, ob die Anfrage an den Solver korrekt ist.
      */
@@ -217,7 +232,6 @@ class PlanningServiceTest {
         lenient().when(unitToMoveMock.getEndTime()).thenReturn(weekStart.atTime(11, 0));
 
         LearningUnit otherUnitMock = mock(LearningUnit.class);
-
 
 
         lenient().when(otherUnitMock.getUnitId()).thenReturn(otherUnitId);
@@ -273,11 +287,11 @@ class PlanningServiceTest {
 
         verify(learningPlanRepository).save(existingPlanMock);
     }
+
     @Test
     void rescheduleUnit_ShouldForceMoveAndLearnPreferences() {
         LocalDate weekStart = LocalDate.of(2026, 1, 26);
         UUID unitIdToMove = UUID.randomUUID();
-
 
 
         Task taskMock = mock(Task.class);
@@ -316,13 +330,10 @@ class PlanningServiceTest {
         )).thenReturn(ResponseEntity.ok(List.of(response)));
 
 
-
         planningService.rescheduleUnit(userId, weekStart, unitIdToMove);
 
 
-
         verify(learningAnalyticsProvider).applyPenaltyToCostMatrix(eq(taskMock), eq(120), eq(10));
-
 
 
         verify(restTemplate).exchange(

@@ -31,6 +31,7 @@ public class UnitDTO {
      * Standardkonstruktor für die Deserialisierung.
      */
     public UnitDTO() {
+        // Standardkonstruktor
     }
 
     // Getter

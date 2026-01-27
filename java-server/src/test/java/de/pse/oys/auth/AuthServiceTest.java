@@ -8,7 +8,6 @@ import de.pse.oys.domain.ExternalUser;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.enums.UserType;
 import de.pse.oys.dto.RefreshTokenDTO;
-import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -20,7 +19,9 @@ import de.pse.oys.service.auth.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +33,8 @@ import java.util.UUID;
  * @author uhupo
  * @version 1.0
  */
+@SpringBootTest
+@ActiveProfiles("test")
 class AuthServiceTest {
 
     private UserRepository userRepository;
@@ -85,7 +88,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testLoginGoogleUserSuccess_NewUser() throws Exception {
+    void testLoginGoogleUserSuccess_NewUser() {
         // Arrange
         String googleSub = "google-123";
         String name = "Test User";
@@ -106,7 +109,7 @@ class AuthServiceTest {
 
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setAuthType(AuthType.OIDC);
-        loginDTO.setAuthProvider(UserType.GOOGLE);
+        loginDTO.setProvider(UserType.GOOGLE);
         loginDTO.setExternalToken(token);
 
         // Act
@@ -126,11 +129,6 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_withInvalidToken_shouldThrowException() {
-        // Arrange
-        UUID userId = UUID.randomUUID();
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(userId.toString());
-
         RefreshTokenDTO refreshDTO = new RefreshTokenDTO("invalid-token");
 
         when(jwtProvider.validateToken("invalid-token")).thenReturn(false);
