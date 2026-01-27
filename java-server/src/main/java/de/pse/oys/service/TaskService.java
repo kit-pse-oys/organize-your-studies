@@ -31,7 +31,7 @@ import java.util.UUID;
 /**
  * Service für Tasks: erstellen, ändern, löschen und abrufen.
  *
- * @author uqvfm
+ * @author utgid
  * @version 1.0
  */
 @Service
@@ -260,24 +260,21 @@ public class TaskService {
      * @return Entity
      */
     private Task mapToEntity(TaskDTO dto) {
-        UUID id = UUID.randomUUID();
-
         return switch (dto.getCategory()) {
             case EXAM -> {
                 ExamTaskDTO exam = (ExamTaskDTO) dto;
-                yield new ExamTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(), exam.getExamDate());
+                yield new ExamTask(dto.getTitle(), dto.getWeeklyTimeLoad(), exam.getExamDate());
             }
 
             case SUBMISSION -> {
                 SubmissionTaskDTO sub = (SubmissionTaskDTO) dto;
                 LocalDateTime deadline = computeNextSubmissionDeadline(sub.getSubmissionDay(), sub.getSubmissionTime());
-                yield new SubmissionTask(id, dto.getTitle(), dto.getWeeklyTimeLoad(), deadline);
+                yield new SubmissionTask(dto.getTitle(), dto.getWeeklyTimeLoad(), deadline);
             }
 
             case OTHER -> {
                 OtherTaskDTO other = (OtherTaskDTO) dto;
                 yield new OtherTask(
-                        id,
                         dto.getTitle(),
                         dto.getWeeklyTimeLoad(),
                         other.getStartDate().atStartOfDay(),

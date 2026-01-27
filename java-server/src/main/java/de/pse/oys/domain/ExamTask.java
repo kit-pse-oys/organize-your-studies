@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Repräsentiert die Vorbereitung auf eine Modulprüfung.
@@ -34,13 +33,12 @@ public class ExamTask extends Task {
     /**
      * Erzeugt eine neue Prüfungsvorbereitungs-Aufgabe.
      *
-     * @param taskId                Eindeutige ID.
      * @param title                 Titel der Aufgabe.
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param examDate              Zeitpunkt der Prüfung.
      */
-    public ExamTask(UUID taskId, String title, int weeklyDurationMinutes, LocalDate examDate) {
-        super(taskId, title, weeklyDurationMinutes, TaskCategory.EXAM);
+    public ExamTask(String title, int weeklyDurationMinutes, LocalDate examDate) {
+        super(title, weeklyDurationMinutes, TaskCategory.EXAM);
         this.examDate = examDate;
     }
 
