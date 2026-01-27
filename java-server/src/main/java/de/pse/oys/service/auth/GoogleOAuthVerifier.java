@@ -19,6 +19,7 @@ import java.util.Collections;
  */
 @Component
 public class GoogleOAuthVerifier {
+    private static final String ERR_INVALID_TOKEN = "Der übermittelte IdP-Token ist ungültig.";
 
     private final GoogleIdTokenVerifier verifier;
 
@@ -48,20 +49,10 @@ public class GoogleOAuthVerifier {
             if (idToken != null) {
                 return idToken.getPayload();
             } else {
-                return  null;
+                throw new InvalidTokenException(ERR_INVALID_TOKEN);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InvalidTokenException(ERR_INVALID_TOKEN);
         }
-        return null;
-    }
-
-    // Getter
-
-    /**
-     * @return den GoogleIdTokenVerifier zur Token-Verifizierung
-     */
-    public GoogleIdTokenVerifier getVerifier() {
-        return verifier;
     }
 }

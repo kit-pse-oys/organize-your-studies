@@ -7,7 +7,15 @@ package de.pse.oys.dto;
  * @version 1.0
  */
 public class RefreshTokenDTO {
-    private final String refreshToken;
+    private String refreshToken;
+
+
+    /**
+     * Parameterloser Konstruktor für RefreshTokenDTO.
+     * Notwendig für das Mapping von JSON-Daten.
+     */
+    public RefreshTokenDTO() {
+    }
 
     /**
      * Konstruktor für RefreshTokenDTO.
@@ -23,5 +31,13 @@ public class RefreshTokenDTO {
      */
     public String getRefreshToken() {
         return refreshToken;
+    }
+
+    /**
+     * Setzt den Refresh-Token.
+     * @param refreshToken Der neue Refresh-Token als String.
+     */
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }

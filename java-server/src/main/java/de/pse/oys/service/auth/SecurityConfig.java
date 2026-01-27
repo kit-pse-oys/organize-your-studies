@@ -25,6 +25,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
+    /**
+     * Konstruktor mit Dependency Injection.
+     * @param jwtFilter der JWT-Filter zur Validierung von Tokens und extrahierung der Benutzer-UUID
+     */
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
@@ -56,7 +60,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()            // Alles andere erfordert einen Token
                 );
 
-        // Unser JwtFilter soll VOR dem UsernamePasswordAuthenticationFilter laufen.
+
+        // Der JwtFilter wird vor dem UsernamePasswordAuthenticationFilter eingefügt,
+        // damit JWT-Token bereits vor der Standard-Authentifizierung geprüft werden.
+        // So kann die Benutzer-Identität aus dem Token extrahiert und im SecurityContext
+        // hinterlegt werden, bevor Spring Security eine sessionbasierte Authentifizierung versucht.
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

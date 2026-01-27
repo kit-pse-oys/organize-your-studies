@@ -1,7 +1,6 @@
 package de.pse.oys.dto;
 
 import java.time.DayOfWeek;
-import java.util.List;
 import java.util.Set;
 
 import de.pse.oys.domain.enums.TimeSlot;
@@ -18,7 +17,6 @@ import de.pse.oys.domain.enums.TimeSlot;
  * @version 1.0
  */
 public class QuestionnaireDTO {
-
     /**
      * Präferierte maximale Dauer einer Lerneinheit in Minuten.
      */
@@ -53,6 +51,15 @@ public class QuestionnaireDTO {
      * Präferierte Pausendauer zwischen Lerneinheiten in Minuten.
      */
     private Integer preferredPauseDuration;
+
+
+    /**
+     * Parameterloser Konstruktor für QuestionnaireDTO.
+     * Notwendig für das Mapping von JSON-Daten.
+     */
+    public QuestionnaireDTO() {
+        // Standardkonstruktor
+    }
 
     // Getter & Setter
 

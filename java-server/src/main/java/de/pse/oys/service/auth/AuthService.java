@@ -35,7 +35,11 @@ public class AuthService {
             "findet aber keinen zugehörigen lokalen Benutzer in der Datenbank. ";
     private static final String ERR_INVALID_LOGIN_CREDENTIALS = "Ungültige Anmeldeinformationen.";
     private static final String ERR_INVALID_EXTERNAL_TOKEN = "Ungültiges externes Token übermittelt.";
+    private static final String ERR_INVALID_REFRESH_TOKEN = "Ungültiges Refresh-Token.";
+    private static final String ERR_USER_NOT_FOUND = "Benutzer nicht gefunden";
+
     private static final String STANDARD_GOOGLE_USER_NAME = "Google User";
+    private static final String ERR_REFRESH_TOKEN_MATCH = "Refresh-Token stimmt nicht überein.";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -65,6 +69,12 @@ public class AuthService {
      * Authentifiziert einen Benutzer basierend auf den bereitgestellten Anmeldeinformationen.
      * Unterstützt sowohl lokale (Benutzername/Passwort) als auch externe Authentifizierungsmethoden.
      * Implementiert Just-in-Time-Provisioning für externe Benutzer.
+     * <p>
+     * Ein lokaler Benutzer wird durch das Überprüfen des Benutzernamens und Passworts authentifiziert.
+     * Ein externer Benutzer wird durch die Validierung eines externen Tokens authentifiziert.
+     * Wenn der externe Benutzer nicht existiert, wird ein neuer Benutzer in der Datenbank angelegt.
+     * <p>
+     * Nach erfolgreicher Authentifizierung werden ein JWT (Access-Token) und ein Refresh-Token generiert und zurückgegeben.
      *
      * @param loginDTO Die Anmeldeinformationen des Benutzers.
      * @return AuthResponseDTO mit Access- und Refresh-Token bei erfolgreicher Authentifizierung.
@@ -73,7 +83,8 @@ public class AuthService {
      */
     @Transactional
     public AuthResponseDTO login(LoginDTO loginDTO) throws IllegalStateException, IllegalArgumentException {
-        // Unterscheidung zwischen lokalen und externen Benutzern.
+        // Externe Authentifizierung ist flexibler (Just-in-Time Provisioning),
+        // daher muss der Authentifizierungstyp zuerst geprüft werden.
         AuthType authType = loginDTO.getAuthType();
 
         if (authType == AuthType.BASIC) {
@@ -85,7 +96,7 @@ public class AuthService {
 
     private AuthResponseDTO authExternalUser(LoginDTO loginDTO) {
         String externalToken = loginDTO.getExternalToken();
-        UserType authProvider = loginDTO.getAuthProvider();
+        UserType authProvider = loginDTO.getProvider();
 
         // 1. Token mit dem entsprechenden Verifier überprüfen.
         if (UserType.GOOGLE == authProvider) {
@@ -97,17 +108,12 @@ public class AuthService {
             String name = payload.get("name") != null ? payload.get("name").toString() : STANDARD_GOOGLE_USER_NAME;
             String googleSub = payload.getSubject(); // Eindeutige Google-Benutzer-ID
 
-            // 3. Benutzer in der Datenbank suchen
+            // 3. Falls der Benutzer bereits existiert, laden wir ihn um nicht seine Daten zu überschreiben.
             Optional<ExternalUser> optionalUser = userRepository.findByExternalSubjectIdAndType(googleSub, UserType.GOOGLE);
 
-            User user;
-            if (optionalUser.isPresent()) {
-                // Benutzer existiert bereits, JWT und Refresh-Token generieren.
-                user = optionalUser.get();
-            } else {
-                // 4. Benutzer existiert nicht, neuen Benutzer anlegen (Just-in-Time-Provisioning).
-                user = new ExternalUser(name, googleSub, UserType.GOOGLE);
-            }
+            // 4. Benutzer laden, falls nicht existiert, neuen Benutzer anlegen (Just-in-Time-Provisioning).
+            User user = optionalUser.orElseGet(() -> new ExternalUser(name, googleSub, UserType.GOOGLE));
+
             // 5. JWT und Refresh-Token generieren.
             String accessToken = jwtProvider.createAccessToken(user);
             String refreshToken = jwtProvider.createRefreshToken(user);
@@ -131,7 +137,10 @@ public class AuthService {
         // 1. Überprüfen, ob der Benutzer existiert und entsprechend den User abrufen.
 
         Optional<User> optionalUser = userRepository.findByNameAndType(username, de.pse.oys.domain.enums.UserType.LOCAL);
-        LocalUser user = (LocalUser) optionalUser.orElseThrow(() -> new IllegalStateException(ERR_LOCAL_USER_INCONSISTENT));// Stellt Konsistenz zwischen DTO und DB sicher
+
+
+        LocalUser user = (LocalUser) optionalUser.orElseThrow(() // Stellt Konsistenz zwischen DTO und DB sicher
+                -> new IllegalStateException(ERR_LOCAL_USER_INCONSISTENT));
 
         // 2. Passwort validieren.
         String userSalt = user.getSalt(); // Salt abrufen
@@ -146,7 +155,7 @@ public class AuthService {
         String refreshToken = jwtProvider.createRefreshToken(user);
 
         // 4. Tokenwerte in der Datenbank speichern
-        user.setRefreshTokenHash(passwordEncoder.encode(refreshToken)); // Salt im Hash enthalten, daher aber nur durch .matches() überprüfbar
+        user.setRefreshTokenHash(passwordEncoder.encode(refreshToken));
         userRepository.save(user);
 
         // 5. AuthResponseDTO zurückgeben.
@@ -167,17 +176,17 @@ public class AuthService {
         String refreshToken = refreshTokenDTO.getRefreshToken();
 
         if (!jwtProvider.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("Ungültiges Refresh-Token.");
+            throw new IllegalArgumentException(ERR_INVALID_REFRESH_TOKEN);
         }
 
         UUID userId = jwtProvider.extractUserId(refreshToken);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Benutzer nicht gefunden"));
+                .orElseThrow(() -> new IllegalArgumentException(ERR_USER_NOT_FOUND));
 
         String storedRefreshTokenHash = user.getRefreshTokenHash();
         if (storedRefreshTokenHash == null ||
                 !passwordEncoder.matches(refreshToken, storedRefreshTokenHash)) {
-            throw new IllegalArgumentException("Refresh-Token stimmt nicht überein.");
+            throw new IllegalArgumentException(ERR_REFRESH_TOKEN_MATCH);
         }
 
         String newAccessToken = jwtProvider.createAccessToken(user);
