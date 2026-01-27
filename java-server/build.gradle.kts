@@ -26,6 +26,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     runtimeOnly("org.postgresql:postgresql")
+
+    // Testcontainers für Integrationstests mit PostgreSQL
+    testImplementation("org.testcontainers:testcontainers:2.0.2")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql:1.20.6")
     
     // Spring Security für Password-Hashing / Token-Hashing
     implementation("org.springframework.boot:spring-boot-starter-security")

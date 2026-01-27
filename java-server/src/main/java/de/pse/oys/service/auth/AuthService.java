@@ -96,7 +96,7 @@ public class AuthService {
 
     private AuthResponseDTO authExternalUser(LoginDTO loginDTO) {
         String externalToken = loginDTO.getExternalToken();
-        UserType authProvider = loginDTO.getAuthProvider();
+        UserType authProvider = loginDTO.getProvider();
 
         // 1. Token mit dem entsprechenden Verifier überprüfen.
         if (UserType.GOOGLE == authProvider) {

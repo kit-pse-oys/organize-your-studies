@@ -19,6 +19,13 @@ public class RatingDTO {
     private ConcentrationLevel concentration;
 
     /**
+     * Parameterloser Konstruktor für das RatingDTO.
+     * Notwendig für das Mapping von JSON-Daten.
+     */
+    public RatingDTO() {
+    }
+
+    /**
      * Konstruktor für das RatingDTO.
      *
      * @param goalCompletion    Bewertung der Ziel-Vollendung
