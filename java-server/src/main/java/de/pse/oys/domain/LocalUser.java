@@ -39,12 +39,10 @@ public class LocalUser extends User {
      *
      * @param username Der gewählte Benutzername.
      * @param passHash Der bereits berechnete Passwort-Hash.
-     * @param salt     Das verwendete Salt.
      */
-    public LocalUser(String username, String passHash, String salt) {
+    public LocalUser(String username, String passHash) {
         super(username, UserType.LOCAL);
         this.passwordHash = passHash;
-        this.passwordSalt = salt;
     }
 
     // Getter Methoden
