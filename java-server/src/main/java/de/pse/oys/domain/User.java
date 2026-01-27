@@ -1,9 +1,23 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.UserType;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,6 +95,7 @@ public abstract class User {
         this.username = username;
         this.userType = type;
     }
+
 
     /**
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
@@ -191,7 +206,7 @@ public abstract class User {
 
     /**
      * Gibt den Hash des Refresh-Tokens zurück.
-     * @return
+     * @return den Hash des Refresh-Tokens
      */
     public String getRefreshTokenHash() {
         return refreshTokenHash;
