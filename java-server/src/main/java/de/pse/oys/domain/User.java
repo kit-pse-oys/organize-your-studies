@@ -144,12 +144,18 @@ public abstract class User {
     /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
      * @param module das hinzuzufügende Modul
      */
-    public void addModule(Module module) { /* Skelett */ }
+    public void addModule(Module module) {
+        modules.add(module);
+    }
 
     /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817].
      * @param module das zu entfernende Modul
      */
-    public void deleteModule(Module module) { /* Skelett */ }
+    public void deleteModule(Module module) {
+        if (module != null) {
+            this.modules.remove(module);
+        }
+    }
 
     /** Fügt eine neue Zeitrestriktion (Freizeit) hinzu[cite: 788, 819].
      * @param freeTime die hinzuzufügende Freizeit
@@ -227,4 +233,13 @@ public abstract class User {
     public List<LearningPlan> getLearningPlans() {
         return learningPlans;
     }
+
+    /**
+     * Gibt die Liste der dem Nutzer zugeordneten Studienmodule zurück.
+     * @return Liste der dem Nutzer zugeordneten Studienmodule
+     */
+    public List<Module> getModules() {
+        return modules;
+    }
+
 }
