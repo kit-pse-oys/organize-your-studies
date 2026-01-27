@@ -74,7 +74,7 @@ class AuthControllerIntegrationTest {
     void setUp() {
         // Testuser anlegen
         String hashedPassword = passwordEncoder.encode(rawPassword + "salty");
-        testUser = new LocalUser("integrationTestUser", hashedPassword, "salty");
+        testUser = new LocalUser("integrationTestUser", hashedPassword);
         userRepository.save(testUser);
     }
 

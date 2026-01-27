@@ -144,7 +144,7 @@ public class AuthService {
 
         // 2. Passwort validieren.
         String userSalt = user.getSalt(); // Salt abrufen
-        String hashedPassword = user.getHashedPassword(); // Hash abrufen
+        String hashedPassword = user.getPasswordHash(); // Hash abrufen
 
         if (!passwordEncoder.matches(loginDTO.getPassword() + userSalt, hashedPassword)) {
             throw new IllegalArgumentException(ERR_INVALID_LOGIN_CREDENTIALS);

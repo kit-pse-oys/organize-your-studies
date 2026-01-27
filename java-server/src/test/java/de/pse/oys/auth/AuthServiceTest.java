@@ -63,7 +63,7 @@ class AuthServiceTest {
 
         LocalUser user = mock(LocalUser.class);
         when(user.getSalt()).thenReturn(salt);
-        when(user.getHashedPassword()).thenReturn(hashedPassword);
+        when(user.getPasswordHash()).thenReturn(hashedPassword);
         when(user.getId()).thenReturn(UUID.randomUUID());
         when(userRepository.findByNameAndType(username, UserType.LOCAL))
                 .thenReturn(Optional.of(user));
