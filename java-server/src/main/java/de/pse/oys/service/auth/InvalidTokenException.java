@@ -14,13 +14,4 @@ public class InvalidTokenException extends RuntimeException {
     public InvalidTokenException(String message) {
         super(message);
     }
-
-    /**
-     * Konstruktor für InvalidTokenException.
-     * @param message Die Fehlermeldung, die die Ausnahme beschreibt.
-     * @param cause Die Ursache der Ausnahme.
-     */
-    public InvalidTokenException(String message, Throwable cause) {
-        super(message);
-    }
 }
