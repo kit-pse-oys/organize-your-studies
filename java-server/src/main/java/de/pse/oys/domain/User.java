@@ -219,4 +219,12 @@ public abstract class User {
     public String getUsername() {
         return username;
     }
+
+    /**
+     * Gibt die Liste der generierten wochenbasierten Lernpläne zurück.
+     * @return Liste der generierten wochenbasierten Lernpläne
+     */
+    public List<LearningPlan> getLearningPlans() {
+        return learningPlans;
+    }
 }

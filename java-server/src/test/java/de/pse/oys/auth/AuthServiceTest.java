@@ -58,16 +58,14 @@ class AuthServiceTest {
         // Arrange
         String username = "localuser";
         String password = "pass123";
-        String salt = "salt";
         String hashedPassword = "hashedpass";
 
         LocalUser user = mock(LocalUser.class);
-        when(user.getSalt()).thenReturn(salt);
-        when(user.getPasswordHash()).thenReturn(hashedPassword);
+        when(user.getHashedPassword()).thenReturn(hashedPassword);
         when(user.getId()).thenReturn(UUID.randomUUID());
         when(userRepository.findByNameAndType(username, UserType.LOCAL))
                 .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(password + salt, hashedPassword)).thenReturn(true);
+        when(passwordEncoder.matches(password, hashedPassword)).thenReturn(true);
         when(jwtProvider.createAccessToken(user)).thenReturn("access-token");
         when(jwtProvider.createRefreshToken(user)).thenReturn("refresh-token");
 

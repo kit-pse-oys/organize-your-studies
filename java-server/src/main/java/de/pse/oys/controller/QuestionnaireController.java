@@ -1,7 +1,9 @@
 package de.pse.oys.controller;
 
+import de.pse.oys.dto.InvalidDtoException;
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.service.QuestionnaireService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +38,11 @@ public class QuestionnaireController extends BaseController {
     @PostMapping("/submit")
     public ResponseEntity<Void> submitQuestionnaire(@RequestBody QuestionnaireDTO dto) {
         UUID userId = getAuthenticatedUserId();
-        questionnaireService.submitQuestionnaire(userId, dto);
+        try {
+            questionnaireService.submitQuestionnaire(userId, dto);
+        } catch (InvalidDtoException | EntityNotFoundException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -47,7 +53,14 @@ public class QuestionnaireController extends BaseController {
     @GetMapping("/status")
     public ResponseEntity<Boolean> getQuestionnaireStatus() {
         UUID userId = getAuthenticatedUserId();
-        boolean isCompleted = questionnaireService.hasLearningPreferences(userId);
-        return ResponseEntity.ok(isCompleted);
+        try {
+            boolean isCompleted = questionnaireService.hasLearningPreferences(userId);
+            return ResponseEntity.ok(isCompleted);
+        } catch (EntityNotFoundException e) {
+            // Nur ein theoretischer Fall, da der Nutzer authentifiziert ist und dementsprechend existieren muss
+            return ResponseEntity.badRequest().build();
+        }
+
+
     }
 }
