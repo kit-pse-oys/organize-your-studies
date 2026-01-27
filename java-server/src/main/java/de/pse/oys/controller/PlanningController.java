@@ -1,13 +1,8 @@
 package de.pse.oys.controller;
 
-import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.planning.PlanningService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 /**
  * REST-Controller für die Steuerung der Lernplanung.

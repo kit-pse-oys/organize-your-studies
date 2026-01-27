@@ -19,8 +19,8 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
 
     /**
      * Findet alle FreeTime-Einträge für einen bestimmten Benutzer.
-     * @param userId 
-     * @return
+     * @param userId die ID des Benutzers
+     * @return Liste der FreeTime-Einträge des Benutzers
      */
     @Query(value = "SELECT * FROM free_times WHERE userid = :uid", nativeQuery = true)
     List<FreeTime> findByUserId(@Param("uid") UUID userId);
