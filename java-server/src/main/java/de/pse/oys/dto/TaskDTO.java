@@ -3,10 +3,9 @@ package de.pse.oys.dto;
 import de.pse.oys.domain.enums.TaskCategory;
 
 /**
- * Data Transfer Object für Aufgaben (Tasks).
- * Enthält alle relevanten Informationen zur Kommunikation zwischen Client und Server.
+ * Gemeinsame Basis für Task-DTOs.
  */
-public class TaskDTO {
+public abstract class TaskDTO {
 
     private String title;
     private String moduleTitle;
@@ -15,69 +14,119 @@ public class TaskDTO {
     private boolean sendNotification;
 
     /**
-     * Standardkonstruktor für die Deserialisierung.
+     * Default-Konstruktor (z.B. für Deserialisierung).
      */
-    public TaskDTO() {}
-
-    // Getter und Setter
-
-    /**
-     * Getter für den Titel der Aufgabe.
-     * @return Der Titel der Aufgabe.
-     */
-    public String getTitle() { return title; }
+    protected TaskDTO() {
+    }
 
     /**
-     * Setter für den Titel der Aufgabe.
-     * @param title Der Titel der Aufgabe.
+     * Erstellt ein TaskDTO mit gemeinsamen Basisfeldern.
+     *
+     * @param title            Titel der Aufgabe
+     * @param moduleTitle      Titel des zugehörigen Moduls
+     * @param category         Kategorie der Aufgabe
+     * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
+     * @param sendNotification ob Benachrichtigungen gesendet werden sollen
      */
-    public void setTitle(String title) { this.title = title; }
+    protected TaskDTO(String title,
+                      String moduleTitle,
+                      TaskCategory category,
+                      Integer weeklyTimeLoad,
+                      boolean sendNotification) {
+        this.title = title;
+        this.moduleTitle = moduleTitle;
+        this.category = category;
+        this.weeklyTimeLoad = weeklyTimeLoad;
+        this.sendNotification = sendNotification;
+    }
 
     /**
-     * Getter für den Titel des Moduls.
-     * @return Der Titel des Moduls.
+     * Liefert den Titel der Aufgabe.
+     *
+     * @return Titel der Aufgabe
      */
-    public String getModuleTitle() { return moduleTitle; }
+    public String getTitle() {
+        return title;
+    }
 
     /**
-     * Setter für den Titel des Moduls.
-     * @param moduleTitle Der Titel des Moduls.
+     * Setzt den Titel der Aufgabe.
+     *
+     * @param title Titel der Aufgabe
      */
-    public void setModuleTitle(String moduleTitle) { this.moduleTitle = moduleTitle; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     /**
-     * Getter für die Kategorie der Aufgabe.
-     * @return Die Kategorie der Aufgabe.
+     * Liefert den Titel des zugehörigen Moduls.
+     *
+     * @return Modultitel
      */
-    public TaskCategory getCategory() { return category; }
+    public String getModuleTitle() {
+        return moduleTitle;
+    }
 
     /**
-     * Setter für die Kategorie der Aufgabe.
-     * @param category Die Kategorie der Aufgabe.
+     * Setzt den Titel des zugehörigen Moduls.
+     *
+     * @param moduleTitle Modultitel
      */
-    public void setCategory(TaskCategory category) { this.category = category; }
+    public void setModuleTitle(String moduleTitle) {
+        this.moduleTitle = moduleTitle;
+    }
 
     /**
-     * Getter für die wöchentliche Zeitbelastung.
-     * @return Die wöchentliche Zeitbelastung.
+     * Liefert die Kategorie der Aufgabe.
+     *
+     * @return Kategorie
      */
-    public Integer getWeeklyTimeLoad() { return weeklyTimeLoad; }
+    public TaskCategory getCategory() {
+        return category;
+    }
 
     /**
-     * Setter für die wöchentliche Zeitbelastung.
-     * @param weeklyTimeLoad Die wöchentliche Zeitbelastung.
+     * Setzt die Kategorie der Aufgabe.
+     *
+     * @param category Kategorie
      */
-    public void setWeeklyTimeLoad(Integer weeklyTimeLoad) { this.weeklyTimeLoad = weeklyTimeLoad; }
+    public void setCategory(TaskCategory category) {
+        this.category = category;
+    }
 
     /**
-     * Gibt an, ob eine Benachrichtigung gesendet werden soll.
-     * @return true, wenn eine Benachrichtigung gesendet werden soll, sonst false.
+     * Liefert den wöchentlichen Zeitaufwand.
+     *
+     * @return wöchentlicher Zeitaufwand (z.B. in Minuten)
      */
-    public boolean isSendNotification() { return sendNotification; }
+    public Integer getWeeklyTimeLoad() {
+        return weeklyTimeLoad;
+    }
 
     /**
-     * Legt fest, ob eine Benachrichtigung gesendet werden soll.
-     * @param sendNotification true, wenn eine Benachrichtigung gesendet werden soll, sonst false.
+     * Setzt den wöchentlichen Zeitaufwand.
+     *
+     * @param weeklyTimeLoad wöchentlicher Zeitaufwand (z.B. in Minuten)
      */
-    public void setSendNotification(boolean sendNotification) { this.sendNotification = sendNotification; }
+    public void setWeeklyTimeLoad(Integer weeklyTimeLoad) {
+        this.weeklyTimeLoad = weeklyTimeLoad;
+    }
+
+    /**
+     * Gibt an, ob Benachrichtigungen gesendet werden sollen.
+     *
+     * @return true, wenn Benachrichtigungen aktiv sind, sonst false
+     */
+    public boolean isSendNotification() {
+        return sendNotification;
+    }
+
+    /**
+     * Setzt, ob Benachrichtigungen gesendet werden sollen.
+     *
+     * @param sendNotification true, wenn Benachrichtigungen aktiv sein sollen
+     */
+    public void setSendNotification(boolean sendNotification) {
+        this.sendNotification = sendNotification;
+    }
 }

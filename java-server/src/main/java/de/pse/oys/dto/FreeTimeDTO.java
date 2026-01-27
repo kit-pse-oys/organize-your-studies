@@ -5,38 +5,102 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 /**
- * Data Transfer Object für Freizeiträume.
- * Repräsentiert ein Zeitfenster, in dem der Nutzer Zeit zum Lernen hat.
- * @author utgid
- * @version 1.0
+ * DTO für FreeTime in API-Responses.
+ *
+ * Hinweis zur Bedeutung von "date":
+ * - weekly=false: echtes Datum der einmaligen Freizeit
+ * - weekly=true : Datum dient nur dazu, den Wochentag zu transportieren (getDayOfWeek()).
  */
 public class FreeTimeDTO {
 
+    private UUID id;
     private String title;
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean weekly;
 
+    /** No-Args-Konstruktor für Jackson. */
+    public FreeTimeDTO() {
+        // empty
+    }
+
     /**
-     * Standardkonstruktor für die Deserialisierung (z.B. durch Jackson).
+     * Erstellt ein FreeTimeDTO.
+     *
+     * @param id        ID der Freizeit
+     * @param title     Titel/Bezeichnung
+     * @param date      Datum (bei weekly repräsentiert es den Wochentag)
+     * @param startTime Startzeit
+     * @param endTime   Endzeit
+     * @param weekly    {@code true} wenn wöchentlich, sonst {@code false}
      */
-    public FreeTimeDTO() {}
+    public FreeTimeDTO(UUID id, String title, LocalDate date, LocalTime startTime, LocalTime endTime, boolean weekly) {
+        this.id = id;
+        this.title = title;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.weekly = weekly;
+    }
 
-    // Getter und Setter
+    /** @return die ID der Freizeit */
+    public UUID getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    /** @param id die neue ID der Freizeit */
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    /** @return der Titel der Freizeit */
+    public String getTitle() {
+        return title;
+    }
 
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+    /** @param title der neue Titel der Freizeit */
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public LocalTime getEndTime() { return endTime; }
-    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+    /** @return das Datum der Freizeit */
+    public LocalDate getDate() {
+        return date;
+    }
 
-    public boolean isWeekly() { return weekly; }
-    public void setWeekly(boolean weekly) { this.weekly = weekly; }
+    /** @param date das neue Datum der Freizeit */
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    /** @return die Startzeit */
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    /** @param startTime die neue Startzeit */
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    /** @return die Endzeit */
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    /** @param endTime die neue Endzeit */
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    /** @return {@code true} wenn wöchentlich, sonst {@code false} */
+    public boolean isWeekly() {
+        return weekly;
+    }
+
+    /** @param weekly {@code true} für wöchentlich, {@code false} für einmalig */
+    public void setWeekly(boolean weekly) {
+        this.weekly = weekly;
+    }
 }

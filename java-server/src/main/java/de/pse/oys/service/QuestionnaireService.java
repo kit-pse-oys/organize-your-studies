@@ -3,6 +3,7 @@ package de.pse.oys.service;
 import de.pse.oys.domain.LearningPreferences;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.dto.InvalidDtoException;
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.persistence.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -14,7 +15,11 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * QuestionnaireService – TODO: Beschreibung ergänzen
+ * QuestionnaireService – Service für die Verarbeitung und Speicherung der Lernpräferenzen aus dem Fragebogen.
+ * Verarbeitet die übermittelten Daten, validiert diese und speichert sie persistent.
+ * <p>
+ * Prüft auf die Existenz des Nutzers und ob dieser bereits Präferenzen gesetzt hat.
+ * Bei bestehenden Präferenzen werden diese aktualisiert (Entitätbleibt erhalten), ansonsten neu angelegt.
  *
  * @author uhupo
  * @version 1.0
@@ -41,8 +46,12 @@ public class QuestionnaireService {
      * Ansonsten wird eine neue Präferenz erstellt und dem Nutzer zugewiesen.
      * @param userId die eindeutige Id des Nutzers.
      * @param questionnaireDTO die übermittelten Lernpräferenzen als DTO.
+     * @throws InvalidDtoException wenn das DTO ungültig ist.
+     * @throws EntityNotFoundException wenn kein Nutzer mit der angegebenen ID existiert.
+     * @throws IllegalArgumentException wenn die Präferenzen semantisch ungültig sind.
      */
-    public void submitQuestionnaire(UUID userId, QuestionnaireDTO questionnaireDTO) {
+    public void submitQuestionnaire(UUID userId, QuestionnaireDTO questionnaireDTO)
+            throws InvalidDtoException, EntityNotFoundException, IllegalArgumentException {
 
         // Nur wenn der Nutzer existiert, werden die Präferenzen gesetzt, sonst verwerfen wir die Anfrage
         User user = userRepository.findById(userId)
@@ -99,7 +108,7 @@ public class QuestionnaireService {
      * @param questionnaireDTO das zu validierende QuestionnaireDTO.
      * @throws IllegalArgumentException wenn die Präferenzen ungültig sind.
      */
-    private void validatePreferences(QuestionnaireDTO questionnaireDTO) {
+    private void validatePreferences(QuestionnaireDTO questionnaireDTO) throws IllegalArgumentException, InvalidDtoException {
         if (questionnaireDTO == null) {
             throw new IllegalArgumentException(ERR_INVALID_PREFERENCES);
         }
@@ -130,10 +139,12 @@ public class QuestionnaireService {
 
     /**
      * Prüft, ob der Nutzer mit der angegebenen ID Lernpräferenzen gesetzt hat.
+     *
      * @param userId die eindeutige Id des Nutzers.
      * @return true, wenn der Nutzer bereits Lernpräferenzen hat, sonst false.
+     * @throws EntityNotFoundException wenn kein Nutzer mit der angegebenen ID existiert.
      */
-    public boolean hasLearningPreferences(UUID userId) {
+    public boolean hasLearningPreferences(UUID userId) throws EntityNotFoundException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(ERR_USER_NOT_FOUND, userId)));
         return user.getPreferences() != null;

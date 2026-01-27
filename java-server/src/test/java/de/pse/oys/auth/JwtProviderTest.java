@@ -36,7 +36,7 @@ class JwtProviderTest {
     @Test
     void createAccessToken_shouldReturnValidToken() {
 
-        User user = new LocalUser("access_user", "hashed_password", "salt");
+        User user = new LocalUser("access_user", "hashed_password");
         userRepository.save(user);
 
         String token = jwtProvider.createAccessToken(user);
@@ -49,7 +49,7 @@ class JwtProviderTest {
 
     @Test
     void createRefreshToken_shouldReturnValidToken() {
-        User user = new LocalUser("refresh_user", "pw", "salt");
+        User user = new LocalUser("refresh_user", "pw");
         userRepository.save(user);
 
         String refreshToken = jwtProvider.createRefreshToken(user);
@@ -72,7 +72,7 @@ class JwtProviderTest {
                 1, // accessTokenExpirationMs
                 1000 // refreshTokenExpirationMs
         );
-        User user = new LocalUser("expired_user", "pw", "salt");
+        User user = new LocalUser("expired_user", "pw");
         userRepository.save(user);
 
         String token = shortLivedProvider.createAccessToken(user);
