@@ -66,11 +66,10 @@ public class FreeTimeService {
 
     /**
      * Löscht einen Freizeitraum.
-     * @param userId Die UUID des Nutzers.
      * @param freeTimeId Die ID des zu löschenden Objekts.
      */
     @Transactional
-    public void deleteFreeTime(UUID userId, UUID freeTimeId) {
+    public void deleteFreeTime(UUID freeTimeId) {
         //todo: implementieren
     }
 

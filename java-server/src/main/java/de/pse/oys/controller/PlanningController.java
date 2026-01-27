@@ -30,18 +30,5 @@ public class PlanningController extends BaseController {
         this.planningService = planningService;
     }
 
-    /**
-     * Erzwingt die sofortige Neuberechnung des Lernplans für den aktuellen Nutzer.
-     * Nutzt die im System hinterlegten Präferenzen, Aufgaben und Freizeiträume.
-     * * @return Eine ResponseEntity, die das DTO des neu erstellten Lernplans enthält.
-     */
-    @PostMapping("/force-update")
-    public ResponseEntity<LearningPlanDTO> forceUpdatePlan() {
-        UUID userId = getAuthenticatedUserId();
-
-        // Der Service führt die komplexe Logik (ggf. Aufruf des Python-Algorithmus) aus
-        //todo: LearningPlanDTO updatedPlan = planningService.generatePlan(userId);
-
-        return null; //ResponseEntity.ok(updatedPlan);
-    }
+    //keine forceUpdatePlan-Methode, da diese Methode im Client nicht implementiert wird
 }

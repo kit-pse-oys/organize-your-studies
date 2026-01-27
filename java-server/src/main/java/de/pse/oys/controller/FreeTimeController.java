@@ -71,8 +71,7 @@ public class FreeTimeController extends BaseController {
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteFreeTime(@RequestBody FreeTimeDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        freeTimeService.deleteFreeTime(userId, null); //todo: freetime uuid bekommen
+        freeTimeService.deleteFreeTime(null); //todo: freetime uuid bekommen
         return ResponseEntity.noContent().build();
     }
 }
