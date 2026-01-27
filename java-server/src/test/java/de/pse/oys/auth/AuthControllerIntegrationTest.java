@@ -41,6 +41,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AuthControllerIntegrationTest {
 
+    // Endpunkt-Pfade, die vom AuthController verwendet werden
+    private static final String AUTH_BASE = "/auth";
+    private static final String LOGIN = AUTH_BASE + "/login";
+    private static final String REFRESH = AUTH_BASE + "/refresh";
+
     @Container
     static PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>("postgres:15")
@@ -73,20 +78,20 @@ class AuthControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         // Testuser anlegen
-        String hashedPassword = passwordEncoder.encode(rawPassword + "salty");
-        testUser = new LocalUser("integrationTestUser", hashedPassword, "salty");
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        testUser = new LocalUser("integrationTestUser", hashedPassword);
         userRepository.save(testUser);
     }
 
     @AfterEach
     void tearDown() {
-        // Testdaten aus der DB entfernen
+        // Testdaten aus der DB entfernen (sonst Sideeffekte bei weiteren Tests)
         userRepository.deleteAll();
     }
 
     @Test
     void testLocalLoginRequest() throws Exception {
-        // --- LOGIN ---
+        // LOGIN Request mit gültigen Anmeldedaten
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
         loginDTO.setUsername(testUser.getUsername());
@@ -95,7 +100,8 @@ class AuthControllerIntegrationTest {
         String loginJson = objectMapper.writeValueAsString(loginDTO);
         System.out.println("Login JSON: " + loginJson); // Debug-Ausgabe
 
-        MvcResult result = mockMvc.perform(post("/auth/login")
+        // --- Login + Assertions ---
+        MvcResult result = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
@@ -132,7 +138,8 @@ class AuthControllerIntegrationTest {
 
     @Test
     void testExternalLoginMappingMissingFields() throws Exception {
-        // JSON nur mit den Pflichtfeldern für ein externes Login / Just-in-time Provisioning
+        // JSON nur mit den Pflichtfeldern für ein externes Login bzw. Just-in-time Provisioning.
+        // Auch hier spart sich der Client null Felder zu senden
         String jsonExternal = """
         {
             "authType": "OIDC",
@@ -157,14 +164,14 @@ class AuthControllerIntegrationTest {
 
     @Test
     void testRefreshRequest() throws Exception {
-        // --- LOGIN als Setup für REFRESH ---
+        // LOGIN als Setup für REFRESH (Login wird im eigenen Test bereits getestet)
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
         loginDTO.setUsername(testUser.getUsername());
         loginDTO.setPassword(rawPassword);
 
         String loginJson = objectMapper.writeValueAsString(loginDTO);
-        String loginResponse = mockMvc.perform(post("/auth/login")
+        String loginResponse = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andReturn()
@@ -173,13 +180,13 @@ class AuthControllerIntegrationTest {
 
         String refreshToken = objectMapper.readTree(loginResponse).get("refreshToken").asText();
 
-        // --- REFRESH ---
+        // REFRESH SETUP
         RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO(refreshToken);
         String refreshJson = objectMapper.writeValueAsString(refreshTokenDTO);
         System.out.println("Refresh JSON: " + refreshJson);
 
-        // --- Perform Refresh + Assertions ---
-        mockMvc.perform(post("/auth/refresh")
+        // --- Refresh + Assertions ---
+        mockMvc.perform(post(REFRESH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(refreshJson))
                 .andExpect(status().isOk())
