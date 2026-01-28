@@ -35,14 +35,12 @@ import java.util.UUID;
 @Transactional
 public class LearningUnitService {
 
-    private static final int DAY_OF_WEEK_VALUE_MONDAY = 1; // Monday=1 ... Sunday=7
-
     private static final int MINUTES_LOWER_BOUND = 0;
+    private static final int DAY_OF_WEEK_VALUE_MONDAY = 1;
 
     private static final String METHOD_GET_USER_ID = "getUserId";
     private static final String METHOD_GET_USER = "getUser";
     private static final String METHOD_GET_ID = "getId";
-    private static final String METHOD_GET_USER_ID_ALT = "getUserId";
 
     private static final String MSG_DTO_NULL = "dto must not be null";
 
@@ -201,19 +199,17 @@ public class LearningUnitService {
         }
 
         Object userObj = tryInvokeGetter(plan, METHOD_GET_USER);
-        if (userObj instanceof User u) {
-            UUID uId = u.getId(); // bei dir heißt es getId()
-            if (uId != null && !userId.equals(uId)) {
-                throw new IllegalArgumentException(String.format(MSG_PLAN_NOT_OWNED_TEMPLATE, userId));
-            }
-        } else if (userObj != null) {
-            UUID uId = tryInvokeUuidGetter(userObj, METHOD_GET_ID);
-            if (uId == null) {
-                uId = tryInvokeUuidGetter(userObj, METHOD_GET_USER_ID_ALT);
-            }
-            if (uId != null && !userId.equals(uId)) {
-                throw new IllegalArgumentException(String.format(MSG_PLAN_NOT_OWNED_TEMPLATE, userId));
-            }
+        if (userObj == null) {
+            return;
+        }
+
+        UUID extractedUserId = tryInvokeUuidGetter(userObj, METHOD_GET_ID);
+        if (extractedUserId == null) {
+            extractedUserId = tryInvokeUuidGetter(userObj, METHOD_GET_USER_ID);
+        }
+
+        if (extractedUserId != null && !userId.equals(extractedUserId)) {
+            throw new IllegalArgumentException(String.format(MSG_PLAN_NOT_OWNED_TEMPLATE, userId));
         }
     }
 
