@@ -8,7 +8,7 @@ import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
-import de.pse.oys.service.exceptions.ValidationException;
+import de.pse.oys.dto.InvalidDtoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +69,7 @@ public class FreeTimeService {
      * @param userId Nutzer-ID
      * @param dto    Eingabedaten
      * @return angelegte Freizeit als DTO
-     * @throws ValidationException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
+     * @throws InvalidDtoException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
      * @throws IllegalArgumentException wenn der Nutzer nicht existiert
      */
     public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) {
@@ -91,7 +91,7 @@ public class FreeTimeService {
      * @param freeTimeId ID der zu aktualisierenden Freizeit
      * @param dto        neue Daten
      * @return aktualisierte Freizeit als DTO
-     * @throws ValidationException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
+     * @throws InvalidDtoException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
      * @throws IllegalArgumentException wenn Nutzer/FreeTime nicht existieren oder nicht zusammengehören
      */
     public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) {
@@ -167,12 +167,12 @@ public class FreeTimeService {
     }
 
     /**
-     * Prüft die logische Konsistenz der Eingabedaten und wirft bei Verletzung der Regeln eine {@link ValidationException}.
+     * Prüft die logische Konsistenz der Eingabedaten und wirft bei Verletzung der Regeln eine {@link InvalidDtoException}.
      *
      * @param user     der zugehörige Nutzer (für Overlap-Prüfung)
      * @param dto      Eingabedaten
      * @param ignoreId optional: ID, die bei Overlap-Prüfung ignoriert wird (z. B. beim Update)
-     * @throws ValidationException bei fehlenden Pflichtfeldern, ungültigem Zeitraum oder Überschneidung
+     * @throws InvalidDtoException bei fehlenden Pflichtfeldern, ungültigem Zeitraum oder Überschneidung
      */
     private void validateData(User user, FreeTimeDTO dto, UUID ignoreId) {
         if (dto == null
@@ -180,11 +180,11 @@ public class FreeTimeService {
                 || dto.getDate() == null
                 || dto.getStartTime() == null
                 || dto.getEndTime() == null) {
-            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
+            throw new InvalidDtoException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
         if (!dto.getStartTime().isBefore(dto.getEndTime())) {
-            throw new ValidationException(MSG_INVALID_RANGE);
+            throw new InvalidDtoException(MSG_INVALID_RANGE);
         }
 
         List<FreeTime> existing = user.getFreeTimes();
@@ -205,7 +205,7 @@ public class FreeTimeService {
             }
 
             if (overlaps(ft.getStartTime(), ft.getEndTime(), dto.getStartTime(), dto.getEndTime())) {
-                throw new ValidationException(MSG_OVERLAP);
+                throw new InvalidDtoException(MSG_OVERLAP);
             }
         }
     }

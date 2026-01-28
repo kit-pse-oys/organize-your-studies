@@ -14,7 +14,7 @@ import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.TaskService;
-import de.pse.oys.service.exceptions.ValidationException;
+import de.pse.oys.dto.InvalidDtoException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,31 +115,31 @@ class TaskServiceTest {
     }
 
     @Test
-    void createTask_throwsValidationException_whenWeeklyTimeLoadTooHigh() {
+    void createTask_throwsInvalidDtoException_whenWeeklyTimeLoadTooHigh() {
         OtherTaskDTO dto = mock(OtherTaskDTO.class);
         stubBase(dto, TITLE, MODULE_TITLE, TaskCategory.OTHER, MAX_WEEKLY_MINUTES + 1);
 
         when(dto.getStartDate()).thenReturn(LocalDate.of(2026, 1, 10));
         when(dto.getEndDate()).thenReturn(LocalDate.of(2026, 1, 11));
 
-        assertThrows(ValidationException.class, () -> service.createTask(userId, dto));
+        assertThrows(InvalidDtoException.class, () -> service.createTask(userId, dto));
         verify(taskRepository, never()).save(any());
     }
 
     @Test
-    void createTask_throwsValidationException_whenOtherTaskEndBeforeStart() {
+    void createTask_throwsInvalidDtoException_whenOtherTaskEndBeforeStart() {
         OtherTaskDTO dto = mock(OtherTaskDTO.class);
         stubBase(dto, TITLE, MODULE_TITLE, TaskCategory.OTHER, 60);
 
         when(dto.getStartDate()).thenReturn(LocalDate.of(2026, 2, 2));
         when(dto.getEndDate()).thenReturn(LocalDate.of(2026, 2, 1));
 
-        assertThrows(ValidationException.class, () -> service.createTask(userId, dto));
+        assertThrows(InvalidDtoException.class, () -> service.createTask(userId, dto));
         verify(taskRepository, never()).save(any());
     }
 
     @Test
-    void createTask_throwsValidationException_whenSubmissionTimeAfter2359() {
+    void createTask_throwsInvalidDtoException_whenSubmissionTimeAfter2359() {
         SubmissionTaskDTO dto = mock(SubmissionTaskDTO.class);
         stubBase(dto, "Abgabe", MODULE_TITLE, TaskCategory.SUBMISSION, 30);
 
@@ -147,7 +147,7 @@ class TaskServiceTest {
         when(dto.getSubmissionTime()).thenReturn(LocalTime.of(23, 59, 59)); // > 23:59
         when(dto.getSubmissionCycle()).thenReturn(1);
 
-        assertThrows(ValidationException.class, () -> service.createTask(userId, dto));
+        assertThrows(InvalidDtoException.class, () -> service.createTask(userId, dto));
         verify(taskRepository, never()).save(any());
     }
 

@@ -14,7 +14,7 @@ import de.pse.oys.dto.TaskDTO;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
-import de.pse.oys.service.exceptions.ValidationException;
+import de.pse.oys.dto.InvalidDtoException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -223,62 +223,62 @@ public class TaskService {
      */
     private void validateData(TaskDTO dto) {
         if (dto == null) {
-            throw new ValidationException(MSG_TASK_DTO_NULL);
+            throw new InvalidDtoException(MSG_TASK_DTO_NULL);
         }
 
         if (isBlank(dto.getTitle())) {
-            throw new ValidationException(MSG_TITLE_BLANK);
+            throw new InvalidDtoException(MSG_TITLE_BLANK);
         }
         if (isBlank(dto.getModuleTitle())) {
-            throw new ValidationException(MSG_MODULE_TITLE_BLANK);
+            throw new InvalidDtoException(MSG_MODULE_TITLE_BLANK);
         }
         if (dto.getCategory() == null) {
-            throw new ValidationException(MSG_CATEGORY_NULL);
+            throw new InvalidDtoException(MSG_CATEGORY_NULL);
         }
 
         Integer weekly = dto.getWeeklyTimeLoad();
         if (weekly == null || weekly <= 0) {
-            throw new ValidationException(MSG_WEEKLY_NULL_OR_LEQ_ZERO);
+            throw new InvalidDtoException(MSG_WEEKLY_NULL_OR_LEQ_ZERO);
         }
         if (weekly > MAX_WEEKLY_MINUTES) {
-            throw new ValidationException(String.format(MSG_WEEKLY_TOO_LARGE_TEMPLATE, MAX_WEEKLY_MINUTES));
+            throw new InvalidDtoException(String.format(MSG_WEEKLY_TOO_LARGE_TEMPLATE, MAX_WEEKLY_MINUTES));
         }
 
         switch (dto.getCategory()) {
             case EXAM -> {
                 if (!(dto instanceof ExamTaskDTO exam)) {
-                    throw new ValidationException(MSG_EXAM_REQUIRES_EXAM_DTO);
+                    throw new InvalidDtoException(MSG_EXAM_REQUIRES_EXAM_DTO);
                 }
                 if (exam.getExamDate() == null) {
-                    throw new ValidationException(MSG_EXAM_DATE_NULL);
+                    throw new InvalidDtoException(MSG_EXAM_DATE_NULL);
                 }
             }
             case SUBMISSION -> {
                 if (!(dto instanceof SubmissionTaskDTO sub)) {
-                    throw new ValidationException(MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO);
+                    throw new InvalidDtoException(MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO);
                 }
                 if (sub.getSubmissionDay() == null) {
-                    throw new ValidationException(MSG_SUBMISSION_DAY_NULL);
+                    throw new InvalidDtoException(MSG_SUBMISSION_DAY_NULL);
                 }
                 if (sub.getSubmissionTime() == null) {
-                    throw new ValidationException(MSG_SUBMISSION_TIME_NULL);
+                    throw new InvalidDtoException(MSG_SUBMISSION_TIME_NULL);
                 }
                 if (sub.getSubmissionTime().isAfter(LATEST_TIME)) {
-                    throw new ValidationException(MSG_SUBMISSION_TIME_TOO_LATE);
+                    throw new InvalidDtoException(MSG_SUBMISSION_TIME_TOO_LATE);
                 }
             }
             case OTHER -> {
                 if (!(dto instanceof OtherTaskDTO other)) {
-                    throw new ValidationException(MSG_OTHER_REQUIRES_OTHER_DTO);
+                    throw new InvalidDtoException(MSG_OTHER_REQUIRES_OTHER_DTO);
                 }
                 if (other.getStartDate() == null || other.getEndDate() == null) {
-                    throw new ValidationException(MSG_OTHER_DATES_NULL);
+                    throw new InvalidDtoException(MSG_OTHER_DATES_NULL);
                 }
                 if (other.getEndDate().isBefore(other.getStartDate())) {
-                    throw new ValidationException(MSG_OTHER_END_BEFORE_START);
+                    throw new InvalidDtoException(MSG_OTHER_END_BEFORE_START);
                 }
             }
-            default -> throw new ValidationException(MSG_UNKNOWN_TASK_CATEGORY);
+            default -> throw new InvalidDtoException(MSG_UNKNOWN_TASK_CATEGORY);
         }
     }
 

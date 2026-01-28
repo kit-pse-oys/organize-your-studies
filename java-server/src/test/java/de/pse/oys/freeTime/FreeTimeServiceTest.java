@@ -8,7 +8,7 @@ import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.FreeTimeService;
-import de.pse.oys.service.exceptions.ValidationException;
+import de.pse.oys.dto.InvalidDtoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +66,7 @@ class FreeTimeServiceTest {
     }
 
     @Test
-    void createFreeTime_missingRequiredFields_throwsValidationException() {
+    void createFreeTime_missingRequiredFields_throwsInvalidDtoException() {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -79,7 +79,7 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.createFreeTime(userId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(userRepository, never()).save(any());
         verify(user, never()).addFreeTime(any());
@@ -87,7 +87,7 @@ class FreeTimeServiceTest {
     }
 
     @Test
-    void createFreeTime_invalidRange_throwsValidationException() {
+    void createFreeTime_invalidRange_throwsInvalidDtoException() {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -100,7 +100,7 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.createFreeTime(userId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(userRepository, never()).save(any());
         verify(user, never()).addFreeTime(any());
@@ -108,7 +108,7 @@ class FreeTimeServiceTest {
     }
 
     @Test
-    void createFreeTime_overlapsExistingOnce_throwsValidationException() {
+    void createFreeTime_overlapsExistingOnce_throwsInvalidDtoException() {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -133,7 +133,7 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.createFreeTime(userId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(userRepository, never()).save(any());
         verify(user, never()).addFreeTime(any());
@@ -213,7 +213,7 @@ class FreeTimeServiceTest {
     }
 
     @Test
-    void createFreeTime_overlapsExistingWeeklySameDay_throwsValidationException() {
+    void createFreeTime_overlapsExistingWeeklySameDay_throwsInvalidDtoException() {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -238,7 +238,7 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.createFreeTime(userId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(userRepository, never()).save(any());
         verify(user, never()).addFreeTime(any());
@@ -289,7 +289,7 @@ class FreeTimeServiceTest {
     }
 
     @Test
-    void updateFreeTime_invalidRange_throwsValidationException() throws Exception {
+    void updateFreeTime_invalidRange_throwsInvalidDtoException() throws Exception {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -315,14 +315,14 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.updateFreeTime(userId, freeTimeId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(freeTimeRepository, never()).save(any());
         verify(freeTimeRepository, never()).delete(any());
     }
 
     @Test
-    void updateFreeTime_overlaps_throwsValidationException() throws Exception {
+    void updateFreeTime_overlaps_throwsInvalidDtoException() throws Exception {
         User user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -360,7 +360,7 @@ class FreeTimeServiceTest {
         );
 
         assertThatThrownBy(() -> service.updateFreeTime(userId, freeTimeId, dto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(InvalidDtoException.class);
 
         verify(freeTimeRepository, never()).save(any());
         verify(freeTimeRepository, never()).delete(any());
