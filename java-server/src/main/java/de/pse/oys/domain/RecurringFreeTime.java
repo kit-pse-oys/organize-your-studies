@@ -9,7 +9,7 @@ import java.time.LocalTime;
 /**
  * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
  * @author utgid
- * @version 1.0
+ * @version 1.1
  */
 @Entity
 @DiscriminatorValue("WEEKLY")
@@ -26,7 +26,6 @@ public class RecurringFreeTime extends FreeTime {
 
     /**
      * Erzeugt eine Instanz für eine wiederkehrende Freizeitbeschränkung.
-     * Der Typ wird dabei automatisch auf WEEKLY gesetzt.
      *
      * @param title Bezeichnung der Freizeit (z. B. "Wöchentliches Training").
      * @param start Beginn der Freizeit als Uhrzeit.
@@ -34,8 +33,13 @@ public class RecurringFreeTime extends FreeTime {
      * @param day   Der Wochentag, an dem die Wiederholung stattfindet.
      */
     public RecurringFreeTime(String title, LocalTime start, LocalTime end, DayOfWeek day) {
-        super(title, start, end, RecurrenceType.WEEKLY);
+        super(title, start, end);
         this.dayOfWeek = day;
+    }
+
+    @Override
+    public RecurrenceType getRecurrenceType() {
+        return RecurrenceType.WEEKLY;
     }
 
     /**
@@ -47,20 +51,9 @@ public class RecurringFreeTime extends FreeTime {
         return date != null && date.getDayOfWeek() == this.dayOfWeek;
     }
 
+    /** @return Den Wochentag, an dem diese Freizeitbeschränkung eintritt. */
+    public DayOfWeek getDayOfWeek() { return dayOfWeek; }
 
-    //GETTER UND SETTER
-
-    /**
-     * @return Den Wochentag, an dem diese Freizeitbeschränkung eintritt.
-     */
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    /**
-     * @param dayOfWeek Der neue Wochentag für die regelmäßige Wiederholung.
-     */
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
+    /** @param dayOfWeek Der neue Wochentag für die regelmäßige Wiederholung. */
+    public void setDayOfWeek(DayOfWeek dayOfWeek) { this.dayOfWeek = dayOfWeek; }
 }

@@ -8,7 +8,7 @@ import java.time.LocalTime;
 /**
  * Repräsentiert eine einmalige Freizeitbeschränkung an einem spezifischen Datum.
  * @author utgid
- * @version 1.0
+ * @version 1.1
  */
 @Entity
 @DiscriminatorValue("ONCE")
@@ -31,8 +31,13 @@ public class SingleFreeTime extends FreeTime {
      * @param date  Das konkrete Datum des Ereignisses.
      */
     public SingleFreeTime(String title, LocalTime start, LocalTime end, LocalDate date) {
-        super(title, start, end, RecurrenceType.ONCE);
+        super(title, start, end);
         this.date = date;
+    }
+
+    @Override
+    public RecurrenceType getRecurrenceType() {
+        return RecurrenceType.ONCE;
     }
 
     /**
@@ -43,19 +48,9 @@ public class SingleFreeTime extends FreeTime {
         return date != null && date.isBefore(LocalDate.now());
     }
 
-    //GETTER UND SETTER
+    /** @return Das spezifische Datum dieses Freizeitblocks. */
+    public LocalDate getDate() { return date; }
 
-    /**
-     * @return Das spezifische Datum dieses Freizeitblocks.
-     */
-    public LocalDate getDate() {
-        return date;
-    }
-
-    /**
-     * @param date Das neue Datum für diesen Freizeitblock.
-     */
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
+    /** @param date Das neue Datum für diesen Freizeitblock. */
+    public void setDate(LocalDate date) { this.date = date; }
 }
