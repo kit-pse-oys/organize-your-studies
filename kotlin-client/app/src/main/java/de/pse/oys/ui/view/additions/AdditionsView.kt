@@ -18,7 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.ui.navigation.createFreeTime
+import de.pse.oys.ui.navigation.createModule
+import de.pse.oys.ui.navigation.createTask
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
@@ -74,4 +78,19 @@ interface IAdditionsViewModel {
     fun navigateToCreateModule()
     fun navigateToCreateTask()
     fun navigateToCreateFreeTime()
+}
+
+class AdditionsViewModel(private val navController: NavController) : IAdditionsViewModel {
+
+    override fun navigateToCreateModule() {
+        navController.createModule()
+    }
+
+    override fun navigateToCreateTask() {
+        navController.createTask()
+    }
+
+    override fun navigateToCreateFreeTime() {
+        navController.createFreeTime()
+    }
 }

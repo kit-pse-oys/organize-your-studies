@@ -1,6 +1,8 @@
 package de.pse.oys.ui.view.ratings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,27 +23,46 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
 
 @Composable
 fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                ViewHeader(stringResource(id = R.string.rate_units_header))
-            }
-            items(viewModel.available) { target ->
-                RatingSelectionItem(
-                    target = target,
-                    onClick = { viewModel.selectRating(target) }
-                )
+            ViewHeader(stringResource(id = R.string.rate_units_header))
+            if (viewModel.available.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.no_ratings_available),
+                        color = Color.Gray,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    items(viewModel.available) { target ->
+                        RatingSelectionItem(
+                            target = target,
+                            onClick = { viewModel.selectRating(target) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -81,4 +102,16 @@ interface IAvailableRatingsViewModel {
     val available: List<RatingTarget>
 
     fun selectRating(rating: RatingTarget)
+}
+
+class AvailableRatingsViewModel(
+    private val navController: NavController,
+    override val available: List<RatingTarget>
+) : IAvailableRatingsViewModel {
+
+    override fun selectRating(rating: RatingTarget) {
+        if (available.contains(rating)) {
+            navController.rating()
+        }
+    }
 }

@@ -21,8 +21,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.facade.Module
+import de.pse.oys.ui.navigation.editModule
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
@@ -80,4 +82,15 @@ interface IModulesViewModel {
     val modules: List<Module>
 
     fun select(module: Module)
+}
+
+class ModulesViewModel(
+    private val navController: NavController,
+    override val modules: List<Module>
+) : IModulesViewModel {
+    override fun select(module: Module) {
+        if (modules.contains(module)) {
+            navController.editModule(module)
+        }
+    }
 }
