@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.pse.oys.R
-import de.pse.oys.data.RatingQuestions
+import de.pse.oys.data.RatingAspect
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -61,15 +61,15 @@ fun RatingView(viewModel: IRatingViewModel) {
                     fontWeight = FontWeight.Bold
                 )
             }
-            RatingQuestions.forEachIndexed { index, questionData ->
+            RatingAspect.entries.forEachIndexed { index, aspect ->
                 RatingQuestion(
                     questionNumber = index + 1,
-                    question = stringResource(id = questionData.textRes),
-                    aspect = viewModel.getRatingById(questionData.id),
-                    labels = questionData.labelsRes.map { stringResource(id = it) },
+                    question = stringResource(id = aspect.textRes),
+                    aspect = viewModel.getRating(aspect),
+                    labels = aspect.labelsRes.map { stringResource(id = it) },
                     selectedMissed = selectedMissed,
                     onRatingChange = { newRating ->
-                        viewModel.updateRatingById(questionData.id, newRating)
+                        viewModel.updateRating(aspect, newRating)
                     }
                 )
             }
@@ -123,10 +123,8 @@ private fun RatingQuestion(
 }
 
 interface IRatingViewModel {
-    fun getRatingById(id: String): Rating
-
-    fun updateRatingById(id: String, rating: Rating)
-
+    fun getRating(aspect: RatingAspect): Rating
+    fun updateRating(aspect: RatingAspect, rating: Rating)
     fun submitRating()
     fun submitMissed()
 }

@@ -31,7 +31,8 @@ import de.pse.oys.ui.theme.LightBlue
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.number
+import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toJavaLocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -206,18 +207,20 @@ fun RatingSlider(
     }
 }
 
-fun LocalTime.toFormattedString(): String {
-    val javaTime = java.time.LocalTime.of(hour, minute)
-    val formatter =
-        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault())
-    return javaTime.format(formatter)
+fun LocalDate.toFormattedString(): String {
+    val formatter = DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+
+    return this.toJavaLocalDate().format(formatter)
 }
 
-fun LocalDate.toFormattedString(): String {
-    val javaDate = java.time.LocalDate.of(year, month.number, day)
-    val formatter =
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault())
-    return javaDate.format(formatter)
+fun LocalTime.toFormattedString(): String {
+    val formatter = DateTimeFormatter
+        .ofLocalizedTime(FormatStyle.SHORT)
+        .withLocale(Locale.getDefault())
+
+    return this.toJavaLocalTime().format(formatter)
 }
 
 fun LocalDateTime.toFormattedString(): String {

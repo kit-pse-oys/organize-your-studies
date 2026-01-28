@@ -79,6 +79,7 @@
     <string name="submission_weekcycle_is">-Wochenrythmus</string>
     <string name="additions_header">Hinzufügen</string>
     <string name="rate_units_header">Einheiten Bewerten</string>
+    <string name="no_ratings_available">Keine Einheiten zum Bewerten verfügbar.</string>
     <string name="rate_unit_header">Einheit bewerten</string>
     <string name="unit_missed_button">Ich habe diese Einheit verpasst.</string>
     <string name="goal_completion_question">Wie gut konntest du deine Ziele für diese Einheit umsetzten?</string>

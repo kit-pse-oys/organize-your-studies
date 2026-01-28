@@ -79,6 +79,7 @@
     <string name="submission_weekcycle_is">-Week Cycle</string>
     <string name="additions_header">Add</string>
     <string name="rate_units_header">Rate Units</string>
+    <string name="no_ratings_available">No Units Available for Rating.</string>
     <string name="rate_unit_header">Rate Unit</string>
     <string name="unit_missed_button">I missed this unit.</string>
     <string name="goal_completion_question">How well were you able to reach your goals this unit?</string>
