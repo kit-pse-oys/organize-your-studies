@@ -9,10 +9,12 @@ import java.util.UUID;
  * Repräsentiert einen Zeitraum, in dem der Nutzer keine Lerneinheiten einplanen möchte.
  * Diese Freizeitblöcke werden vom Planungsalgorithmus als harte Restriktionen behandelt.
  * @author utgid
- * @version 1.0
+ * @version 1.1
  */
 @Entity
 @Table(name = "free_times")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "recurrence_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class FreeTime {
 
     /** Eindeutige Kennung des Freizeitblocks (readOnly). */
@@ -34,14 +36,6 @@ public abstract class FreeTime {
     private LocalTime endTime;
 
     /**
-     * Gibt den Typ der Wiederholung zurück.
-     * Das Feld wird über die Unterklassen gesteuert.
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "recurrence_type_discriminator", insertable = false, updatable = false)
-    private RecurrenceType recurrenceType;
-
-    /**
      * Standardkonstruktor für JPA/Hibernate.
      */
     protected FreeTime() {
@@ -54,12 +48,16 @@ public abstract class FreeTime {
      * @param startTime Beginn der Freizeit.
      * @param endTime   Ende der Freizeit.
      */
-    public FreeTime(String title, LocalTime startTime, LocalTime endTime, RecurrenceType type) {
+    public FreeTime(String title, LocalTime startTime, LocalTime endTime) {
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.recurrenceType = type;
     }
+
+    /**
+     * @return Der spezifische Wiederholungstyp dieser Freizeitinstanz.
+     */
+    public abstract RecurrenceType getRecurrenceType();
 
     /**
      * Berechnet die Dauer des Freizeitblocks in Minuten.
@@ -80,55 +78,26 @@ public abstract class FreeTime {
         return startTime != null && endTime != null && startTime.isBefore(endTime);
     }
 
-    // Getter
+    // Getter & Setter
 
     /** @return Die ID des Freizeitblocks. */
-    public UUID getFreeTimeId() {
-        return freeTimeId;
-    }
+    public UUID getFreeTimeId() { return freeTimeId; }
 
     /** @return Die Beschreibung der Freizeit. */
-    public String getTitle() {
-        return title;
-    }
-
-    /** @return Den Startzeitpunkt. */
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    /** @return Den Endzeitpunkt. */
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    /**
-     * @return Der spezifische Wiederholungstyp dieser Freizeitinstanz.
-     */
-    public RecurrenceType getRecurrenceType() {
-        if (this instanceof RecurringFreeTime) {
-            return RecurrenceType.WEEKLY;
-        }
-        if (this instanceof SingleFreeTime) {
-            return RecurrenceType.ONCE;
-        }
-        return null;
-    }
-
-    // Setter
+    public String getTitle() { return title; }
 
     /** @param title Die neue Beschreibung. */
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public void setTitle(String title) { this.title = title; }
+
+    /** @return Den Startzeitpunkt. */
+    public LocalTime getStartTime() { return startTime; }
 
     /** @param startTime Der neue Startzeitpunkt. */
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+
+    /** @return Den Endzeitpunkt. */
+    public LocalTime getEndTime() { return endTime; }
 
     /** @param endTime Der neue Endzeitpunkt. */
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
 }
