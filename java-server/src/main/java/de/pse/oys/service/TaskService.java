@@ -63,6 +63,7 @@ public class TaskService {
     private static final String MSG_WEEKLY_TOO_LARGE_TEMPLATE = "weeklyTimeLoad darf nicht größer als %d Minuten sein.";
     private static final String MSG_EXAM_REQUIRES_EXAM_DTO = "EXAM erfordert ExamTaskDTO.";
     private static final String MSG_EXAM_DATE_NULL = "examDate darf nicht null sein.";
+    private static final String MSG_REFLECTION_ID_ERROR = "Unerwarteter Fehler beim Auslesen der ID via Reflection";
     private static final String MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO = "SUBMISSION erfordert SubmissionTaskDTO.";
     private static final String MSG_SUBMISSION_DAY_NULL = "submissionDay darf nicht null sein.";
     private static final String MSG_SUBMISSION_TIME_NULL = "submissionTime darf nicht null sein.";
@@ -321,7 +322,11 @@ public class TaskService {
             Method m = target.getClass().getMethod(methodName);
             Object val = m.invoke(target);
             return (val instanceof UUID) ? (UUID) val : null;
-        } catch (Exception ignored) { return null; }
+        } catch (NoSuchMethodException e) {
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException(MSG_REFLECTION_ID_ERROR, e);
+        }
     }
 
     /**
