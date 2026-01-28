@@ -34,9 +34,8 @@ import java.util.UUID;
  * Dieser Service kümmert sich um alles, was mit Aufgaben (Tasks) zu tun hat.
  * Er verwaltet das Erstellen, Ändern, Löschen und Abrufen von Aufgaben für die Nutzer.
  *
- *  * @author uqvfm
- *  * @version 1.0
- *  */
+ * @author uqvfm
+ * @version 1.0
  */
 @Service
 @Transactional
