@@ -14,10 +14,12 @@ import de.pse.oys.dto.TaskDTO;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.service.exceptions.ValidationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,12 +31,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Service für Tasks: erstellen, ändern, löschen und abrufen.
+ * Kapselt die Geschäftslogik rund um Aufgaben (Tasks).
+ * Der Service erstellt, aktualisiert, löscht und lädt Aufgaben eines Nutzers.
  *
  * @author uqvfm
  * @version 1.0
  */
 @Service
+@Transactional
 public class TaskService {
 
     private static final int DAYS_PER_WEEK = 7;
@@ -44,14 +48,16 @@ public class TaskService {
     private static final int LAST_HOUR_OF_DAY = 23;
     private static final int LAST_MINUTE_OF_DAY = 59;
 
-    private static final int NORMALIZED_SECOND = 0;
-    private static final int NORMALIZED_NANO = 0;
-
     private static final int MAX_WEEKLY_MINUTES = DAYS_PER_WEEK * HOURS_PER_DAY * MINUTES_PER_HOUR;
     private static final LocalTime LATEST_TIME = LocalTime.of(LAST_HOUR_OF_DAY, LAST_MINUTE_OF_DAY);
-
     private static final boolean DEFAULT_SEND_NOTIFICATION = false;
     private static final int DEFAULT_SUBMISSION_CYCLE = 1;
+
+    private static final String METHOD_GET_ID = "getId";
+    private static final String METHOD_GET_TASK_ID = "getTaskId";
+
+    private static final String MSG_USER_ID_NULL = "userId darf nicht null sein.";
+    private static final String MSG_USER_NOT_FOUND = "User nicht gefunden.";
 
     private static final String MSG_TASK_DTO_NULL = "TaskDTO darf nicht null sein.";
     private static final String MSG_TITLE_BLANK = "title darf nicht leer sein.";
@@ -59,12 +65,14 @@ public class TaskService {
     private static final String MSG_CATEGORY_NULL = "category darf nicht null sein.";
 
     private static final String MSG_WEEKLY_NULL_OR_LEQ_ZERO = "weeklyTimeLoad muss > 0 sein.";
-    private static final String MSG_WEEKLY_TOO_LARGE_TEMPLATE = "weeklyTimeLoad darf nicht größer als %d Minuten sein.";
+    private static final String MSG_WEEKLY_TOO_LARGE_TEMPLATE =
+            "weeklyTimeLoad darf nicht größer als %d Minuten sein.";
 
     private static final String MSG_EXAM_REQUIRES_EXAM_DTO = "EXAM erfordert ExamTaskDTO.";
     private static final String MSG_EXAM_DATE_NULL = "examDate darf nicht null sein.";
 
-    private static final String MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO = "SUBMISSION erfordert SubmissionTaskDTO.";
+    private static final String MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO =
+            "SUBMISSION erfordert SubmissionTaskDTO.";
     private static final String MSG_SUBMISSION_DAY_NULL = "submissionDay darf nicht null sein.";
     private static final String MSG_SUBMISSION_TIME_NULL = "submissionTime darf nicht null sein.";
     private static final String MSG_SUBMISSION_TIME_TOO_LATE = "submissionTime darf nicht nach 23:59 sein.";
@@ -76,15 +84,11 @@ public class TaskService {
     private static final String MSG_UNKNOWN_TASK_CATEGORY = "Unbekannte TaskCategory.";
     private static final String MSG_TYPE_CHANGE_NOT_ALLOWED = "Task-Typ kann nicht geändert werden.";
 
-    private static final String MSG_USER_ID_NULL = "userId darf nicht null sein.";
-    private static final String MSG_USER_NOT_FOUND = "User nicht gefunden.";
-
     private static final String MSG_TASK_ID_NULL = "taskId darf nicht null sein.";
     private static final String MSG_TASK_NOT_FOUND = "Task nicht gefunden.";
     private static final String MSG_ACCESS_DENIED = "Kein Zugriff auf diese Aufgabe.";
 
     private static final String MSG_MODULE_NOT_FOUND_TEMPLATE = "Modul nicht gefunden: %s";
-    private static final String MSG_TASK_NOT_FOUND_GENERIC = "Task nicht gefunden.";
     private static final String MSG_TASK_DUPLICATE_TITLE = "Mehrere Tasks mit gleichem Titel im Modul gefunden.";
 
     private static final String MSG_UNKNOWN_TASK_TYPE_TEMPLATE = "Unbekannter Task-Typ: %s";
@@ -94,11 +98,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
     /**
-     * Erstellt den Service.
-     *
-     * @param userRepository Repository für User
-     * @param moduleRepository Repository für Module
-     * @param taskRepository Repository für Tasks
+     * Erstellt den Service mit allen benötigten Repositories.
      */
     public TaskService(UserRepository userRepository,
                        ModuleRepository moduleRepository,
@@ -109,13 +109,12 @@ public class TaskService {
     }
 
     /**
-     * Legt eine neue Task für den User an.
+     * Erstellt eine neue Aufgabe.
      *
      * @param userId User-ID
-     * @param dto Task-Daten
+     * @param dto    Task-Daten
      * @return gespeicherte Task als DTO
      */
-    @Transactional
     public TaskDTO createTask(UUID userId, TaskDTO dto) {
         requireExistingUser(userId);
         validateData(dto);
@@ -130,52 +129,39 @@ public class TaskService {
     }
 
     /**
-     * Aktualisiert eine bestehende Task.
+     * Aktualisiert eine bestehende Aufgabe.
      *
      * @param userId User-ID
-     * @param dto neue Daten
+     * @param dto    neue Task-Daten
      * @return aktualisierte Task als DTO
      */
-    @Transactional
     public TaskDTO updateTask(UUID userId, TaskDTO dto) {
         requireExistingUser(userId);
         validateData(dto);
 
         Module module = resolveModuleForUser(userId, dto.getModuleTitle());
-        Task existing = findTaskByNaturalKey(userId, module.getModuleId(), dto.getTitle(), dto.getCategory());
+        Task existing = findExistingForUpdate(userId, module.getModuleId(), dto);
 
-        existing.setTitle(dto.getTitle());
-        existing.setWeeklyDurationMinutes(dto.getWeeklyTimeLoad());
+        Task mapped = mapToEntity(dto);
+
+        if (!existing.getClass().equals(mapped.getClass())) {
+            throw new IllegalArgumentException(MSG_TYPE_CHANGE_NOT_ALLOWED);
+        }
+
+        existing.setTitle(mapped.getTitle());
+        existing.setWeeklyDurationMinutes(mapped.getWeeklyDurationMinutes());
         existing.setModule(module);
 
-        switch (dto.getCategory()) {
-            case EXAM -> {
-                if (!(existing instanceof ExamTask exam)) {
-                    throw new IllegalArgumentException(MSG_TYPE_CHANGE_NOT_ALLOWED);
-                }
-                ExamTaskDTO examDto = (ExamTaskDTO) dto;
-                exam.setExamDate(examDto.getExamDate());
-            }
-
-            case SUBMISSION -> {
-                if (!(existing instanceof SubmissionTask sub)) {
-                    throw new IllegalArgumentException(MSG_TYPE_CHANGE_NOT_ALLOWED);
-                }
-                SubmissionTaskDTO subDto = (SubmissionTaskDTO) dto;
-                LocalDateTime deadline = computeNextSubmissionDeadline(subDto.getSubmissionDay(), subDto.getSubmissionTime());
-                sub.setDeadline(deadline);
-            }
-
-            case OTHER -> {
-                if (!(existing instanceof OtherTask other)) {
-                    throw new IllegalArgumentException(MSG_TYPE_CHANGE_NOT_ALLOWED);
-                }
-                OtherTaskDTO otherDto = (OtherTaskDTO) dto;
-                other.setStartTime(otherDto.getStartDate().atStartOfDay());
-                other.setEndTime(otherDto.getEndDate().atTime(LATEST_TIME));
-            }
-
-            default -> throw new IllegalArgumentException(MSG_UNKNOWN_TASK_CATEGORY);
+        if (existing instanceof ExamTask ex && mapped instanceof ExamTask mx) {
+            ex.setExamDate(mx.getExamDate());
+        } else if (existing instanceof SubmissionTask ex && mapped instanceof SubmissionTask mx) {
+            ex.setDeadline(mx.getDeadline());
+        } else if (existing instanceof OtherTask ex && mapped instanceof OtherTask mx) {
+            ex.setStartTime(mx.getStartTime());
+            ex.setEndTime(mx.getEndTime());
+        } else {
+            throw new IllegalStateException(String.format(
+                    MSG_UNKNOWN_TASK_TYPE_TEMPLATE, existing.getClass().getSimpleName()));
         }
 
         Task saved = taskRepository.save(existing);
@@ -183,12 +169,11 @@ public class TaskService {
     }
 
     /**
-     * Löscht eine Task, wenn sie dem User gehört.
+     * Löscht eine Aufgabe, wenn sie dem User gehört.
      *
      * @param userId User-ID
      * @param taskId Task-ID
      */
-    @Transactional
     public void deleteTask(UUID userId, UUID taskId) {
         requireExistingUser(userId);
 
@@ -208,10 +193,10 @@ public class TaskService {
     }
 
     /**
-     * Liefert alle Tasks des Users.
+     * Liefert alle Tasks eines Users.
      *
      * @param userId User-ID
-     * @return Tasks als DTO-Liste
+     * @return alle Tasks als DTO-Liste
      */
     @Transactional(readOnly = true)
     public List<TaskDTO> getTasksByUserId(UUID userId) {
@@ -234,79 +219,74 @@ public class TaskService {
     }
 
     /**
-     * Prüft die DTO-Daten.
-     *
-     * @param dto TaskDTO
+     * Validiert die DTO-Daten.
      */
     private void validateData(TaskDTO dto) {
         if (dto == null) {
-            throw new IllegalArgumentException(MSG_TASK_DTO_NULL);
+            throw new ValidationException(MSG_TASK_DTO_NULL);
         }
 
         if (isBlank(dto.getTitle())) {
-            throw new IllegalArgumentException(MSG_TITLE_BLANK);
+            throw new ValidationException(MSG_TITLE_BLANK);
         }
         if (isBlank(dto.getModuleTitle())) {
-            throw new IllegalArgumentException(MSG_MODULE_TITLE_BLANK);
+            throw new ValidationException(MSG_MODULE_TITLE_BLANK);
         }
         if (dto.getCategory() == null) {
-            throw new IllegalArgumentException(MSG_CATEGORY_NULL);
+            throw new ValidationException(MSG_CATEGORY_NULL);
         }
 
         Integer weekly = dto.getWeeklyTimeLoad();
         if (weekly == null || weekly <= 0) {
-            throw new IllegalArgumentException(MSG_WEEKLY_NULL_OR_LEQ_ZERO);
+            throw new ValidationException(MSG_WEEKLY_NULL_OR_LEQ_ZERO);
         }
         if (weekly > MAX_WEEKLY_MINUTES) {
-            throw new IllegalArgumentException(String.format(MSG_WEEKLY_TOO_LARGE_TEMPLATE, MAX_WEEKLY_MINUTES));
+            throw new ValidationException(String.format(MSG_WEEKLY_TOO_LARGE_TEMPLATE, MAX_WEEKLY_MINUTES));
         }
 
         switch (dto.getCategory()) {
             case EXAM -> {
                 if (!(dto instanceof ExamTaskDTO exam)) {
-                    throw new IllegalArgumentException(MSG_EXAM_REQUIRES_EXAM_DTO);
+                    throw new ValidationException(MSG_EXAM_REQUIRES_EXAM_DTO);
                 }
                 if (exam.getExamDate() == null) {
-                    throw new IllegalArgumentException(MSG_EXAM_DATE_NULL);
+                    throw new ValidationException(MSG_EXAM_DATE_NULL);
                 }
             }
-
             case SUBMISSION -> {
                 if (!(dto instanceof SubmissionTaskDTO sub)) {
-                    throw new IllegalArgumentException(MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO);
+                    throw new ValidationException(MSG_SUBMISSION_REQUIRES_SUBMISSION_DTO);
                 }
                 if (sub.getSubmissionDay() == null) {
-                    throw new IllegalArgumentException(MSG_SUBMISSION_DAY_NULL);
+                    throw new ValidationException(MSG_SUBMISSION_DAY_NULL);
                 }
                 if (sub.getSubmissionTime() == null) {
-                    throw new IllegalArgumentException(MSG_SUBMISSION_TIME_NULL);
+                    throw new ValidationException(MSG_SUBMISSION_TIME_NULL);
                 }
                 if (sub.getSubmissionTime().isAfter(LATEST_TIME)) {
-                    throw new IllegalArgumentException(MSG_SUBMISSION_TIME_TOO_LATE);
+                    throw new ValidationException(MSG_SUBMISSION_TIME_TOO_LATE);
                 }
             }
-
             case OTHER -> {
                 if (!(dto instanceof OtherTaskDTO other)) {
-                    throw new IllegalArgumentException(MSG_OTHER_REQUIRES_OTHER_DTO);
+                    throw new ValidationException(MSG_OTHER_REQUIRES_OTHER_DTO);
                 }
                 if (other.getStartDate() == null || other.getEndDate() == null) {
-                    throw new IllegalArgumentException(MSG_OTHER_DATES_NULL);
+                    throw new ValidationException(MSG_OTHER_DATES_NULL);
                 }
                 if (other.getEndDate().isBefore(other.getStartDate())) {
-                    throw new IllegalArgumentException(MSG_OTHER_END_BEFORE_START);
+                    throw new ValidationException(MSG_OTHER_END_BEFORE_START);
                 }
             }
-
-            default -> throw new IllegalArgumentException(MSG_UNKNOWN_TASK_CATEGORY);
+            default -> throw new ValidationException(MSG_UNKNOWN_TASK_CATEGORY);
         }
     }
 
     /**
-     * DTO -> Entity.
+     * Mappt ein TaskDTO auf die passende Task-Entity.
      *
      * @param dto TaskDTO
-     * @return Entity
+     * @return konkrete Task-Entity (ExamTask/SubmissionTask/OtherTask)
      */
     private Task mapToEntity(TaskDTO dto) {
         return switch (dto.getCategory()) {
@@ -314,13 +294,11 @@ public class TaskService {
                 ExamTaskDTO exam = (ExamTaskDTO) dto;
                 yield new ExamTask(dto.getTitle(), dto.getWeeklyTimeLoad(), exam.getExamDate());
             }
-
             case SUBMISSION -> {
                 SubmissionTaskDTO sub = (SubmissionTaskDTO) dto;
                 LocalDateTime deadline = computeNextSubmissionDeadline(sub.getSubmissionDay(), sub.getSubmissionTime());
                 yield new SubmissionTask(dto.getTitle(), dto.getWeeklyTimeLoad(), deadline);
             }
-
             case OTHER -> {
                 OtherTaskDTO other = (OtherTaskDTO) dto;
                 yield new OtherTask(
@@ -330,15 +308,14 @@ public class TaskService {
                         other.getEndDate().atTime(LATEST_TIME)
                 );
             }
-
             default -> throw new IllegalArgumentException(MSG_UNKNOWN_TASK_CATEGORY);
         };
     }
 
     /**
-     * Entity -> DTO.
+     * Mappt eine Task-Entity zurück auf das passende DTO.
      *
-     * @param task Entity
+     * @param task Task-Entity
      * @return passendes DTO
      */
     private TaskDTO mapToDto(Task task) {
@@ -363,7 +340,7 @@ public class TaskService {
 
             Weekday day = (deadline != null) ? fromDayOfWeek(deadline.getDayOfWeek()) : null;
             LocalTime time = (deadline != null)
-                    ? deadline.toLocalTime().withSecond(NORMALIZED_SECOND).withNano(NORMALIZED_NANO)
+                    ? deadline.toLocalTime().withSecond(0).withNano(0)
                     : null;
 
             return new SubmissionTaskDTO(
@@ -391,18 +368,23 @@ public class TaskService {
             );
         }
 
-        throw new IllegalArgumentException(String.format(MSG_UNKNOWN_TASK_TYPE_TEMPLATE, task.getClass().getSimpleName()));
+        throw new IllegalStateException(String.format(
+                MSG_UNKNOWN_TASK_TYPE_TEMPLATE, task.getClass().getSimpleName()));
     }
 
+    /**
+     * Stellt sicher, dass der User existiert.
+     */
     private void requireExistingUser(UUID userId) {
         if (userId == null) {
             throw new IllegalArgumentException(MSG_USER_ID_NULL);
         }
-        if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException(MSG_USER_NOT_FOUND);
-        }
+        userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(MSG_USER_NOT_FOUND));
     }
 
+    /**
+     * Lädt das Modul des Users anhand des Modultitels.
+     */
     private Module resolveModuleForUser(UUID userId, String moduleTitle) {
         return moduleRepository.findByUserId(userId).stream()
                 .filter(m -> Objects.equals(m.getTitle(), moduleTitle))
@@ -415,19 +397,49 @@ public class TaskService {
                 .anyMatch(m -> Objects.equals(m.getModuleId(), moduleId));
     }
 
-    private Task findTaskByNaturalKey(UUID userId, UUID moduleId, String title, TaskCategory category) {
+    private Task findExistingForUpdate(UUID userId, UUID moduleId, TaskDTO dto) {
+        UUID id = tryExtractId(dto);
+        if (id != null) {
+            Task byId = taskRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException(MSG_TASK_NOT_FOUND));
+
+            UUID mid = (byId.getModule() != null) ? byId.getModule().getModuleId() : null;
+            if (mid == null || !userOwnsModule(userId, mid)) {
+                throw new SecurityException(MSG_ACCESS_DENIED);
+            }
+            return byId;
+        }
+
         List<Task> matches = taskRepository.findByModuleId(userId, moduleId).stream()
-                .filter(t -> t.getCategory() == category)
-                .filter(t -> Objects.equals(t.getTitle(), title))
+                .filter(t -> t.getCategory() == dto.getCategory())
+                .filter(t -> Objects.equals(t.getTitle(), dto.getTitle()))
                 .toList();
 
         if (matches.isEmpty()) {
-            throw new EntityNotFoundException(MSG_TASK_NOT_FOUND_GENERIC);
+            throw new EntityNotFoundException(MSG_TASK_NOT_FOUND);
         }
         if (matches.size() > 1) {
-            throw new IllegalArgumentException(MSG_TASK_DUPLICATE_TITLE);
+            throw new IllegalStateException(MSG_TASK_DUPLICATE_TITLE);
         }
         return matches.get(0);
+    }
+
+    private UUID tryExtractId(Object dto) {
+        UUID id = tryInvokeUuidGetter(dto, METHOD_GET_ID);
+        if (id != null) {
+            return id;
+        }
+        return tryInvokeUuidGetter(dto, METHOD_GET_TASK_ID);
+    }
+
+    private UUID tryInvokeUuidGetter(Object target, String methodName) {
+        try {
+            Method m = target.getClass().getMethod(methodName);
+            Object val = m.invoke(target);
+            return (val instanceof UUID) ? (UUID) val : null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private static LocalDateTime computeNextSubmissionDeadline(Weekday weekday, LocalTime time) {
@@ -474,4 +486,3 @@ public class TaskService {
         return s == null || s.trim().isEmpty();
     }
 }
-

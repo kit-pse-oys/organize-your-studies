@@ -106,7 +106,13 @@ public abstract class FreeTime {
      * @return Der spezifische Wiederholungstyp dieser Freizeitinstanz.
      */
     public RecurrenceType getRecurrenceType() {
-        return recurrenceType;
+        if (this instanceof RecurringFreeTime) {
+            return RecurrenceType.WEEKLY;
+        }
+        if (this instanceof SingleFreeTime) {
+            return RecurrenceType.ONCE;
+        }
+        return null;
     }
 
     // Setter

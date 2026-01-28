@@ -8,6 +8,7 @@ import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.service.exceptions.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,12 @@ import java.util.UUID;
  * @author uqvfm
  * @version 1.0
  */
-
 @Service
 @Transactional
 public class FreeTimeService {
 
     private static final int DAYS_PER_WEEK = 7;
 
-    private static final String MSG_UPDATE_REQUIRES_ID = "Für updateFreeTime muss dto.id gesetzt sein.";
     private static final String MSG_FREE_TIME_NOT_FOUND_TEMPLATE = "FreeTime mit ID %s wurde nicht gefunden.";
     private static final String MSG_FREE_TIME_NOT_OWNED = "FreeTime gehört nicht zum angegebenen User.";
     private static final String MSG_USER_NOT_FOUND_TEMPLATE = "User mit ID %s wurde nicht gefunden.";
@@ -49,7 +48,7 @@ public class FreeTimeService {
     /**
      * Erstellt einen neuen Service.
      *
-     * @param userRepository Repository für Nutzer
+     * @param userRepository     Repository für Nutzer
      * @param freeTimeRepository Repository für Freizeitblöcke
      */
     public FreeTimeService(UserRepository userRepository, FreeTimeRepository freeTimeRepository) {
@@ -60,24 +59,27 @@ public class FreeTimeService {
     /**
      * Legt einen neuen Freizeitblock für einen Nutzer an.
      *
+     * <p><b>Hinweis zur Persistierung:</b> Im Entwurfsheft ist die Speicherung über das
+     * {@link FreeTimeRepository} beschrieben. In unserer Implementierung ist die Beziehung
+     * {@code User -> freeTimes} jedoch unidirektional mit {@code @OneToMany + @JoinColumn(name="user_id")}
+     * modelliert, d. h. der {@link User} ist die owning side. Damit der Fremdschlüssel {@code user_id}
+     * zuverlässig gesetzt wird, wird die neue Freizeit dem Nutzer hinzugefügt und der Nutzer gespeichert
+     * (Cascade-Persistierung).</p>
+     *
      * @param userId Nutzer-ID
-     * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
+     * @param dto    Eingabedaten
      * @return angelegte Freizeit als DTO
+     * @throws ValidationException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
+     * @throws IllegalArgumentException wenn der Nutzer nicht existiert
      */
     public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) {
         User user = loadUser(userId);
         validateData(user, dto, null);
 
-        // id bleibt entweder aus DTO oder wird neu generiert (falls DTO null liefert)
-        UUID id = (dto.getId() != null) ? dto.getId() : UUID.randomUUID();
         FreeTime entity = mapToEntity(dto);
 
-        // falls eure Entities die ID nicht im Konstruktor setzen, ist id hier nur "genutzt"
-        // (im Zweifel: entity.setFreeTimeId(id); falls es sowas bei euch gibt)
-        // -> wir lassen das Verhalten wie im Original unverändert.
-
         user.addFreeTime(entity);
-        userRepository.save(user); // Cascade.ALL auf freeTimes
+        userRepository.save(user);
 
         return mapToDto(entity);
     }
@@ -85,17 +87,15 @@ public class FreeTimeService {
     /**
      * Aktualisiert einen bestehenden Freizeitblock.
      *
-     * @param userId Nutzer-ID
-     * @param dto neue Daten (dto.id muss gesetzt sein)
+     * @param userId     Nutzer-ID
+     * @param freeTimeId ID der zu aktualisierenden Freizeit
+     * @param dto        neue Daten
      * @return aktualisierte Freizeit als DTO
+     * @throws ValidationException      wenn Eingabedaten ungültig sind (siehe {@link #validateData(User, FreeTimeDTO, UUID)})
+     * @throws IllegalArgumentException wenn Nutzer/FreeTime nicht existieren oder nicht zusammengehören
      */
-    public FreeTimeDTO updateFreeTime(UUID userId, FreeTimeDTO dto) {
+    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) {
         User user = loadUser(userId);
-
-        UUID freeTimeId = dto.getId();
-        if (freeTimeId == null) {
-            throw new IllegalArgumentException(MSG_UPDATE_REQUIRES_ID);
-        }
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -110,7 +110,7 @@ public class FreeTimeService {
         boolean wantsWeekly = dto.isWeekly();
         boolean isWeekly = existing.getRecurrenceType() == RecurrenceType.WEEKLY;
 
-        // Wechsel zwischen Unterklassen (ONCE <-> WEEKLY) erfordert eine neue Entity.
+        // Typwechsel: alte löschen, neue aus DTO erzeugen und über Repository speichern
         if (wantsWeekly != isWeekly) {
             user.deleteFreeTime(existing);
             freeTimeRepository.delete(existing);
@@ -118,32 +118,31 @@ public class FreeTimeService {
             FreeTime replacement = mapToEntity(dto);
             user.addFreeTime(replacement);
 
-            userRepository.save(user);
-            return mapToDto(replacement);
+            FreeTime saved = freeTimeRepository.save(replacement);
+            return mapToDto(saved);
         }
 
-        // Typ bleibt gleich: Felder direkt aktualisieren.
+        // Typ bleibt gleich: Felder aktualisieren und über Repository speichern
         existing.setTitle(dto.getTitle());
         existing.setStartTime(dto.getStartTime());
         existing.setEndTime(dto.getEndTime());
 
-        if (existing.getRecurrenceType() == RecurrenceType.WEEKLY) {
+        if (isWeekly) {
             ((RecurringFreeTime) existing).setDayOfWeek(dto.getDate().getDayOfWeek());
         } else {
             ((SingleFreeTime) existing).setDate(dto.getDate());
         }
 
-        freeTimeRepository.save(existing);
-        userRepository.save(user);
-
-        return mapToDto(existing);
+        FreeTime saved = freeTimeRepository.save(existing);
+        return mapToDto(saved);
     }
 
     /**
      * Löscht einen Freizeitblock.
      *
-     * @param userId Nutzer-ID
+     * @param userId     Nutzer-ID
      * @param freeTimeId Freizeit-ID
+     * @throws IllegalArgumentException wenn Nutzer/FreeTime nicht existieren oder nicht zusammengehören
      */
     public void deleteFreeTime(UUID userId, UUID freeTimeId) {
         User user = loadUser(userId);
@@ -157,8 +156,8 @@ public class FreeTimeService {
         }
 
         user.deleteFreeTime(existing);
+
         freeTimeRepository.delete(existing);
-        userRepository.save(user);
     }
 
     private User loadUser(UUID userId) {
@@ -167,17 +166,25 @@ public class FreeTimeService {
                         String.format(MSG_USER_NOT_FOUND_TEMPLATE, userId)));
     }
 
+    /**
+     * Prüft die logische Konsistenz der Eingabedaten und wirft bei Verletzung der Regeln eine {@link ValidationException}.
+     *
+     * @param user     der zugehörige Nutzer (für Overlap-Prüfung)
+     * @param dto      Eingabedaten
+     * @param ignoreId optional: ID, die bei Overlap-Prüfung ignoriert wird (z. B. beim Update)
+     * @throws ValidationException bei fehlenden Pflichtfeldern, ungültigem Zeitraum oder Überschneidung
+     */
     private void validateData(User user, FreeTimeDTO dto, UUID ignoreId) {
         if (dto == null
                 || isBlank(dto.getTitle())
                 || dto.getDate() == null
                 || dto.getStartTime() == null
                 || dto.getEndTime() == null) {
-            throw new IllegalArgumentException(MSG_REQUIRED_FIELDS_MISSING);
+            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
         if (!dto.getStartTime().isBefore(dto.getEndTime())) {
-            throw new IllegalArgumentException(MSG_INVALID_RANGE);
+            throw new ValidationException(MSG_INVALID_RANGE);
         }
 
         List<FreeTime> existing = user.getFreeTimes();
@@ -198,7 +205,7 @@ public class FreeTimeService {
             }
 
             if (overlaps(ft.getStartTime(), ft.getEndTime(), dto.getStartTime(), dto.getEndTime())) {
-                throw new IllegalArgumentException(MSG_OVERLAP);
+                throw new ValidationException(MSG_OVERLAP);
             }
         }
     }
@@ -226,6 +233,12 @@ public class FreeTimeService {
         return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
     }
 
+    /**
+     * Transformiert das DTO in das Domänenmodell.
+     *
+     * @param dto Eingabedaten
+     * @return Domain-Entity (SingleFreeTime oder RecurringFreeTime)
+     */
     private FreeTime mapToEntity(FreeTimeDTO dto) {
         if (dto.isWeekly()) {
             return new RecurringFreeTime(
@@ -251,7 +264,7 @@ public class FreeTimeService {
             date = ((SingleFreeTime) ft).getDate();
         }
 
-        return new FreeTimeDTO(ft.getFreeTimeId(), ft.getTitle(), date, ft.getStartTime(), ft.getEndTime(), weekly);
+        return new FreeTimeDTO(ft.getTitle(), date, ft.getStartTime(), ft.getEndTime(), weekly);
     }
 
     private boolean belongsToUser(User user, UUID freeTimeId) {
