@@ -36,7 +36,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.facade.ExamTaskData
+import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.data.facade.OtherTaskData
+import de.pse.oys.data.facade.SubmissionTaskData
+import de.pse.oys.data.facade.Task
+import de.pse.oys.data.facade.TaskData
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
@@ -420,36 +428,53 @@ interface ICreateTaskViewModel {
 }
 
 abstract class BaseCreateTaskViewModel(
-    override val showDelete: Boolean = false,
-    override val availableModules: List<String> = emptyList(),
-    initialTitle: String = "",
-    initialModule: String = "",
-    initialType: TaskType = TaskType.OTHER,
-    initialWeeklyTimeLoad: Int = 0,
-    initialSendNotification: Boolean = false,
-    initialExamDate: LocalDate = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
-    initialSubmissionDate: LocalDateTime = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()),
-    initialSubmissionCycle: Int = 0,
-    initialStart: LocalDate = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
-    initialEnd: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    private val model: ModelFacade,
+    private val navController: NavController,
+    task: TaskData? = null
 ) : ViewModel(), ICreateTaskViewModel {
+    init {
+        require(model.modules != null)
+    }
 
-    override var title by mutableStateOf(initialTitle)
-    override var module by mutableStateOf(initialModule)
-    override var type by mutableStateOf(initialType)
-    override var weeklyTimeLoad by mutableIntStateOf(initialWeeklyTimeLoad)
-    override var sendNotification by mutableStateOf(initialSendNotification)
+    override val availableModules: List<String> = model.modules!!.map { it.value.title }
 
-    override var examDate by mutableStateOf(initialExamDate)
-    override var submissionDate by mutableStateOf(initialSubmissionDate)
-    override var submissionCycle by mutableIntStateOf(initialSubmissionCycle)
+    override var title by mutableStateOf(task?.title ?: "")
+    override var module by mutableStateOf(task?.module?.data?.title ?: "")
+    override var type by mutableStateOf(
+        when (task) {
+            is ExamTaskData -> TaskType.EXAM
+            is SubmissionTaskData -> TaskType.SUBMISSION
+            is OtherTaskData -> TaskType.OTHER
+            null -> TaskType.EXAM
+        }
+    )
+    override var weeklyTimeLoad by mutableIntStateOf(task?.weeklyTimeLoad ?: 0)
+    override var sendNotification by mutableStateOf(task?.sendNotification ?: false)
 
-    override var start by mutableStateOf(initialStart)
-    override var end by mutableStateOf(initialEnd)
+    override var examDate by mutableStateOf(
+        (task as? ExamTaskData?)?.examDate ?: Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+    override var submissionDate by mutableStateOf(
+        (task as? SubmissionTaskData?)?.firstDate ?: Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+    )
+    override var submissionCycle by mutableIntStateOf((task as? SubmissionTaskData?)?.cycle ?: 1)
 
-    abstract override fun submit()
-    abstract override fun delete()
+    override var start by mutableStateOf(
+        (task as? OtherTaskData?)?.start ?: Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+    override var end by mutableStateOf(
+        (task as? OtherTaskData?)?.end ?: Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+
+    protected fun registerNewTask(task: Task) {
+        val tasks = model.tasks.orEmpty().toMutableMap()
+        model.tasks = tasks
+        tasks[task.id] = task.data
+
+        navController.main()
+    }
 }

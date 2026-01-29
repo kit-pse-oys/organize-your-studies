@@ -15,19 +15,27 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.navigation.editModule
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
+import kotlinx.coroutines.launch
 
 @Composable
 fun ModulesView(viewModel: IModulesViewModel) {
@@ -85,9 +93,16 @@ interface IModulesViewModel {
 }
 
 class ModulesViewModel(
-    private val navController: NavController,
-    override val modules: List<Module>
-) : IModulesViewModel {
+    model: ModelFacade,
+    private val navController: NavController
+) : ViewModel(), IModulesViewModel {
+    override var modules: List<Module> by mutableStateOf(listOf())
+
+    init {
+        require(model.modules != null)
+        modules = model.modules!!.map { Module(it.value, it.key) }
+    }
+
     override fun select(module: Module) {
         if (modules.contains(module)) {
             navController.editModule(module)

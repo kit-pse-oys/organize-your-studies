@@ -27,7 +27,12 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.Credentials
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.ui.navigation.Login
+import de.pse.oys.ui.navigation.main
+import de.pse.oys.ui.navigation.questionnaire
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginView(viewModel: ILoginViewModel) {
@@ -147,7 +152,7 @@ interface ILoginViewModel {
     fun registerWithOIDC()
 }
 
-class LoginViewModel(val api: RemoteAPI, val navController: NavController) : ViewModel(),
+class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
     ILoginViewModel {
     override var username by mutableStateOf("")
     override var password by mutableStateOf("")
@@ -155,7 +160,10 @@ class LoginViewModel(val api: RemoteAPI, val navController: NavController) : Vie
     override fun login() {
         viewModelScope.launch {
             api.login(Credentials.UsernamePassword(username, password))
-            TODO("Navigate to main")
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.main(dontGoBack = Login)
+            }
         }
     }
 
@@ -166,7 +174,10 @@ class LoginViewModel(val api: RemoteAPI, val navController: NavController) : Vie
     override fun register() {
         viewModelScope.launch {
             api.register(Credentials.UsernamePassword(username, password))
-            TODO("Navigate to questionnaire")
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.questionnaire(dontGoBack = Login)
+            }
         }
     }
 
