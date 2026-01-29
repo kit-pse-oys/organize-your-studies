@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -43,5 +42,22 @@ public class RatingController extends BaseController {
         ratingService.submitRating(learningUnitId, dto);
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Markiert eine spezifische Aufgabe als verpasst.
+     * Dies triggert im Service die entsprechende Logik zur Anpassung der Planung.
+     *
+     * @param unitId Die UUID der Aufgabe, die als verpasst markiert werden soll.
+     * @return Status 200 (OK) bei Erfolg.
+     */
+    @PostMapping
+    public ResponseEntity<Void> markAsMissed(@RequestBody UUID unitId) {
+        try {
+            ratingService.markAsMissed(unitId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
