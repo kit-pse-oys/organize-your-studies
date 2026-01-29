@@ -1,7 +1,6 @@
 package de.pse.oys.data.facade
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -27,17 +26,19 @@ data class ModuleData(
 enum class Priority {
     LOW,
     NEUTRAL,
-    HIGH,
+    HIGH;
 }
 
 object ColorAsStringSerializer : KSerializer<Color> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("androidx.compose.ui.graphics.Color", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("androidx.compose.ui.graphics.Color", PrimitiveKind.STRING)
 
     override fun serialize(
         encoder: Encoder,
         value: Color
     ) {
-        val string = "#" + value.copy(alpha = 0.0f).toArgb().toString(16).uppercase().padStart(6, '0')
+        val string =
+            "#" + value.copy(alpha = 0.0f).toArgb().toString(16).uppercase().padStart(6, '0')
         encoder.encodeString(string)
     }
 
