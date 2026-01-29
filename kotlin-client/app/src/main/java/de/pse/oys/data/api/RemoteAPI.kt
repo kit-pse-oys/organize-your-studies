@@ -4,6 +4,7 @@ import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
+import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Step
@@ -12,7 +13,11 @@ import de.pse.oys.data.facade.TaskData
 import de.pse.oys.data.facade.UnitRatings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.okhttp.OkHttpConfig
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
@@ -30,6 +35,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.uuid.Uuid
@@ -50,23 +57,23 @@ interface RemoteAPI {
     suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit>
 
     suspend fun markUnitFinished(unit: Uuid): Response<Unit>
-    suspend fun moveUnitAutomatically(unit: Uuid): Response<Step>
+    suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep>
     suspend fun moveUnit(unit: Uuid, newTime: LocalDateTime): Response<Unit>
 
     suspend fun queryRateable(): Response<List<Uuid>>
     suspend fun rateUnit(unit: Uuid, ratings: UnitRatings): Response<Unit>
 
     suspend fun updatePlan(): Response<Unit>
-    suspend fun queryUnits(): Response<Map<DayOfWeek, List<Step>>>
+    suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>>
 
     suspend fun queryModules(): Response<List<Module>>
     suspend fun createModule(module: ModuleData): Response<Uuid>
     suspend fun updateModule(module: Module): Response<Unit>
     suspend fun deleteModule(module: Uuid): Response<Unit>
 
-    suspend fun queryTasks(): Response<List<Task>>
-    suspend fun createTask(task: TaskData): Response<Uuid>
-    suspend fun updateTask(task: Task): Response<Unit>
+    suspend fun queryTasks(): Response<List<RemoteTask>>
+    suspend fun createTask(task: RemoteTaskData): Response<Uuid>
+    suspend fun updateTask(task: RemoteTask): Response<Unit>
     suspend fun deleteTask(task: Uuid): Response<Unit>
 
     suspend fun queryFreeTimes(): Response<List<FreeTime>>
@@ -78,18 +85,27 @@ interface RemoteAPI {
     suspend fun deleteAccount(): Response<Unit>
 }
 
-class RemoteClient(private val serverUrl: String, private val session: SessionStore) : RemoteAPI {
+class RemoteClient
+internal constructor(
+    private val serverUrl: String,
+    private val session: SessionStore,
+    engine: HttpClientEngine
+) : RemoteAPI {
     companion object {
-        private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1/", path)
+        operator fun invoke(serverUrl: String, session: SessionStore) =
+            RemoteClient(serverUrl, session, OkHttp.create())
+
+        private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1", path)
 
         private fun HttpResponse.statusResponse() = Response(Unit, status.value)
 
         private suspend fun HttpResponse.idResponse() = Response(body<Routes.Id>().id, status.value)
 
-        private suspend inline fun <reified T> HttpResponse.responseAs() = Response(body<T>(), status.value)
+        private suspend inline fun <reified T> HttpResponse.responseAs() =
+            Response(body<T>(), status.value)
     }
 
-    private val client = HttpClient(OkHttp) {
+    private val client = HttpClient(engine) {
         install(Auth) {
             bearer {
                 loadTokens {
@@ -116,7 +132,9 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }
 
         install(ContentNegotiation) {
-            json()
+            json(Json(from = DefaultJson) {
+                explicitNulls = false
+            })
         }
     }
 
@@ -171,7 +189,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
 
             contentType(ContentType.Application.Json)
             setBody(buildJsonObject {
-                for (question in Questions) {
+                for (question in questions.questions) { // Use <questions.questions> instead of <Questions> for Testability
                     put(question.id, buildJsonObject {
                         for (answer in question.answers) {
                             put(answer.id, questions.selected(question, answer))
@@ -193,7 +211,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }.statusResponse()
     }
 
-    override suspend fun moveUnitAutomatically(unit: Uuid): Response<Step> {
+    override suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep> {
         return client.post(serverUrl) {
             url {
                 apiPath("plan/units")
@@ -248,7 +266,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }.statusResponse()
     }
 
-    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<Step>>> {
+    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>> {
         return client.get(serverUrl) {
             url {
                 apiPath("plan")
@@ -297,7 +315,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }.statusResponse()
     }
 
-    override suspend fun queryTasks(): Response<List<Task>> {
+    override suspend fun queryTasks(): Response<List<RemoteTask>> {
         return client.get(serverUrl) {
             url {
                 apiPath("tasks")
@@ -305,7 +323,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }.responseAs()
     }
 
-    override suspend fun createTask(task: TaskData): Response<Uuid> {
+    override suspend fun createTask(task: RemoteTaskData): Response<Uuid> {
         return client.post(serverUrl) {
             url {
                 apiPath("tasks")
@@ -316,7 +334,7 @@ class RemoteClient(private val serverUrl: String, private val session: SessionSt
         }.idResponse()
     }
 
-    override suspend fun updateTask(task: Task): Response<Unit> {
+    override suspend fun updateTask(task: RemoteTask): Response<Unit> {
         return client.put(serverUrl) {
             url {
                 apiPath("tasks")

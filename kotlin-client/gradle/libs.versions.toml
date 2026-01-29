@@ -37,6 +37,7 @@ ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktor" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp" }
 ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth" }
+ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json" }
 

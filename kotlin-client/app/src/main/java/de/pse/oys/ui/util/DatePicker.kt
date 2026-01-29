@@ -36,10 +36,11 @@ fun Long?.toLocalDate(): LocalDate? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalDatePickerDialog(
-    currentDate: LocalDate?, // Jetzt kotlinx.datetime.LocalDate
+    currentDate: LocalDate?,
     onDateSelected: (LocalDate?) -> Unit,
     onDismiss: () -> Unit
 ) {
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = currentDate.toMillis(),
         selectableDates = object : SelectableDates {
@@ -72,7 +73,7 @@ fun LocalDatePickerDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalTimePickerDialog(
-    initialTime: LocalTime, // Jetzt kotlinx.datetime.LocalTime
+    initialTime: LocalTime,
     onTimeSelected: (LocalTime) -> Unit,
     onDismiss: () -> Unit
 ) {

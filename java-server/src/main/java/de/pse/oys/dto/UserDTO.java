@@ -1,0 +1,46 @@
+package de.pse.oys.dto;
+
+/**
+ * Data Transfer Object für Benutzer.
+ * Wird für Registrierung und Profilanzeige verwendet.
+ */
+public class UserDTO {
+    private String id;
+    private String username;
+    private String password;
+
+
+    /**
+     * Setzt die eindeutige ID des Nutzers.
+     * @param id die ID des Nutzers
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gibt die eindeutige ID des Nutzers zurück.
+     * @return die ID des Nutzers
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Gibt den Nutzernamen zurück.
+     * @return der Nutzername
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * Gibt das Passwort zurück.
+     * @return das Passwort
+     */
+    public String getPassword() {
+        return password;
+    }
+
+
+}
