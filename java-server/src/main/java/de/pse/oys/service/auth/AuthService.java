@@ -143,7 +143,7 @@ public class AuthService {
                 -> new IllegalStateException(ERR_LOCAL_USER_INCONSISTENT));
 
         // 2. Passwort validieren.
-        String hashedPassword = user.getPasswordHash();
+        String hashedPassword = user.getHashedPassword();
 
         if (!passwordEncoder.matches(loginDTO.getPassword(), hashedPassword)) {
             throw new IllegalArgumentException(ERR_INVALID_LOGIN_CREDENTIALS);
