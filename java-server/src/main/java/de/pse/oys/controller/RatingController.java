@@ -43,7 +43,7 @@ public class RatingController extends BaseController {
 
         return ResponseEntity.ok().build();
     }
-
+}
     /**
      * Markiert eine spezifische Aufgabe als verpasst.
      * Dies triggert im Service die entsprechende Logik zur Anpassung der Planung.

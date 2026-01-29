@@ -13,7 +13,7 @@ services:
     build: ./java-server
     container_name: oys-java-server
     ports:
-      - "8080:8080"  # Macht den Server unter localhost:8080 erreichbar
+      - "443:443"  # Macht den Server unter Port 443(HTTPS) erreichbar
     env_file:
       - .env
     environment:
@@ -22,12 +22,14 @@ services:
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD}
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
       - python-microservice # Wartet, bis der Python-Microservice gestartet ist
     networks:
       - oys-network
-
+    volumes:
+      - ${SSL_KEYSTORE_PATH}:${SSL_KEYSTORE_PATH}:ro
 
   python-microservice:
     build: ./python-microservice
@@ -35,16 +37,6 @@ services:
     # Keine Ports nach außen, da nur der Java-Server zugreift
     networks:
       - oys-network
-
-  python-microservice-debug:
-    build: ./python-microservice
-    container_name: oys-python-debug
-    ports:
-      - "5001:5001"  # Port für Debugging
-    networks:
-      - oys-network
-    profiles:
-      - debug
 
 networks:
   oys-network:
