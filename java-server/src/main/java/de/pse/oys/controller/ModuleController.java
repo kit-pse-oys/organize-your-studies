@@ -32,11 +32,17 @@ public class ModuleController extends BaseController {
      * @param dto Die Daten des zu erstellenden Moduls.
      * @return Eine ResponseEntity mit dem erstellten Modul (Status 201).
      */
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ModuleDTO> createModule(@RequestBody ModuleDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        ModuleDTO created = moduleService.createModule(userId, dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            ModuleDTO created = moduleService.createModule(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -44,22 +50,40 @@ public class ModuleController extends BaseController {
      * @param dto Die aktualisierten Moduldaten.
      * @return Eine ResponseEntity mit dem geänderten Modul (Status 200).
      */
-    @PutMapping
+    @PutMapping("/update")
     public ResponseEntity<ModuleDTO> updateModule(@RequestBody ModuleDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        ModuleDTO updated = moduleService.updateModule(userId, dto);
-        return ResponseEntity.ok(updated);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            ModuleDTO updated = moduleService.updateModule(userId, dto);
+            return ResponseEntity.ok(updated);
+        } catch (SecurityException e) {
+            // Nutzer versucht ein Modul zu ändern, das ihm nicht gehört
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            // ID fehlt oder Titel ist leer
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Löscht ein Modul aus dem System.
      * @param dto Das DTO, welches das zu löschende Modul identifiziert.
-     * @return Eine leere ResponseEntity (Status 204).
+     * @return 200 bei Erfolg, 403 bei fehlender Berechtigung.
      */
-    @DeleteMapping
+    @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteModule(@RequestBody ModuleDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        moduleService.deleteModule(userId, null); //todo irgendwie an die UUID des moduls rankommen
-        return ResponseEntity.noContent().build();
+        try {
+            UUID userId = getAuthenticatedUserId();
+            moduleService.deleteModule(userId, dto.getId());
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

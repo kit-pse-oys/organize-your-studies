@@ -54,9 +54,9 @@ public class PlanningController extends BaseController {
      * @param newStartTime Der neue gewünschte Startzeitpunkt.
      * @return Status 200 (OK), 403 (Forbidden) bei Zugriffsschutz oder 400 (Bad Request).
      */
-    @PatchMapping("/reschedule")
+    @PatchMapping("/{unitId}/reschedule")
     public ResponseEntity<Void> rescheduleUnit(
-            @RequestParam UUID unitId,
+            @PathVariable UUID unitId,
             @RequestParam LocalDate newStartTime) {
         try {
             UUID userId = getAuthenticatedUserId();

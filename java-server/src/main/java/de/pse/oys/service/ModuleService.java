@@ -4,7 +4,6 @@ import de.pse.oys.domain.Module;
 import de.pse.oys.domain.User;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.UserRepository;
-import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.dto.ModuleDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,26 +22,22 @@ import java.util.UUID;
 public class ModuleService {
 
     private static final String MSG_USER_NOT_FOUND = "User mit ID %s wurde nicht gefunden.";
-    private static final String MSG_MODULE_NOT_FOUND = "Modul mit ID %s wurde nicht gefunden.";
     private static final String MSG_MODULE_NOT_OWNED = "Das Modul mit ID %s gehört nicht zum Nutzer oder existiert nicht.";
     private static final String MSG_UPDATE_REQUIRES_ID = "Für ein Update muss die Modul-ID im DTO gesetzt sein.";
     private static final String MSG_TITLE_EMPTY = "Der Modultitel darf nicht leer sein.";
 
     private final UserRepository userRepository;
     private final ModuleRepository moduleRepository;
-    private final TaskRepository taskRepository;
 
     /**
      * Erzeugt eine neue Instanz des ModuleService[cite: 5].
      *
-     * @param userRepository   Das Repository für Nutzerdaten[cite: 5].
+     * @param userRepository    Das Repository für Nutzerdaten[cite: 5].
      * @param moduleRepository Das Repository für Moduldaten[cite: 5].
-     * @param taskRepository   Das Repository für Aufgabendaten[cite: 5].
      */
-    public ModuleService(UserRepository userRepository, ModuleRepository moduleRepository, TaskRepository taskRepository) {
+    public ModuleService(UserRepository userRepository, ModuleRepository moduleRepository) {
         this.userRepository = userRepository;
         this.moduleRepository = moduleRepository;
-        this.taskRepository = taskRepository;
     }
 
     /**

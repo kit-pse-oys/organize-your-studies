@@ -42,6 +42,8 @@ public class QuestionnaireController extends BaseController {
             questionnaireService.submitQuestionnaire(userId, dto);
         } catch (InvalidDtoException | EntityNotFoundException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.ok().build();
     }
@@ -59,8 +61,9 @@ public class QuestionnaireController extends BaseController {
         } catch (EntityNotFoundException e) {
             // Nur ein theoretischer Fall, da der Nutzer authentifiziert ist und dementsprechend existieren muss
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
-
 
     }
 }

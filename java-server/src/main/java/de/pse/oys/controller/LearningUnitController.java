@@ -4,6 +4,7 @@ import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.LearningUnitService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,14 +36,21 @@ public class LearningUnitController extends BaseController {
      * @param dto Die neuen Daten der Einheit.
      * @return Der aktualisierte Gesamtplan als DTO.
      */
-    @PutMapping("/{unitId}")
     public ResponseEntity<LearningPlanDTO> updateLearningUnit(
             @PathVariable UUID planId,
             @PathVariable UUID unitId,
             @RequestBody UnitDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        LearningPlanDTO updatedPlan = learningUnitService.updateLearningUnit(userId, planId, unitId, dto);
-        return ResponseEntity.ok(updatedPlan);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            LearningPlanDTO updatedPlan = learningUnitService.updateLearningUnit(userId, planId, unitId, dto);
+            return ResponseEntity.ok(updatedPlan);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -53,15 +61,23 @@ public class LearningUnitController extends BaseController {
      * @param end Der neue Endzeitpunkt.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PatchMapping("/{unitId}/move")
+    @PatchMapping("/{planId}/{unitId}/move")
     public ResponseEntity<LearningPlanDTO> moveLearningUnitManually(
             @PathVariable UUID planId,
             @PathVariable UUID unitId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        UUID userId = getAuthenticatedUserId();
-        LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitManually(userId, planId, unitId, start, end);
-        return ResponseEntity.ok(updatedPlan);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitManually(userId, planId, unitId, start, end);
+            return ResponseEntity.ok(updatedPlan);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -71,13 +87,21 @@ public class LearningUnitController extends BaseController {
      * @param actualDuration Die tatsächlich benötigte Zeit in Minuten.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PostMapping("/{unitId}/finish")
+    @PostMapping("/{planId}/{unitId}/finish")
     public ResponseEntity<LearningPlanDTO> finishUnitEarly(
             @PathVariable UUID planId,
             @PathVariable UUID unitId,
             @RequestParam Integer actualDuration) {
-        UUID userId = getAuthenticatedUserId();
-        LearningPlanDTO updatedPlan = learningUnitService.finishUnitEarly(userId, planId, unitId, actualDuration);
-        return ResponseEntity.ok(updatedPlan);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            LearningPlanDTO updatedPlan = learningUnitService.finishUnitEarly(userId, planId, unitId, actualDuration);
+            return ResponseEntity.ok(updatedPlan);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
