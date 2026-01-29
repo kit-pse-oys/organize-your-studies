@@ -53,7 +53,7 @@ public abstract class User {
     private String refreshTokenHash;
 
     /** Zeitpunkt, an dem der Refresh-Token seine Gültigkeit verliert. */
-    private LocalDateTime refreshTokenExpiration; //TODO noch unused?, evtl. entfernen
+    private LocalDateTime refreshTokenExpiration;
 
     /** Art des Benutzerkontos (LOCAL oder AUTH). */
     @Enumerated(EnumType.STRING)
@@ -102,10 +102,10 @@ public abstract class User {
      * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
      * @param start Startdatum
      * @param end Enddatum
-     * @return true, wenn der Plan erfolgreich erstellt wurde.
      */
-    public boolean createNewLearningPlan(LocalDate start, LocalDate end) {
-        return false; // Skelett
+    public void createNewLearningPlan(LocalDate start, LocalDate end) {
+        LearningPlan plan = new LearningPlan(start, end);
+        this.learningPlans.add(plan);
     }
 
     /**
@@ -113,7 +113,9 @@ public abstract class User {
      * @return true, wenn der Token noch nicht abgelaufen ist.
      */
     public boolean isRefreshTokenValid() {
-        return false; // Skelett
+        return refreshTokenHash != null &&
+                refreshTokenExpiration != null &&
+                refreshTokenExpiration.isAfter(LocalDateTime.now());
     }
 
     /**
@@ -122,15 +124,8 @@ public abstract class User {
      * @param durationDays Gültigkeitsdauer in Tagen.
      */
     public void updateRefreshToken(String newHash, int durationDays) {
-        // Skelett
-    }
-
-    /**
-     * Aggregiert alle Aufgaben aus allen Modulen, die noch nicht abgeschlossen sind[cite: 814, 815].
-     * @return Liste der offenen Aufgaben.
-     */
-    public List<Task> getAllOpenTasks() {
-        return null; // Skelett
+        this.refreshTokenHash = newHash;
+        this.refreshTokenExpiration = LocalDateTime.now().plusDays(durationDays);
     }
 
     /**
@@ -145,7 +140,9 @@ public abstract class User {
      * @param module das hinzuzufügende Modul
      */
     public void addModule(Module module) {
-        modules.add(module);
+        if (module != null) {
+            this.modules.add(module);
+        }
     }
 
     /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817].
@@ -160,12 +157,20 @@ public abstract class User {
     /** Fügt eine neue Zeitrestriktion (Freizeit) hinzu[cite: 788, 819].
      * @param freeTime die hinzuzufügende Freizeit
      */
-    public void addFreeTime(FreeTime freeTime) { /* Skelett */ }
+    public void addFreeTime(FreeTime freeTime) {
+        if (freeTime != null) {
+            this.freeTimes.add(freeTime);
+        }
+    }
 
     /** Entfernt eine bestehende Zeitrestriktion[cite: 786, 819].
      * @param freeTime die zu entfernende Freizeit
      */
-    public void deleteFreeTime(FreeTime freeTime) { /* Skelett */ }
+    public void deleteFreeTime(FreeTime freeTime) {
+        if (freeTime != null) {
+            this.freeTimes.remove(freeTime);
+        }
+    }
 
 
     /**

@@ -59,6 +59,12 @@ public class ExamTask extends Task {
         return examDate.atStartOfDay();
     }
 
+    @Override
+    protected boolean isActive() {
+        LocalDateTime examDateTime = getHardDeadline();
+        return examDateTime != null && LocalDateTime.now().isBefore(examDateTime);
+    }
+
     // Getter & Setter
 
     /**

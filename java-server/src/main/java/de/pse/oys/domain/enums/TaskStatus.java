@@ -6,10 +6,8 @@ package de.pse.oys.domain.enums;
  * @version 1.0
  */
 public enum TaskStatus {
-    /** Aufgabe wurde erstellt, aber noch nicht begonnen. */
+    /** Aufgabe wurde erstellt, ist aktiv, aber noch nicht abgeschlossen. */
     OPEN,
-    /** Aufgabe befindet sich in Bearbeitung. */
-    IN_PROGRESS,
-    /** Aufgabe wurde erfolgreich abgeschlossen. */
-    COMPLETED
+    /** Aufgabe wurde erfolgreich abgeschlossen, oder hat noch nicht angefangen. */
+    CLOSED
 }

@@ -20,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 public class UserController extends BaseController{
+    private static final String ERROR_MSG_INTERNAL_SERVER = "Ein Fehler ist aufgetreten.";
 
     private final UserService userService;
 
@@ -37,9 +38,16 @@ public class UserController extends BaseController{
      * @return Eine ResponseEntity mit den Authentifizierungsdaten (Status 201).
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@RequestBody UserDTO dto) {
-        AuthResponseDTO response = userService.register(dto);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<?> register(@RequestBody UserDTO dto) {
+        try {
+            AuthResponseDTO response = userService.register(dto);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalArgumentException ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception ex) {
+            // Und für alle anderen Fehler noch einen Catch...
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_MSG_INTERNAL_SERVER);
+        }
     }
 
     /**

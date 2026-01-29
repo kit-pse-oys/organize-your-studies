@@ -4,7 +4,6 @@ import de.pse.oys.domain.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Repräsentiert einen Nutzer, der sich lokal über Benutzername und Passwort authentifiziert.
@@ -45,7 +44,7 @@ public class LocalUser extends User {
     /**
      * @return den Passwort-Hash.
      */
-    public String getPasswordHash() {
+    public String getHashedPassword() {
         return passwordHash;
     }
 }
