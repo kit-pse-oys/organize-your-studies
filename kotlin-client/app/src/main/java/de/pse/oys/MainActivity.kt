@@ -24,13 +24,12 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val properties = DataStoreProperties(this)
-        val api = RemoteClient("TODO", properties) // TODO: Server URL
+        val api = RemoteClient("https://kit-pse-oys-backend.ka.bw-cloud-instance.org", properties)
         val model = ModelFacade()
 
         val loggedIn =
@@ -55,21 +54,5 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    OrganizeYourStudiesTheme {
-        Greeting("Android")
     }
 }
