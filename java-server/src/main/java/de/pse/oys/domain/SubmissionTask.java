@@ -47,6 +47,11 @@ public class SubmissionTask extends Task {
         return deadline;
     }
 
+    @Override
+    protected boolean isActive() {
+        return deadline != null && LocalDateTime.now().isBefore(deadline);
+    }
+
     // Getter & Setter
 
     /** @return Die aktuelle Deadline. */

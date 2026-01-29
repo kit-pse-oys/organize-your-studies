@@ -58,7 +58,7 @@ public class UserService {
      * @return Die Authentifizierungsantwort mit Tokens und Nutzerinformationen.
      */
     @Transactional
-    public AuthResponseDTO register(UserDTO dto) {
+    public AuthResponseDTO register(UserDTO dto) throws Exception {
         validateRegistration(dto);
 
         if (userRepository.existsByUsername(dto.getUsername())) {
@@ -92,7 +92,7 @@ public class UserService {
 
         if (user.getUserType() == UserType.LOCAL) {
             LocalUser localUser = (LocalUser) user;
-            if (!passwordEncoder.matches(dto.getPassword(), localUser.getPasswordHash())) {
+            if (!passwordEncoder.matches(dto.getPassword(), localUser.getHashedPassword())) {
                 throw new IllegalArgumentException(ERR_INVALID_PASSWORD);
             }
         }
@@ -106,10 +106,10 @@ public class UserService {
      * @param dto Die zu prüfenden Daten.
      */
     private void validateRegistration(UserDTO dto) {
-        if (dto.getUsername() == null || dto.getUsername().length() < MIN_USERNAME_LENGTH) {
+        if (dto.getUsername() == null || dto.getUsername().length() <= MIN_USERNAME_LENGTH) {
             throw new IllegalArgumentException(ERROR_USERNAME_TOO_SHORT);
         }
-        if (dto.getPassword() == null || dto.getPassword().length() < MIN_PASSWORD_LENGTH) {
+        if (dto.getPassword() == null || dto.getPassword().length() <= MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(ERROR_PASSWORD_TOO_SHORT);
         }
     }

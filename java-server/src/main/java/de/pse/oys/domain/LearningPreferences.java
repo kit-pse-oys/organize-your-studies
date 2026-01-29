@@ -32,7 +32,7 @@ public class LearningPreferences {
     private int minUnitDurationMinutes;
 
     /** Maximale Dauer einer einzelnen Lerneinheit in Minuten. */
-    @Column(name = "max_unit_duration_minutes", nullable = false) //fixme bin mir bei nullable nicht ganz sicher
+    @Column(name = "max_unit_duration_minutes", nullable = false)
     private int maxUnitDurationMinutes;
 
     /** Maximale tägliche Arbeitslast in Stunden. */
