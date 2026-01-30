@@ -35,6 +35,7 @@ import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
@@ -53,7 +54,7 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
             if (viewModel.available.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -64,6 +65,7 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier
+                        .weight(1f)
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -75,6 +77,7 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
                     }
                 }
             }
+            BackButton(onClick = { TODO() })
         }
     }
 }

@@ -3,6 +3,7 @@ package de.pse.oys.ui.view.additions.freetime
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,12 +29,14 @@ import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.DateSelectionRow
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
 import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
+import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
 import kotlinx.datetime.LocalDate
@@ -86,6 +89,10 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
                 stringResource(id = R.string.repeat_freetime_weekly),
                 viewModel.weekly
             ) { viewModel.weekly = it }
+
+            Spacer(modifier = Modifier.weight(1f))
+            SubmitButton(stringResource(id = R.string.save_freetime)) { TODO() }
+            BackButton(onClick = { TODO() })
 
             if (showDatePicker) {
                 LocalDatePickerDialog(

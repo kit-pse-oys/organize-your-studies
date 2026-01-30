@@ -2,6 +2,7 @@ package de.pse.oys.ui.view.additions
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import de.pse.oys.ui.navigation.createModule
 import de.pse.oys.ui.navigation.createTask
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
 
 @Composable
@@ -50,6 +52,8 @@ fun AdditionsView(viewModel: IAdditionsViewModel) {
                 label = stringResource(id = R.string.new_freetime),
                 onClick = { viewModel.navigateToCreateFreeTime() }
             )
+            Spacer(modifier = Modifier.weight(1f))
+            BackButton(onClick = { TODO() })
         }
     }
 }
@@ -81,7 +85,8 @@ interface IAdditionsViewModel {
     fun navigateToCreateFreeTime()
 }
 
-class AdditionsViewModel(private val navController: NavController) : ViewModel(), IAdditionsViewModel {
+class AdditionsViewModel(private val navController: NavController) : ViewModel(),
+    IAdditionsViewModel {
 
     override fun navigateToCreateModule() {
         navController.createModule()
