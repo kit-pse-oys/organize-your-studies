@@ -13,7 +13,6 @@ import java.util.UUID;
  */
 public class FreeTimeDTO {
 
-    private UUID id;
     private String title;
     private LocalDate date;
     private LocalTime startTime;
@@ -28,7 +27,6 @@ public class FreeTimeDTO {
     /**
      * Erstellt ein FreeTimeDTO.
      *
-     * @param id        ID der Freizeit
      * @param title     Titel/Bezeichnung
      * @param date      Datum (bei weekly repräsentiert es den Wochentag)
      * @param startTime Startzeit
@@ -36,22 +34,11 @@ public class FreeTimeDTO {
      * @param weekly    {@code true} wenn wöchentlich, sonst {@code false}
      */
     public FreeTimeDTO(UUID id, String title, LocalDate date, LocalTime startTime, LocalTime endTime, boolean weekly) {
-        this.id = id;
         this.title = title;
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
         this.weekly = weekly;
-    }
-
-    /** @return die ID der Freizeit */
-    public UUID getId() {
-        return id;
-    }
-
-    /** @param id die neue ID der Freizeit */
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     /** @return der Titel der Freizeit */

@@ -2,8 +2,10 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 /**
  * Repräsentiert eine einmalige Freizeitbeschränkung an einem spezifischen Datum.
@@ -25,14 +27,26 @@ public class SingleFreeTime extends FreeTime {
     /**
      * Erzeugt eine Instanz für ein einmaliges Freizeitereignis.
      *
+     * @param userId ID des Nutzers.
      * @param title Bezeichnung des Ereignisses (z. B. "Arzttermin").
      * @param start Beginn der Freizeit (Uhrzeit).
      * @param end   Ende der Freizeit (Uhrzeit).
      * @param date  Das konkrete Datum des Ereignisses.
      */
-    public SingleFreeTime(String title, LocalTime start, LocalTime end, LocalDate date) {
-        super(title, start, end, RecurrenceType.ONCE);
+    public SingleFreeTime(UUID userId, String title, LocalTime start, LocalTime end, LocalDate date) {
+        super(userId, title, start, end);
         this.date = date;
+    }
+
+    /**
+     * Gibt den Wiederholungstyp dieses Freizeitblocks zurück.
+     * Für {@link SingleFreeTime} ist der Typ immer {@link RecurrenceType#ONCE}.
+     *
+     * @return {@link RecurrenceType#ONCE}
+     */
+    @Override
+    public RecurrenceType getRecurrenceType() {
+        return RecurrenceType.ONCE;
     }
 
     /**

@@ -2,9 +2,11 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 /**
  * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
@@ -28,14 +30,26 @@ public class RecurringFreeTime extends FreeTime {
      * Erzeugt eine Instanz für eine wiederkehrende Freizeitbeschränkung.
      * Der Typ wird dabei automatisch auf WEEKLY gesetzt.
      *
+     * @param userId ID des Nutzers.
      * @param title Bezeichnung der Freizeit (z. B. "Wöchentliches Training").
      * @param start Beginn der Freizeit als Uhrzeit.
      * @param end   Ende der Freizeit als Uhrzeit.
      * @param day   Der Wochentag, an dem die Wiederholung stattfindet.
      */
-    public RecurringFreeTime(String title, LocalTime start, LocalTime end, DayOfWeek day) {
-        super(title, start, end, RecurrenceType.WEEKLY);
+    public RecurringFreeTime(UUID userId, String title, LocalTime start, LocalTime end, DayOfWeek day) {
+        super(userId, title, start, end);
         this.dayOfWeek = day;
+    }
+
+    /**
+     * Gibt den Wiederholungstyp dieses Freizeitblocks zurück.
+     * Für {@link RecurringFreeTime} ist der Typ immer {@link RecurrenceType#WEEKLY}.
+     *
+     * @return {@link RecurrenceType#WEEKLY}
+     */
+    @Override
+    public RecurrenceType getRecurrenceType() {
+        return RecurrenceType.WEEKLY;
     }
 
     /**
@@ -46,7 +60,6 @@ public class RecurringFreeTime extends FreeTime {
     public boolean occursOn(LocalDate date) {
         return date != null && date.getDayOfWeek() == this.dayOfWeek;
     }
-
 
     //GETTER UND SETTER
 
