@@ -2,7 +2,6 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.ModulePriority;
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -72,6 +71,7 @@ public class Module {
         this.title = title;
         this.priority = priority;
     }
+
 
     /**
      * Fügt eine neue Aufgabe zu diesem Modul hinzu und stellt die

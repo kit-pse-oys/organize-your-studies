@@ -124,8 +124,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
-                .thenReturn(List.of(testTask));
+        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
@@ -157,7 +156,7 @@ class PlanningServiceTest {
         assertFalse(request.getTasks().isEmpty());
 
 
-        assertTrue(request.getPreferredSlots().contains(TimeSlot.MORNING.toString()));
+        assertTrue(request.getPreference_time().contains(TimeSlot.MORNING.toString()));
 
         verify(learningPlanRepository).save(any(LearningPlan.class));
     }
@@ -170,8 +169,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
-                .thenReturn(List.of(testTask));
+        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
@@ -280,7 +278,7 @@ class PlanningServiceTest {
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
 
-        boolean otherUnitBlocked = request.getFixedBlocks().stream()
+        boolean otherUnitBlocked = request.getFixed_blocks().stream()
                 .anyMatch(b -> b.getStart() == 144);
         assertTrue(otherUnitBlocked);
 
@@ -348,7 +346,7 @@ class PlanningServiceTest {
 
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        boolean oldSlotBlocked = request.getFixedBlocks().stream()
+        boolean oldSlotBlocked = request.getFixed_blocks().stream()
                 .anyMatch(b -> b.getStart() == 120);
 
         assertTrue(oldSlotBlocked,

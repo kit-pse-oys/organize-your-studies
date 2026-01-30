@@ -9,6 +9,7 @@ import de.pse.oys.domain.SingleFreeTime;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
@@ -30,6 +31,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.*;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -158,7 +161,8 @@ public class PlanningService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(unitIdToReschedule, weekStart).orElse(null);
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(unitIdToReschedule,
+                weekStart).orElse(null);
         if (plan == null) {
             throw new IllegalArgumentException("Learning Plan not found for the specified week");
         }
@@ -173,22 +177,24 @@ public class PlanningService {
         if (unitToReschedule == null) {
             throw new IllegalArgumentException("Learning Unit not found in the specified plan");
         }
+        LocalDateTime now = LocalDateTime.now();
+        int currentSlot = calculateCurrentSlot(weekStart, now);
+
         List<FixedBlockDTO> fixedBlocksDTO = createFixedBlocksFromExistingPlan(units, weekStart);
         Task parentTask = unitToReschedule.getTask();
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
-        int unitDurationMinutes = (int) ChronoUnit.MINUTES.between(unitToReschedule.getStartTime(), unitToReschedule.getEndTime());
+        int unitDurationMinutes = (int) ChronoUnit.MINUTES.between(unitToReschedule.getStartTime(),
+                unitToReschedule.getEndTime());
         int durationSlots = (int) Math.ceil(unitDurationMinutes / (double) SLOT_DURATION_MINUTES);
         String chunkId = parentTask.getTaskId().toString() + RESCHEDULE_SUFFIX;
         LocalDateTime softDeadline = parentTask.getSoftDeadline(user.getPreferences().getDeadlineBufferDays());
         int deadlineSlot = mapLocalDateTimeToSlot(softDeadline, weekStart);
         List<CostDTO> costs = learningAnalyticsProvider.getCostMatrixForTask(parentTask);
-        PlanningTaskDTO planningTaskDTO = new PlanningTaskDTO(chunkId, durationSlots, deadlineSlot, costs);
+        PlanningTaskDTO planningTaskDTO = new PlanningTaskDTO(chunkId, durationSlots, currentSlot, deadlineSlot,costs);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         planningTaskDTOS.add(planningTaskDTO);
-        LocalDateTime now = LocalDateTime.now();
         int horizon = PLANNING_HORIZON_SLOTS;
-        int currentSlot = calculateCurrentSlot(weekStart, now);
 
         PlanningRequestDTO planningInput = new PlanningRequestDTO(
                 horizon,
@@ -267,6 +273,18 @@ public class PlanningService {
     private List<PlanningResponseDTO> callSolver(PlanningRequestDTO requestDTO) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        // --- DEBUGGING START ---
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonDebug = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO);
+            System.out.println("========================================");
+            System.out.println("DEBUG: JSON DAS GESENDET WIRD:");
+            System.out.println(jsonDebug);
+            System.out.println("========================================");
+        } catch (Exception e) {
+            System.out.println("DEBUG ERROR: Konnte JSON nicht drucken: " + e.getMessage());
+        }
+        // --- DEBUGGING ENDE ---
 
         HttpEntity<PlanningRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
@@ -311,9 +329,12 @@ public class PlanningService {
                     endDateTime = endDateTime.minusMinutes(breakDuration);
                 }
                 LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
-                newLearningUnits.add(unit);
                 task.addLearningUnit(unit);
-                taskRepository.save(task);
+                task = taskRepository.save(task);
+
+                LearningUnit savedUnit = task.getLearningUnits().get(task.getLearningUnits().size() - 1);
+                newLearningUnits.add(savedUnit);
+
             }
         }
         plan.setUser(user);
@@ -359,13 +380,24 @@ public class PlanningService {
      * @return Liste der TaskDTOs für offene Aufgaben.
      */
     private List<PlanningTaskDTO> fetchOpenTasksAsDTOs(User user, LocalDateTime now, LocalDate weekStart) {
+        List<Task> openTasks = taskRepository.findAllByUserAndStatus(user.getId(), TaskStatus.OPEN);
         List<Task> openTasks = taskRepository.findAllByModuleUserUserIdAndStatus(user.getId(), TaskStatus.OPEN);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
         for (Task task : openTasks) {
+            int startSlot = calculateCurrentSlot(weekStart, now);
             int durationExistingUnits = 0;
+            if (task.getCategory().equals(TaskCategory.OTHER)) {
+                OtherTask otherTask = (OtherTask) task;
+                LocalDate taskEndDate = otherTask.getEndTime().toLocalDate();
+                if (taskEndDate.isBefore(weekStart)) {
+                    continue;
+                }
+                startSlot = mapLocalDateTimeToSlot(otherTask.getStartTime(), weekStart);
+
+            }
             List<LearningUnit> existingUnits = task.getLearningUnits();
             if (existingUnits != null) {
                 for (LearningUnit unit : existingUnits) {
@@ -397,7 +429,7 @@ public class PlanningService {
 
 
             List<PlanningTaskDTO> unitChunks = splitIntoChunks(task, restDuration,
-                    targetUnitDuration, userPreferences.getBreakDurationMinutes(),
+                    targetUnitDuration,startSlot, userPreferences.getBreakDurationMinutes(),
                     userPreferences.getDeadlineBufferDays(), weekStart);
             planningTaskDTOS.addAll(unitChunks);
 
@@ -418,7 +450,8 @@ public class PlanningService {
      * @param weekStart          Das Startdatum der Woche.
      * @return Liste der aufgeteilten TaskDTOs.
      */
-    private List<PlanningTaskDTO> splitIntoChunks(Task task, int restDuration, int targetUnitDuration, int breakDuration, int bufferDays, LocalDate weekStart) {
+    private List<PlanningTaskDTO> splitIntoChunks(Task task, int restDuration, int targetUnitDuration, int startSlot,
+                                                  int breakDuration, int bufferDays, LocalDate weekStart) {
         List<PlanningTaskDTO> chunks = new ArrayList<>();
 
         long n = Math.round((double) restDuration / targetUnitDuration);
@@ -432,7 +465,7 @@ public class PlanningService {
         for (int i = 0; i < n; i++) {
             int duration = baseChunkDuration;
             if (i < remainder) {
-                duration += 1; // Verteile den Rest auf die ersten Chunks
+                duration += 1;
             }
             int chunkDurationWithBreakPadding = duration + breakDuration;
             int durationSlots = (int) Math.ceil(chunkDurationWithBreakPadding / (double) SLOT_DURATION_MINUTES);
@@ -442,7 +475,7 @@ public class PlanningService {
             LocalDateTime softDeadline = task.getSoftDeadline(bufferDays);
             int deadlineSlot = mapLocalDateTimeToSlot(softDeadline, weekStart);
 
-            PlanningTaskDTO dto = new PlanningTaskDTO(chunkId, durationSlots, deadlineSlot, costs);
+            PlanningTaskDTO dto = new PlanningTaskDTO(chunkId, durationSlots, startSlot, deadlineSlot, costs);
             chunks.add(dto);
         }
         return chunks;
@@ -473,7 +506,7 @@ public class PlanningService {
     private double calculateFeedbackFactor(Task task) {
         List<LearningUnit> units = task.getLearningUnits();
         if (units == null || units.isEmpty()) {
-            return 0.0; // Kein Feedback, Standardfaktor
+            return 0.0;
         }
         double totalRating = 0.0;
         int ratedUnitsCount = 0;
@@ -485,7 +518,7 @@ public class PlanningService {
             }
         }
         if (ratedUnitsCount == 0) {
-            return 0.0; // Kein Feedback, Standardfaktor
+            return 0.0;
         }
         return totalRating / ratedUnitsCount;
 
@@ -498,6 +531,10 @@ public class PlanningService {
      */
     private List<FixedBlockDTO> calculateFixedBlocksDTO(List<FreeTime> freeTimes, LocalDate weekStart) {
         List<FixedBlockDTO> dtos = new ArrayList<>();
+
+        if (freeTimes == null || freeTimes.isEmpty()) {
+            return dtos;
+        }
 
         LocalDate weekEnd = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
