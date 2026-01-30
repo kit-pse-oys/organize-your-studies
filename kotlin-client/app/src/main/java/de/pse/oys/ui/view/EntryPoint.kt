@@ -7,8 +7,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
+import de.pse.oys.data.facade.Task
 import de.pse.oys.data.properties.Properties
 import de.pse.oys.ui.navigation.AccountSettings
 import de.pse.oys.ui.navigation.Additions
@@ -30,14 +32,20 @@ import de.pse.oys.ui.navigation.Rating
 import de.pse.oys.ui.view.additions.AdditionsView
 import de.pse.oys.ui.view.additions.AdditionsViewModel
 import de.pse.oys.ui.view.additions.freetime.CreateFreeTimeView
+import de.pse.oys.ui.view.additions.freetime.CreateFreeTimeViewModel
+import de.pse.oys.ui.view.additions.freetime.EditFreeTimeViewModel
 import de.pse.oys.ui.view.additions.freetime.FreeTimesView
+import de.pse.oys.ui.view.additions.freetime.FreeTimesViewModel
 import de.pse.oys.ui.view.additions.module.CreateModuleView
 import de.pse.oys.ui.view.additions.module.CreateModuleViewModel
 import de.pse.oys.ui.view.additions.module.EditModuleViewModel
 import de.pse.oys.ui.view.additions.module.ModulesView
 import de.pse.oys.ui.view.additions.module.ModulesViewModel
 import de.pse.oys.ui.view.additions.task.CreateTaskView
+import de.pse.oys.ui.view.additions.task.CreateTaskViewModel
+import de.pse.oys.ui.view.additions.task.EditTaskViewModel
 import de.pse.oys.ui.view.additions.task.TasksView
+import de.pse.oys.ui.view.additions.task.TasksViewModel
 import de.pse.oys.ui.view.menu.AccountSettingsView
 import de.pse.oys.ui.view.menu.AccountSettingsViewModel
 import de.pse.oys.ui.view.menu.MenuView
@@ -49,6 +57,7 @@ import de.pse.oys.ui.view.onboarding.QuestionnaireViewModel
 import de.pse.oys.ui.view.ratings.AvailableRatingsView
 import de.pse.oys.ui.view.ratings.AvailableRatingsViewModel
 import de.pse.oys.ui.view.ratings.RatingView
+import de.pse.oys.ui.view.ratings.RatingViewModel
 
 @Composable
 fun EntryPoint(
@@ -69,7 +78,10 @@ fun EntryPoint(
             val firstTime = backEntry.toRoute<Questionnaire>().firstTime
             QuestionnaireView(viewModel { QuestionnaireViewModel(firstTime, api, navController) })
         }
-        composable<Rating> { RatingView(viewModel { /* RatingViewModel(api, navController) */ TODO() }) }
+        composable<Rating> { backEntry ->
+            val target = backEntry.toRoute<Rating>().step
+            RatingView(viewModel { RatingViewModel(api, target, navController) })
+        }
         composable<AvailableRatings> {
             AvailableRatingsView(viewModel { AvailableRatingsViewModel(api, model, navController) })
         }
@@ -81,39 +93,37 @@ fun EntryPoint(
         composable<EditModule> { backEntry ->
             val target = backEntry.toRoute<EditModule>().id
             val module =
-                model.modules?.get(target) ?: throw IllegalStateException("Module not found")
+                model.modules?.get(target) ?: error("Module not found")
             CreateModuleView(viewModel {
                 EditModuleViewModel(api, model, Module(module, target), navController)
             })
         }
         composable<MyFreeTimes> {
-            FreeTimesView(viewModel { /* FreeTimesViewModel(api, navController) */ TODO() })
+            FreeTimesView(viewModel { FreeTimesViewModel(model, navController) })
         }
         composable<CreateFreeTime> {
-            CreateFreeTimeView(viewModel { /* CreateFreeTimeViewModel(api, navController) */ TODO() })
+            CreateFreeTimeView(viewModel { CreateFreeTimeViewModel(api, model, navController) })
         }
         composable<EditFreeTime> { backEntry ->
             val target = backEntry.toRoute<EditFreeTime>().id
             val freeTime =
-                model.freeTimes?.get(target) ?: throw IllegalStateException("FreeTime not found")
+                model.freeTimes?.get(target) ?: error("FreeTime not found")
             CreateFreeTimeView(viewModel {
-                // EditFreeTimeViewModel(api, FreeTime(freeTime, target), navController)
-                TODO()
+                EditFreeTimeViewModel(api, model, FreeTime(freeTime, target), navController)
             })
         }
         composable<MyTasks> {
-            TasksView(viewModel { /* TasksViewModel(api, navController) */ TODO() })
+            TasksView(viewModel { TasksViewModel(model, navController) })
         }
         composable<CreateTask> {
-            CreateTaskView(viewModel { /* CreateTaskViewModel(api, model, navController) */ TODO() })
+            CreateTaskView(viewModel { CreateTaskViewModel(api, model, navController) })
         }
         composable<EditTask> { backEntry ->
             val target = backEntry.toRoute<EditTask>().id
             val task =
-                model.tasks?.get(target) ?: throw IllegalStateException("Task not found")
+                model.tasks?.get(target) ?: error("Task not found")
             CreateTaskView(viewModel {
-                // EditTaskViewModel(api, model, Task(task, target), navController)
-                TODO()
+                EditTaskViewModel(api, model, Task(task, target), navController)
             })
         }
     }

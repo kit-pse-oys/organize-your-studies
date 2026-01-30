@@ -15,17 +15,25 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.ExamTaskData
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.OtherTaskData
 import de.pse.oys.data.facade.SubmissionTaskData
 import de.pse.oys.data.facade.Task
+import de.pse.oys.ui.navigation.editTask
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
@@ -98,4 +106,22 @@ interface ITasksViewModel {
     val tasks: List<Task>
 
     fun select(task: Task)
+}
+
+class TasksViewModel(
+    model: ModelFacade,
+    private val navController: NavController
+) : ViewModel(), ITasksViewModel {
+    override var tasks: List<Task> by mutableStateOf(listOf())
+
+    init {
+        require(model.tasks != null)
+        tasks = model.tasks!!.map { Task(it.value, it.key) }
+    }
+
+    override fun select(task: Task) {
+        if (tasks.contains(task)) {
+            navController.editTask(task)
+        }
+    }
 }

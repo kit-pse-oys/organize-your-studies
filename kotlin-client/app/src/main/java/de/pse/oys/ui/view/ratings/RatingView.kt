@@ -25,13 +25,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.RatingAspect
+import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.Rating
+import de.pse.oys.data.facade.UnitRatings
+import de.pse.oys.ui.navigation.AvailableRatings
+import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.RatingSlider
 import de.pse.oys.ui.util.ViewHeader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.uuid.Uuid
 
 @Composable
 fun RatingView(viewModel: IRatingViewModel) {
@@ -127,4 +138,43 @@ interface IRatingViewModel {
     fun updateRating(aspect: RatingAspect, rating: Rating)
     fun submitRating()
     fun submitMissed()
+}
+
+class RatingViewModel(private val api: RemoteAPI, private val target: Uuid, private val navController: NavController) : ViewModel(), IRatingViewModel {
+    private var completion by mutableStateOf(Rating.MEDIUM)
+    private var duration by mutableStateOf(Rating.MEDIUM)
+    private var motivation by mutableStateOf(Rating.MEDIUM)
+
+    override fun getRating(aspect: RatingAspect): Rating {
+        return when (aspect) {
+            RatingAspect.GOAL -> completion
+            RatingAspect.DURATION -> duration
+            RatingAspect.MOTIVATION -> motivation
+        }
+    }
+
+    override fun updateRating(
+        aspect: RatingAspect,
+        rating: Rating
+    ) {
+        when (aspect) {
+            RatingAspect.GOAL -> completion = rating
+            RatingAspect.DURATION -> duration = rating
+            RatingAspect.MOTIVATION -> motivation = rating
+        }
+    }
+
+    override fun submitRating() {
+        viewModelScope.launch {
+            api.rateUnit(target, UnitRatings(completion, duration, motivation))
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.availableRatings(dontGoBack = AvailableRatings)
+            }
+        }
+    }
+
+    override fun submitMissed() {
+        TODO("Not yet implemented")
+    }
 }

@@ -162,7 +162,7 @@ class CreateModuleViewModel(private val api: RemoteAPI, model: ModelFacade, navC
     }
 
     override fun delete() {
-        TODO("Not yet implemented")
+        error("Can't delete Module before creating it")
     }
 }
 
