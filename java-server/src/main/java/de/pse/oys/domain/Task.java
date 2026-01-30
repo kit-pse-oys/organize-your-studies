@@ -203,7 +203,7 @@ public abstract class Task {
                     .allMatch(unit -> unit.getStatus() == UnitStatus.COMPLETED);
             if (allCompleted && !learningUnits.isEmpty()) {
                 this.status = TaskStatus.CLOSED;
-            } else if (!learningUnits.isEmpty()) {
+            } else {
                 this.status = TaskStatus.OPEN;
             }
         } else {
