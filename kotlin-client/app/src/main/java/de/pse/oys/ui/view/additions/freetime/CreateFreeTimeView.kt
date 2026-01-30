@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModelFacade
@@ -47,8 +48,7 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    val dateText =
-        viewModel.date?.toFormattedString() ?: stringResource(id = R.string.nothing_chosen)
+    val dateText = viewModel.date.toFormattedString()
 
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -163,5 +163,38 @@ abstract class BaseCreateFreeTimeViewModel(
         freeTimes[freeTime.id] = freeTime.data
 
         navController.main()
+    }
+}
+
+class CreateFreeTimeViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    navController: NavController
+) : BaseCreateFreeTimeViewModel(model, navController) {
+    override val showDelete = false
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        error("Can't delete FreeTime before creating it")
+    }
+}
+
+class EditFreeTimeViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    target: FreeTime,
+    navController: NavController
+) : BaseCreateFreeTimeViewModel(model, navController, target.data) {
+    override val showDelete = true
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        TODO("Not yet implemented")
     }
 }

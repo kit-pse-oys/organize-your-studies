@@ -9,7 +9,11 @@ import kotlin.uuid.Uuid
 data object AvailableRatings
 
 @MainThread
-fun NavController.availableRatings() = navigate(route = AvailableRatings)
+fun NavController.availableRatings(dontGoBack: Any? = null) = navigate(route = AvailableRatings) {
+    if (dontGoBack != null) {
+        popUpTo(dontGoBack) { inclusive = true }
+    }
+}
 
 @Serializable
 data class Rating(val step: Uuid)

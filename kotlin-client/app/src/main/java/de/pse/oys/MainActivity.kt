@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val properties = DataStoreProperties(this)
-        val api = RemoteClient("https://kit-pse-oys-backend.ka.bw-cloud-instance.org", properties)
+        val api = RemoteClient("https://organizeyourstudies.tech", properties)
         val model = ModelFacade()
 
         val loggedIn =

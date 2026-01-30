@@ -15,14 +15,21 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.facade.FreeTime
+import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.editFreeTime
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
@@ -84,4 +91,22 @@ interface IFreeTimesViewModel {
     val freeTimes: List<FreeTime>
 
     fun select(freeTime: FreeTime)
+}
+
+class FreeTimesViewModel(
+    model: ModelFacade,
+    private val navController: NavController
+) : ViewModel(), IFreeTimesViewModel {
+    override var freeTimes: List<FreeTime> by mutableStateOf(listOf())
+
+    init {
+        require(model.freeTimes != null)
+        freeTimes = model.freeTimes!!.map { FreeTime(it.value, it.key) }
+    }
+
+    override fun select(freeTime: FreeTime) {
+        if (freeTimes.contains(freeTime)) {
+            navController.editFreeTime(freeTime)
+        }
+    }
 }

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.ExamTaskData
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.OtherTaskData
@@ -476,5 +477,38 @@ abstract class BaseCreateTaskViewModel(
         tasks[task.id] = task.data
 
         navController.main()
+    }
+}
+
+class CreateTaskViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    navController: NavController
+) : BaseCreateTaskViewModel(model, navController) {
+    override val showDelete = false
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        error("Can't delete Task before creating it")
+    }
+}
+
+class EditTaskViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    target: Task,
+    navController: NavController
+) : BaseCreateTaskViewModel(model, navController, target.data) {
+    override val showDelete = true
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        TODO("Not yet implemented")
     }
 }
