@@ -35,6 +35,9 @@ import de.pse.oys.data.Question
 import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.ui.navigation.Main
+import de.pse.oys.ui.navigation.Questionnaire
+import de.pse.oys.ui.navigation.main
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -114,12 +117,14 @@ interface IQuestionnaireViewModel {
     fun submitQuestionnaire()
 }
 
-abstract class BaseQuestionnaireViewModel(val api: RemoteAPI, val state: QuestionState) :
+abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
     ViewModel(),
     IQuestionnaireViewModel {
+    private var state: QuestionState = QuestionState()
+
     private val _selectedFlows = Questions.associateWith { question ->
-        question.answers.associateWith { answer ->
-            MutableStateFlow(state.selected(question, answer))
+        question.answers.associateWith {
+            MutableStateFlow(false)
         }
     }
 
@@ -140,28 +145,54 @@ abstract class BaseQuestionnaireViewModel(val api: RemoteAPI, val state: Questio
         }
     }
 
+    protected fun updateState(newState: QuestionState) {
+        state = newState
+
+        _selectedFlows.forEach { (question, answers) ->
+            answers.forEach { (answer, flow) ->
+                flow.value = state.selected(question, answer)
+            }
+        }
+    }
+
     override fun submitQuestionnaire() {
         viewModelScope.launch {
             api.updateQuestionnaire(state)
-            TODO("Navigate to main")
+
+            navigateToMain()
         }
     }
+
+    abstract fun navigateToMain()
 }
 
-class FirstQuestionnaireViewModel(api: RemoteAPI, val navController: NavController) :
-    BaseQuestionnaireViewModel(api, QuestionState()) {
+class FirstQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
+    BaseQuestionnaireViewModel(api) {
     override var showWelcome by mutableStateOf(true)
 
     override fun showQuestionnaire() {
         showWelcome = false
     }
+
+    override fun navigateToMain() {
+        navController.main(dontGoBack = Questionnaire(true))
+    }
 }
 
-class EditQuestionnaireViewModel(api: RemoteAPI, val navController: NavController) :
-    BaseQuestionnaireViewModel(api, QuestionState()) {
+class EditQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
+    BaseQuestionnaireViewModel(api) {
+    init {
+        val state = TODO("Get state from api")
+        updateState(state)
+    }
+
     override val showWelcome = false
 
     override fun showQuestionnaire() {}
+
+    override fun navigateToMain() {
+        navController.main()
+    }
 }
 
 fun QuestionnaireViewModel(

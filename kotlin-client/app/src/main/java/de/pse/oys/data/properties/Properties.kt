@@ -39,12 +39,18 @@ class DataStoreProperties(private val context: Context) : Properties, SessionSto
         }
     }
 
+    val hasSession = context.dataStore.data.map { preferences ->
+        preferences[HAS_SESSION] ?: false
+    }
+
     override suspend fun getSession(): Session? {
         val preferences = context.dataStore.data.first()
         return if (preferences[HAS_SESSION] == true) {
             Session(
-                preferences[SESSION_ACCESS_TOKEN] ?: throw IllegalStateException("HAS_SESSION is true"),
-                preferences[SESSION_REFRESH_TOKEN] ?: throw IllegalStateException("HAS_SESSION is true")
+                preferences[SESSION_ACCESS_TOKEN]
+                    ?: throw IllegalStateException("HAS_SESSION is true"),
+                preferences[SESSION_REFRESH_TOKEN]
+                    ?: throw IllegalStateException("HAS_SESSION is true")
             )
         } else null
     }

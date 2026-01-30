@@ -15,12 +15,6 @@ fun NavController.login(dontGoBack: Any? = null) = navigate(route = Login) {
 }
 
 @Serializable
-data object Register
-
-@MainThread
-fun NavController.register() = navigate(route = Register)
-
-@Serializable
 data class Questionnaire(val firstTime: Boolean)
 
 @MainThread

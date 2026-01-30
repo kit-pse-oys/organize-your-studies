@@ -30,10 +30,12 @@ import de.pse.oys.ui.navigation.editQuestionnaire
 import de.pse.oys.ui.navigation.myFreeTimes
 import de.pse.oys.ui.navigation.myModules
 import de.pse.oys.ui.navigation.myTasks
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 @Composable
 fun MenuView(viewModel: IMenuViewModel) {
@@ -115,10 +117,9 @@ interface IMenuViewModel {
     fun updatePlan()
 }
 
-
-class MenuViewModel(val properties: Properties, val api: RemoteAPI, val navController: NavController) : ViewModel(),
+class MenuViewModel(private val properties: Properties, private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
     IMenuViewModel {
-    override val darkmode = properties.darkmode.stateIn(viewModelScope, SharingStarted.Eagerly, Darkmode.SYSTEM)
+    override val darkmode = properties.darkmode.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, Darkmode.SYSTEM)
 
     override fun setDarkmode(darkmode: Darkmode) {
         viewModelScope.launch {
@@ -147,6 +148,8 @@ class MenuViewModel(val properties: Properties, val api: RemoteAPI, val navContr
     }
 
     override fun updatePlan() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            api.updatePlan()
+        }
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.ui.navigation.createFreeTime
@@ -80,7 +81,7 @@ interface IAdditionsViewModel {
     fun navigateToCreateFreeTime()
 }
 
-class AdditionsViewModel(private val navController: NavController) : IAdditionsViewModel {
+class AdditionsViewModel(private val navController: NavController) : ViewModel(), IAdditionsViewModel {
 
     override fun navigateToCreateModule() {
         navController.createModule()
