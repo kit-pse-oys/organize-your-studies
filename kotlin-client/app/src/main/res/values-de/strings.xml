@@ -99,6 +99,7 @@
     <string name="rating_way_to_long">Viel zu lang</string>
     <string name="nav_back_button_label">zurück</string>
     <string name="save_rating">Bewertung speichern</string>
+<<<<<<< HEAD
     <string name="add_module_button">Modul hinzufügen</string>
     <string name="add_task_button">Aufgabe hinzufügen</string>
     <string name="add_freetime_button">Freizeit hinzufügen</string>
@@ -121,4 +122,12 @@
     <string name="delete_element_confirm_body">Löschen ist permanent und kann nicht zurückgenommen werden!</string>
     <string name="edit_module">Modul bearbeiten</string>
     <string name="edit_task">Aufgabe bearbeiten</string>
+=======
+    <string name="save_module">Modul speichern</string>
+    <string name="save_task">Aufgabe speichern</string>
+    <string name="save_freetime">Freizeit speichern</string>
+    <string name="no_tasks_available">Du hast noch keine Aufgaben.</string>
+    <string name="no_modules_available">Du hast noch keine Module.</string>
+    <string name="no_freetimes_available">Du hast noch keine Freizeiten.</string>
+>>>>>>> b8fde92 (feat: add common UI components, localization, and unit tests for view models)
 </resources>

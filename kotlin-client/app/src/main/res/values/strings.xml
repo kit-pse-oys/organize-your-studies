@@ -101,6 +101,7 @@
     <string name="rating_way_to_long">Way to long</string>
     <string name="nav_back_button_label">back</string>
     <string name="save_rating">Save Rating</string>
+<<<<<<< HEAD
     <string name="add_module_button">Add Module</string>
     <string name="add_task_button">Add Task</string>
     <string name="add_freetime_button">Add Freetime</string>
@@ -123,4 +124,12 @@
     <string name="delete_element_confirm_body">Deleting will be permanent and cannot be undone!</string>
     <string name="open_menu_button">Open Menu</string>
     <string name="open_additions_button">Open Additions</string>
+=======
+    <string name="save_module">Save Module</string>
+    <string name="save_task">Save Task</string>
+    <string name="save_freetime">Save Freetime</string>
+    <string name="no_tasks_available">You don\'t have any Tasks yet.</string>
+    <string name="no_modules_available">You don\'t have any Modules yet.</string>
+    <string name="no_freetimes_available">You don\'t have any Freetimes yet.</string>
+>>>>>>> b8fde92 (feat: add common UI components, localization, and unit tests for view models)
 </resources>
