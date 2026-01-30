@@ -28,7 +28,7 @@ public abstract class Task {
     private String title;
 
     /** Wöchentlicher Aufwand in Minuten. */
-    @Column(name = "weekly_duration_minutes", nullable = false)
+    @Column(name = "weekly_effort_minutes", nullable = false)
     private int weeklyDurationMinutes;
 
     /**
@@ -169,5 +169,19 @@ public abstract class Task {
      */
     public void setLearningUnits(List<LearningUnit> learningUnits) {
         this.learningUnits = learningUnits;
+    }
+
+    // --- TODO: BUGFIX von mir: Das Feld fehlte noch, wird aber für Queries benötigt @Simon mach mal ---
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private de.pse.oys.domain.enums.TaskStatus status = de.pse.oys.domain.enums.TaskStatus.OPEN;
+
+    public void setStatus(de.pse.oys.domain.enums.TaskStatus status) {
+        this.status = status;
+    }
+
+    public de.pse.oys.domain.enums.TaskStatus getStatus() {
+        return status;
     }
 }
