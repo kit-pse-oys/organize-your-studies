@@ -47,7 +47,7 @@ KEY_AFTERNOON = "AFTERNOON"
 KEY_EVENING = "EVENING"
 
 SERVER_HOST = "0.0.0.0"
-SERVER_PORT = 5001
+SERVER_PORT = 5002
 
 
 # Component DataTransformer
@@ -176,8 +176,9 @@ class COPSolver:
             t_id = task['id']
             duration = task['duration']
             deadline = task.get('deadline', horizon)
+            start = task.get('start', 0)
 
-            min_start = max(0, current_slot)
+            min_start = max(0, current_slot, start)
 
             start_var = self.model.NewIntVar(min_start, horizon - duration, f'start_{t_id}')
             end_var = self.model.NewIntVar(min_start + duration, horizon, f'end_{t_id}')
