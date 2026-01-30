@@ -188,7 +188,7 @@ private fun ColorSlider(
 
 @Preview(showBackground = true)
 @Composable
-fun ColorPickerPreview() {
+private fun ColorPickerPreview() {
     OrganizeYourStudiesTheme {
         ColorPicker(onColorChanged = { Log.i("ColorPicker", "onColorChanged: $it") })
     }

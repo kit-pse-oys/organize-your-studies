@@ -1,8 +1,19 @@
 package de.pse.oys.ui.view
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -12,14 +23,36 @@ import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.additions
 import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.navigation.menu
+import de.pse.oys.ui.util.CalendarDay
+import de.pse.oys.ui.util.CalendarWeek
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 
 @Composable
 fun MainView(viewModel: IMainViewModel) {
+    var weeklyCalendar by remember { mutableStateOf(false) }
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        TODO()
+        Column(Modifier.padding(innerPadding).fillMaxSize()) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                // TODO: Menu button, Header, Additions button
+            }
+
+            if (weeklyCalendar) {
+                CalendarWeek(Modifier.weight(1f))
+            } else {
+                CalendarDay(Modifier.weight(1f))
+            }
+
+            // TODO: Rate units button
+
+            Column(Modifier.weight(1f)) {
+                for (unit in viewModel.unitsTomorrow) {
+                    // TODO: Units tomorrow
+                }
+            }
+        }
     }
 }
 
