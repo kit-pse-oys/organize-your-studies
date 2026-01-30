@@ -61,12 +61,10 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshTokenDTO dto) {
-        System.out.println("Controller received refreshTokenDTO: " + dto.getRefreshToken());
         try{
             AuthResponseDTO response = authService.refreshToken(dto);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e){
-            System.out.println("Invalid refreshToken found : " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

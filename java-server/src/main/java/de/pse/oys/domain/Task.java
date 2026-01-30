@@ -1,6 +1,8 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.TaskCategory;
+import de.pse.oys.domain.enums.TaskStatus;
+import de.pse.oys.domain.enums.UnitStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,6 +59,11 @@ public abstract class Task {
     @JoinColumn(name = "moduleid", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Module module;
+
+    /** Der aktuelle Status der Ausführung (offen, in arbeit, abgeschlossen). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TaskStatus status;
 
     /**
      * Standardkonstruktor für JPA/Hibernate.
@@ -141,6 +148,25 @@ public abstract class Task {
     /** @param durationMinutes Der neue wöchentliche Aufwand. */
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
+    /**
+     * Liefert den aktuellen Ausführungsstatus der Aufgabe.
+     *
+     * @return Der aktuelle {@link TaskStatus} der Aufgabe.
+     */
+    public TaskStatus getStatus() {
+        updateTaskStatus();
+        return status;
+    }
+
+    /**
+     * Setzt den Ausführungsstatus der Aufgabe.
+     *
+     * @param status Neuer {@link TaskStatus} (darf nicht null sein).
+     */
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
+
 
     // Hilfsmethoden für learningUnits
 
@@ -170,4 +196,15 @@ public abstract class Task {
     public void setLearningUnits(List<LearningUnit> learningUnits) {
         this.learningUnits = learningUnits;
     }
+
+    private void updateTaskStatus() {
+        if (isActive()) {
+            this.status = TaskStatus.OPEN;
+        } else {
+            this.status = TaskStatus.CLOSED;
+        }
+    }
+
+    /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */
+    protected abstract boolean isActive();
 }
