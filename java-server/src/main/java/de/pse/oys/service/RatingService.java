@@ -54,7 +54,7 @@ public class RatingService {
      * @param ratingDTO das RatingDTO mit den Bewertungen, wird in ein UnitRating umgewandelt.
      */
     @Transactional
-    public void submitRating(UUID learningUnitId, RatingDTO ratingDTO) {
+    public void submitRating(UUID learningUnitId, RatingDTO ratingDTO) throws IllegalArgumentException {
 
         // Falls die Lerneinheit nicht gefunden wird, wird eine Exception geworfen.
         // Das bedeutet, dass die ID ungültig ist.
@@ -92,7 +92,7 @@ public class RatingService {
      * @param unitId Die ID der Lerneinheit, die als verpasst markiert werden soll.
      */
     @Transactional
-    public void markAsMissed(UUID unitId) {
+    public void markAsMissed(UUID unitId) throws IllegalArgumentException {
 
         // Falls die Lerneinheit nicht gefunden wird, wird eine Exception geworfen.
         // Das bedeutet, dass die ID ungültig ist.

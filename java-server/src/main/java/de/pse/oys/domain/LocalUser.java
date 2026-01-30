@@ -20,12 +20,6 @@ public class LocalUser extends User {
     @Column(name = "password_hash", updatable = false)
     private String passwordHash;
 
-    /** * Nutzerabhängige Zufallsvariable für das Hashing (Salt).
-     * Auch dieses Feld kann nach der Erstellung nicht mehr geändert werden.
-     */
-    @Column(name = "password_salt", updatable = false)
-    private String passwordSalt;
-
     /**
      * Standardkonstruktor ohne Argumente für JPA/Hibernate.
      * Ohne das Schlüsselwort 'final' bei den Feldern lässt sich dieser nun problemlos kompilieren.
@@ -46,14 +40,6 @@ public class LocalUser extends User {
     }
 
     // Getter Methoden
-
-
-    /**
-     * @return den Salt-Wert des Passwort-Hashings.
-     */
-    public String getSalt() {
-        return passwordSalt;
-    }
 
     /**
      * @return den Passwort-Hash.

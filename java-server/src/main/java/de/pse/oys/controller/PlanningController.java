@@ -1,32 +1,75 @@
 package de.pse.oys.controller;
 
-import org.springframework.context.annotation.Profile;
+import de.pse.oys.service.planning.PlanningService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 /**
- * PlanningController – Der PlanningController stellt Endpunkte für die übergeordnete Planungsebene dar.
- * Über diesen Controller wird die Generierung des Lernplans angestoßen.
- *
- * @author uhupo
- * @version 1.0
+ * REST-Controller für die Steuerung der Lernplanung.
+ * Ermöglicht es dem Nutzer, die Generierung oder Aktualisierung seines
+ * persönlichen Lernplans manuell anzustoßen.
+ * @author utgid
+ * @version 1.1
  */
-
 @RestController
 @RequestMapping("/plan")
-public class PlanningController {
+public class PlanningController extends BaseController {
 
+    private final PlanningService planningService;
 
     /**
-     * Generiert einen neuen Lernplan für den angemeldeten Benutzer.
-     *
-     * @return der neu generierte Lernplan im DTO-Format
+     * Erzeugt eine neue Instanz des PlanningControllers.
+     * @param planningService Der Service zur Berechnung des Lernplans.
      */
-    @GetMapping
-    public String forceUpdatePlan() {
-        return "pong"; //Aktuell Platzhalter nur zum Testen, Rückgabetyp entsprechend falsch
+    public PlanningController(PlanningService planningService) {
+        this.planningService = planningService;
+    }
+
+    /**
+     * Stößt die Generierung eines neuen Wochenplans für den authentifizierten Nutzer an.
+     * @return Status 200 (OK) bei Erfolg oder 400 (Bad Request) bei Validierungsfehlern.
+     */
+    @PostMapping("/generate")
+    public ResponseEntity<Void> generateWeeklyPlan(@RequestParam LocalDate startTime) {
+        try {
+            UUID userId = getAuthenticatedUserId();
+            planningService.generateWeeklyPlan(userId, startTime);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            // Rückgabe von 400 Bad Request bei ungültigen Parametern oder fehlenden Daten
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            // Allgemeiner Serverfehler (500) für unerwartete Probleme
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Verschiebt eine spezifische Planungseinheit auf einen anderen Zeitpunkt.
+     * @param unitId Die UUID der zu verschiebenden Planungseinheit.
+     * @param newStartTime Der neue gewünschte Startzeitpunkt.
+     * @return Status 200 (OK), 403 (Forbidden) bei Zugriffsschutz oder 400 (Bad Request).
+     */
+    @PatchMapping("/{unitId}/reschedule")
+    public ResponseEntity<Void> rescheduleUnit(
+            @PathVariable UUID unitId,
+            @RequestParam LocalDate newStartTime) {
+        try {
+            UUID userId = getAuthenticatedUserId();
+            planningService.rescheduleUnit(userId, newStartTime, unitId);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            // 403 Forbidden, falls die Unit nicht dem anfragenden User gehört
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            // 400 Bad Request bei ungültiger ID oder Zeitformat
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
-

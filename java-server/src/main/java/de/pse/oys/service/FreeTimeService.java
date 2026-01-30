@@ -72,10 +72,6 @@ public class FreeTimeService {
         UUID id = (dto.getId() != null) ? dto.getId() : UUID.randomUUID();
         FreeTime entity = mapToEntity(dto);
 
-        // falls eure Entities die ID nicht im Konstruktor setzen, ist id hier nur "genutzt"
-        // (im Zweifel: entity.setFreeTimeId(id); falls es sowas bei euch gibt)
-        // -> wir lassen das Verhalten wie im Original unverändert.
-
         user.addFreeTime(entity);
         userRepository.save(user); // Cascade.ALL auf freeTimes
 
@@ -159,6 +155,21 @@ public class FreeTimeService {
         user.deleteFreeTime(existing);
         freeTimeRepository.delete(existing);
         userRepository.save(user);
+    }
+
+    /**
+     * Ruft alle Freizeitblöcke eines bestimmten Nutzers ab.
+     * @param userId Die ID des Nutzers, dessen Freizeitblöcke geladen werden sollen.
+     * @return Eine Liste aller Freizeitblöcke als {@link FreeTimeDTO}.
+     */
+    public List<FreeTimeDTO> getFreeTimesByUserId(UUID userId) {
+        // Lädt alle FreeTime-Entitäten über das Repository anhand der Nutzer-ID
+        List<FreeTime> entities = freeTimeRepository.findByUserId(userId);
+
+        // Wandelt die Liste der Entitäten in eine Liste von DTOs um
+        return entities.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
     private User loadUser(UUID userId) {
