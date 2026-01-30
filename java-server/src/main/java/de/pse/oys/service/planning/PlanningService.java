@@ -330,10 +330,9 @@ public class PlanningService {
                 }
                 LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
                 task.addLearningUnit(unit);
-                task = taskRepository.save(task);
+                taskRepository.save(task);
+                newLearningUnits.add(unit);
 
-                LearningUnit savedUnit = task.getLearningUnits().get(task.getLearningUnits().size() - 1);
-                newLearningUnits.add(savedUnit);
 
             }
         }
