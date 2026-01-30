@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,9 @@ import de.pse.oys.ui.navigation.AvailableRatings
 import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.RatingSlider
+import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,41 +55,56 @@ fun RatingView(viewModel: IRatingViewModel) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ViewHeader(stringResource(id = R.string.rate_unit_header))
-            OutlinedButton(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .padding(bottom = 10.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (!selectedMissed) Color.LightGray else LightBlue),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.5.dp, if (!selectedMissed) Color.Gray else Blue),
-                onClick = {
-                    selectedMissed = !selectedMissed
-                }) {
-                Text(
-                    stringResource(id = R.string.unit_missed_button),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            RatingAspect.entries.forEachIndexed { index, aspect ->
-                RatingQuestion(
-                    questionNumber = index + 1,
-                    question = stringResource(id = aspect.textRes),
-                    aspect = viewModel.getRating(aspect),
-                    labels = aspect.labelsRes.map { stringResource(id = it) },
-                    selectedMissed = selectedMissed,
-                    onRatingChange = { newRating ->
-                        viewModel.updateRating(aspect, newRating)
+                    .weight(1f)
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                item {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .padding(bottom = 10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = if (!selectedMissed) Color.LightGray else LightBlue),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.5.dp, if (!selectedMissed) Color.Gray else Blue),
+                        onClick = {
+                            selectedMissed = !selectedMissed
+                        }) {
+                        Text(
+                            stringResource(id = R.string.unit_missed_button),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                )
+                }
+                RatingAspect.entries.forEachIndexed { index, aspect ->
+                    item {
+                        RatingQuestion(
+                            questionNumber = index + 1,
+                            question = stringResource(id = aspect.textRes),
+                            aspect = viewModel.getRating(aspect),
+                            labels = aspect.labelsRes.map { stringResource(id = it) },
+                            selectedMissed = selectedMissed,
+                            onRatingChange = { newRating ->
+                                viewModel.updateRating(aspect, newRating)
+                            }
+                        )
+                    }
+                }
             }
+            SubmitButton(stringResource(id = R.string.save_rating)) { viewModel.submitRating() }
+            BackButton { TODO() }
         }
     }
 }
+
 
 @Composable
 private fun RatingQuestion(

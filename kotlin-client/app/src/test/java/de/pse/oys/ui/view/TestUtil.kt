@@ -1,0 +1,40 @@
+package de.pse.oys.ui.view
+
+import de.pse.oys.data.facade.FreeTimeData
+import de.pse.oys.data.facade.ModuleData
+import de.pse.oys.data.facade.Priority
+import de.pse.oys.ui.theme.Blue
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.uuid.Uuid
+
+object TestUtils {
+    const val TEST_TITLE = "Test-Title"
+    const val TEST_DESC = "Test-Description"
+    val TEST_COLOR = Blue
+    val TEST_PRIORITY = Priority.NEUTRAL
+    val TEST_DATE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val TEST_DATE_FUTURE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.plus(1, DateTimeUnit.DAY)
+    val TEST_TIME = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+    val TEST_TIME_FUTURE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+
+    fun randomUuid() = Uuid.random()
+
+    fun createMockModuleData() = ModuleData(
+        title = TEST_TITLE,
+        description = TEST_DESC,
+        priority = TEST_PRIORITY,
+        color = TEST_COLOR
+    )
+
+    fun createMockFreeTimeData() = FreeTimeData(
+        title = TEST_TITLE,
+        date = TEST_DATE,
+        start = TEST_TIME,
+        end = TEST_TIME,
+        weekly = false
+    )
+}

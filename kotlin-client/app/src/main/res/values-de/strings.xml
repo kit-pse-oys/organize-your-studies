@@ -95,4 +95,12 @@
     <string name="rating_just_right">Gut</string>
     <string name="rating_too_long">Zu lang</string>
     <string name="rating_way_to_long">Viel zu lang</string>
+    <string name="nav_back_button_label">zurück</string>
+    <string name="save_rating">Bewertung speichern</string>
+    <string name="save_module">Modul speichern</string>
+    <string name="save_task">Aufgabe speichern</string>
+    <string name="save_freetime">Freizeit speichern</string>
+    <string name="no_tasks_available">Du hast noch keine Aufgaben.</string>
+    <string name="no_modules_available">Du hast noch keine Module.</string>
+    <string name="no_freetimes_available">Du hast noch keine Freizeiten.</string>
 </resources>

@@ -1,13 +1,16 @@
 package de.pse.oys.ui.util
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -21,13 +24,18 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import de.pse.oys.R
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.theme.MediumBlue
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -205,6 +213,46 @@ fun RatingSlider(
             Text(labels.last(), style = typography.bodySmall, color = Color.Gray)
         }
     }
+}
+
+@Composable
+fun SubmitButton(label: String, onClick: () -> Unit) {
+    val gradient = Brush.linearGradient(colors = listOf(Blue, MediumBlue))
+    val shape = RoundedCornerShape(24.dp)
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(),
+        shape = shape,
+        content = {
+            Text(
+                label,
+                style = typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = 40.dp)
+            )
+        },
+        modifier = Modifier
+            .background(gradient, shape = shape)
+    )
+}
+
+@Composable
+fun BackButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(),
+        content = {
+            Text(
+                stringResource(R.string.nav_back_button_label),
+                style = typography.bodyLarge.copy(
+                    textDecoration = TextDecoration.Underline,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = Color.Gray,
+            )
+        }
+    )
 }
 
 fun LocalDate.toFormattedString(): String {

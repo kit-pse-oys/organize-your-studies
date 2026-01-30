@@ -1,6 +1,7 @@
 package de.pse.oys.ui.view.additions.module
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,37 +21,57 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
-import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.navigation.editModule
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
-import kotlinx.coroutines.launch
 
 @Composable
 fun ModulesView(viewModel: IModulesViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                ViewHeader(stringResource(id = R.string.my_modules_button))
-            }
-            items(viewModel.modules) { module ->
-                ModuleButton(module, viewModel)
+            if (viewModel.modules.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.no_modules_available),
+                        color = Color.Gray,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        ViewHeader(stringResource(id = R.string.my_modules_button))
+                    }
+                    items(viewModel.modules) { module ->
+                        ModuleButton(module, viewModel)
+                    }
+                }
+                BackButton(onClick = { TODO() })
             }
         }
     }
