@@ -186,6 +186,9 @@ public abstract class Task {
      * @return Eine nicht veränderbare Liste aller zugehörigen Lerneinheiten.
      */
     public List<LearningUnit> getLearningUnits() {
+        if (learningUnits == null) {
+            learningUnits = new ArrayList<>();
+        }
         return List.copyOf(learningUnits);
     }
 
