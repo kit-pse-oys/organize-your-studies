@@ -1,5 +1,8 @@
 # docker-compose: Initialisiert die einzelnen Container durch die Spezifikationen gegeben durch
 # die entsprechenden DockerFiles und Umgebungsvariablen.
+# docker compose --env-file .env.local up --build für lokale Entwicklung
+# docker compose --env-file .env up --build für Deployment
+# docker compose down --volumes --remove-orphans stoppt und entfernt alle Container, Netzwerke und Volumes (cleanup)
 # Author: uhupo
 services:
   db:
@@ -17,9 +20,6 @@ services:
     container_name: oys-java-server
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}   # Macht den Server unter den Port erreichbar
-    env_file:
-      - ${ENV_FILE}   # env.local für lokale Entwicklung .env für Deployment
-                      #(Shell:  cmd /c "set ENV_FILE=.env.local && docker-compose up --build" )
     environment:
       # Diese Variablen überschreiben die Werte in application.properties
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-oys_db}
