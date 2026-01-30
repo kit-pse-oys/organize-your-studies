@@ -1,0 +1,254 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ===== ENUM TYPES =====
+
+CREATE TYPE auth_provider   AS ENUM ('LOCAL', 'AUTH');
+CREATE TYPE time_of_day     AS ENUM ('MORNING', 'FORENOON', 'NOON', 'AFTERNOON', 'EVENING');
+CREATE TYPE module_priority AS ENUM ('HIGH', 'NEUTRAL', 'LOW');
+CREATE TYPE unit_status     AS ENUM ('PLANNED', 'MISSED', 'COMPLETED');
+CREATE TYPE plan_status     AS ENUM ('ACTIVE', 'ARCHIVED');
+CREATE TYPE recurring_day   AS ENUM ('MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY');
+
+-- ===== TABLES =====
+
+CREATE TABLE users (
+  userid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT NOT NULL,
+
+  -- local auth
+  password_hash TEXT,
+
+  -- external auth
+  auth_provider auth_provider NOT NULL DEFAULT 'LOCAL',
+  external_subject_id TEXT,
+
+  -- Refresh Tokens
+  refresh_token_hash TEXT,
+  refresh_token_expires_at TIMESTAMP,
+
+  CONSTRAINT uq_users_external_subject UNIQUE (external_subject_id),
+
+  CONSTRAINT chk_users_auth_provider_fields
+  CHECK (
+    (auth_provider = 'LOCAL'
+      AND password_hash IS NOT NULL
+      AND external_subject_id IS NULL
+    )
+    OR
+    (auth_provider = 'AUTH'
+      AND password_hash IS NULL
+      AND external_subject_id IS NOT NULL
+    )
+  ),
+
+  CONSTRAINT chk_users_refresh_token_consistent
+  CHECK (
+    (refresh_token_hash IS NULL AND refresh_token_expires_at IS NULL)
+    OR
+    (refresh_token_hash IS NOT NULL AND refresh_token_expires_at IS NOT NULL)
+  )
+);
+
+CREATE UNIQUE INDEX uq_users_username_local
+ON users (username)
+WHERE auth_provider = 'LOCAL';
+
+
+CREATE TABLE learning_preferences (
+  prefid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userid UUID UNIQUE NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+
+  min_unit_duration_minutes INTEGER NOT NULL CHECK (min_unit_duration_minutes > 0),
+  max_unit_duration_minutes INTEGER NOT NULL CHECK (max_unit_duration_minutes > 0),
+
+  max_daily_workload_hours INTEGER NOT NULL CHECK (max_daily_workload_hours > 0),
+  deadline_buffer_days INTEGER NOT NULL CHECK (deadline_buffer_days >= 0),
+  break_duration_minutes INTEGER NOT NULL CHECK (break_duration_minutes >= 0),
+
+  CONSTRAINT chk_duration_min_le_max
+  CHECK (min_unit_duration_minutes <= max_unit_duration_minutes)
+);
+
+CREATE TABLE learning_preference_time_slots (
+  prefid UUID NOT NULL REFERENCES learning_preferences(prefid) ON DELETE CASCADE,
+  slot time_of_day NOT NULL,
+  PRIMARY KEY (prefid, slot)
+);
+
+CREATE TABLE learning_preference_days (
+  prefid UUID NOT NULL REFERENCES learning_preferences(prefid) ON DELETE CASCADE,
+  day recurring_day NOT NULL,
+  PRIMARY KEY (prefid, day)
+);
+
+
+CREATE TABLE modules (
+  moduleid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userid UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  priority module_priority NOT NULL,
+  color_hex_code TEXT
+);
+
+CREATE INDEX idx_modules_userid ON modules(userid);
+
+-- Discriminator taskcategory ist TEXT (Hibernate-freundlich)
+CREATE TABLE tasks (
+  taskid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  moduleid UUID NOT NULL REFERENCES modules(moduleid) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+
+  -- Discriminator (TEXT statt Postgres ENUM)
+  taskcategory TEXT NOT NULL,
+
+  weekly_duration_minutes INTEGER NOT NULL CHECK (weekly_duration_minutes > 0),
+
+  -- EXAM (LocalDate)
+  exam_date DATE,
+
+  -- SUBMISSION (LocalDateTime)
+  submission_deadline TIMESTAMP,
+
+  -- OTHER (LocalDateTime)
+  time_frame_start TIMESTAMP,
+  time_frame_end TIMESTAMP,
+
+  CONSTRAINT chk_task_timerange_valid
+  CHECK (
+    time_frame_start IS NULL OR time_frame_end IS NULL OR time_frame_start <= time_frame_end
+  ),
+
+  -- Discriminator-Werte begrenzen (statt ENUM)
+  CONSTRAINT chk_taskcategory_allowed
+  CHECK (taskcategory IN ('EXAM', 'SUBMISSION', 'OTHER')),
+
+  -- Kategorien-Logik eindeutig
+  CONSTRAINT chk_task_category_fields_consistent
+  CHECK (
+    (taskcategory = 'EXAM'
+      AND exam_date IS NOT NULL
+      AND submission_deadline IS NULL
+      AND time_frame_start IS NULL
+      AND time_frame_end IS NULL
+    )
+    OR
+    (taskcategory = 'SUBMISSION'
+      AND exam_date IS NULL
+      AND submission_deadline IS NOT NULL
+      AND time_frame_start IS NULL
+      AND time_frame_end IS NULL
+    )
+    OR
+    (taskcategory = 'OTHER'
+      AND exam_date IS NULL
+      AND submission_deadline IS NULL
+      AND time_frame_start IS NOT NULL
+      AND time_frame_end IS NOT NULL
+    )
+  )
+);
+
+CREATE INDEX idx_tasks_moduleid ON tasks(moduleid);
+
+
+CREATE TABLE cost_matrices (
+  matrixid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  taskid UUID UNIQUE NOT NULL REFERENCES tasks (taskid) ON DELETE CASCADE,
+  costs JSONB NOT NULL DEFAULT '{}'::jsonb,
+  is_outdated BOOLEAN NOT NULL DEFAULT FALSE,
+  last_updated TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE learning_units (
+  unitid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  taskid UUID NOT NULL REFERENCES tasks(taskid) ON DELETE CASCADE,
+
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
+
+  actual_duration_minutes INTEGER,
+
+  status unit_status NOT NULL DEFAULT 'PLANNED',
+
+  CONSTRAINT chk_unit_end_after_start
+  CHECK (end_time > start_time),
+
+  CONSTRAINT chk_unit_actual_duration_nonneg
+  CHECK (actual_duration_minutes IS NULL OR actual_duration_minutes >= 0)
+);
+
+CREATE INDEX idx_learning_units_taskid ON learning_units(taskid);
+CREATE INDEX idx_learning_units_start_time ON learning_units(start_time);
+
+
+CREATE TABLE ratings (
+  ratingid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unitid UUID UNIQUE NOT NULL REFERENCES learning_units(unitid) ON DELETE CASCADE,
+
+  goal_achievement_score INTEGER CHECK (goal_achievement_score BETWEEN 1 AND 5),
+  perceived_duration_score INTEGER CHECK (perceived_duration_score BETWEEN 1 AND 5),
+  concentration_score INTEGER CHECK (concentration_score BETWEEN 1 AND 5)
+);
+
+
+-- FreeTime STI: Discriminator als TEXT (Hibernate-freundlich)
+CREATE TABLE free_times (
+  slotid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userid UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+
+  recurrence_type_discriminator TEXT NOT NULL,
+
+  weekday recurring_day,
+  specific_date DATE,
+
+  CONSTRAINT chk_freetime_recurrence_allowed
+  CHECK (recurrence_type_discriminator IN ('WEEKLY', 'ONCE')),
+
+  CONSTRAINT chk_freetime_time_order
+  CHECK (end_time > start_time),
+
+  CONSTRAINT chk_freetime_weekday_xor_date
+  CHECK (
+    (weekday IS NOT NULL AND specific_date IS NULL)
+    OR
+    (weekday IS NULL AND specific_date IS NOT NULL)
+  ),
+
+  CONSTRAINT chk_freetime_type_matches_fields
+  CHECK (
+    (recurrence_type_discriminator = 'WEEKLY' AND weekday IS NOT NULL AND specific_date IS NULL)
+    OR
+    (recurrence_type_discriminator = 'ONCE' AND weekday IS NULL AND specific_date IS NOT NULL)
+  )
+);
+
+CREATE INDEX idx_free_times_userid_weekday ON free_times(userid, weekday);
+CREATE INDEX idx_free_times_userid_specific_date ON free_times(userid, specific_date);
+
+
+CREATE TABLE learning_plans (
+  planid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userid UUID NOT NULL REFERENCES users(userid) ON DELETE CASCADE,
+  validity_week_start DATE NOT NULL,
+  validity_week_end DATE NOT NULL,
+  status plan_status NOT NULL DEFAULT 'ACTIVE',
+
+  UNIQUE(userid, validity_week_start),
+
+  CONSTRAINT chk_plan_week_valid
+  CHECK (validity_week_end >= validity_week_start)
+);
+
+CREATE INDEX idx_learning_plans_userid_week ON learning_plans(userid, validity_week_start);
+
+
+CREATE TABLE plan_units (
+  planid UUID NOT NULL REFERENCES learning_plans(planid) ON DELETE CASCADE,
+  unitid UUID NOT NULL REFERENCES learning_units(unitid) ON DELETE CASCADE,
+  PRIMARY KEY (planid, unitid)
+);
