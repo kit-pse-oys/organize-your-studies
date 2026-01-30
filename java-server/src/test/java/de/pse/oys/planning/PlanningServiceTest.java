@@ -186,6 +186,8 @@ class PlanningServiceTest {
                 .thenReturn(List.of(realTask));
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(realTask));
+        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
         responseItem.setId(taskId.toString() + "_0");

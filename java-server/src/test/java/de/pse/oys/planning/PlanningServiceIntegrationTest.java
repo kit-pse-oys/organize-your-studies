@@ -92,7 +92,7 @@ public class PlanningServiceIntegrationTest {
         ExamTask task = new ExamTask("TestExamTask", 120, now);
         task.setModule(module);
         task.setWeeklyDurationMinutes(120);
-        task.setTitle("TestExamTask");
+        task.setTitle("TestTask");
         task.setStatus(TaskStatus.OPEN);
 
         taskRepository.save(task);
@@ -103,7 +103,7 @@ public class PlanningServiceIntegrationTest {
 
     @Test
     void testGenerateWeeklyPlan_EndToEnd() {
-        LocalDate weekStart = LocalDate.of(2026, 2, 2);
+        LocalDate weekStart = LocalDate.of(2026, 1, 26);
         System.out.println("Starte Anfrage an Microservice...");
 
         try {
