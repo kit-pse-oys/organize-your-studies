@@ -2,6 +2,8 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
+
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -13,13 +15,20 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "free_times")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "recurrence_type_discriminator", discriminatorType = DiscriminatorType.STRING)
+
 public abstract class FreeTime {
 
     /** Eindeutige Kennung des Freizeitblocks (readOnly). */
     @Id
     @GeneratedValue
-    @Column(name = "free_time_id", updatable = false)
+    @Column(name = "slotid", updatable = false)
     private UUID freeTimeId;
+
+    /** Zugehörige User-ID dieses Freizeitblocks. */
+    @Column(name = "userid", nullable = false)
+    private UUID userId;
 
     /** Kurze Beschreibung oder Name der Freizeitaktivität. */
     @Column(name = "title", nullable = false)
@@ -34,14 +43,6 @@ public abstract class FreeTime {
     private LocalTime endTime;
 
     /**
-     * Gibt den Typ der Wiederholung zurück.
-     * Das Feld wird über die Unterklassen gesteuert.
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "recurrence_type_discriminator", insertable = false, updatable = false)
-    private RecurrenceType recurrenceType;
-
-    /**
      * Standardkonstruktor für JPA/Hibernate.
      */
     protected FreeTime() {
@@ -50,16 +51,26 @@ public abstract class FreeTime {
     /**
      * Erzeugt einen neuen Freizeitblock.
      *
+     * @param userId    ID des Nutzers.
      * @param title     Name/Beschreibung (z. B. "Fußballtraining").
      * @param startTime Beginn der Freizeit.
      * @param endTime   Ende der Freizeit.
      */
-    public FreeTime(String title, LocalTime startTime, LocalTime endTime, RecurrenceType type) {
+    protected FreeTime(UUID userId, String title, LocalTime startTime, LocalTime endTime) {
+        this.userId = userId;
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.recurrenceType = type;
     }
+
+    /**
+     * Gibt den Typ der Wiederholung zurück.
+     * Das Feld wird über die Unterklassen gesteuert.
+     *
+     * @return Der spezifische Wiederholungstyp dieser Freizeitinstanz.
+     */
+    @Transient
+    public abstract RecurrenceType getRecurrenceType();
 
     /**
      * Berechnet die Dauer des Freizeitblocks in Minuten.
@@ -69,7 +80,7 @@ public abstract class FreeTime {
         if (startTime == null || endTime == null) {
             return 0;
         }
-        return java.time.Duration.between(startTime, endTime).toMinutes();
+        return Duration.between(startTime, endTime).toMinutes();
     }
 
     /**
@@ -87,6 +98,11 @@ public abstract class FreeTime {
         return freeTimeId;
     }
 
+    /** @return Die User-ID dieses Freizeitblocks. */
+    public UUID getUserId() {
+        return userId;
+    }
+
     /** @return Die Beschreibung der Freizeit. */
     public String getTitle() {
         return title;
@@ -102,26 +118,25 @@ public abstract class FreeTime {
         return endTime;
     }
 
-    /**
-     * @return Der spezifische Wiederholungstyp dieser Freizeitinstanz.
-     */
-    public RecurrenceType getRecurrenceType() {
-        return recurrenceType;
-    }
-
     // Setter
 
-    /** @param title Die neue Beschreibung. */
+    /**
+     * @param title Die neue Beschreibung.
+     */
     public void setTitle(String title) {
         this.title = title;
     }
 
-    /** @param startTime Der neue Startzeitpunkt. */
+    /**
+     * @param startTime Der neue Startzeitpunkt.
+     */
     public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
     }
 
-    /** @param endTime Der neue Endzeitpunkt. */
+    /**
+     * @param endTime Der neue Endzeitpunkt.
+     */
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
