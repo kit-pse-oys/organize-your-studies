@@ -2,8 +2,11 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Repräsentiert eine einmalige Freizeitbeschränkung an einem spezifischen Datum.
@@ -25,13 +28,59 @@ public class SingleFreeTime extends FreeTime {
     /**
      * Erzeugt eine Instanz für ein einmaliges Freizeitereignis.
      *
+     * @param userId ID des Nutzers.
      * @param title Bezeichnung des Ereignisses (z. B. "Arzttermin").
      * @param start Beginn der Freizeit (Uhrzeit).
      * @param end   Ende der Freizeit (Uhrzeit).
      * @param date  Das konkrete Datum des Ereignisses.
      */
-    public SingleFreeTime(String title, LocalTime start, LocalTime end, LocalDate date) {
-        super(title, start, end, RecurrenceType.ONCE);
+    public SingleFreeTime(UUID userId, String title, LocalTime start, LocalTime end, LocalDate date) {
+        super(userId, title, start, end);
+        this.date = date;
+    }
+
+    /**
+     * Gibt den Wiederholungstyp dieses Freizeitblocks zurück.
+     * Für {@link SingleFreeTime} ist der Typ immer {@link RecurrenceType#ONCE}.
+     *
+     * @return {@link RecurrenceType#ONCE}
+     */
+    @Override
+    public RecurrenceType getRecurrenceType() {
+        return RecurrenceType.ONCE;
+    }
+
+    /**
+     * Prüft, ob diese Freizeit an einem bestimmten Datum "gilt".
+     * Für {@link SingleFreeTime} muss das Datum exakt übereinstimmen.
+     *
+     * @param date Das zu prüfende Datum.
+     * @return true, wenn das Datum exakt übereinstimmt.
+     */
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return Objects.equals(this.date, date);
+    }
+
+    /**
+     * Liefert das Datum, das im DTO-Feld "date" zurückgegeben werden soll.
+     * Für {@link SingleFreeTime} ist das das echte Datum dieses Ereignisses.
+     *
+     * @return Das konkrete Datum dieses Ereignisses.
+     */
+    @Override
+    public LocalDate getRepresentativeDate() {
+        return this.date;
+    }
+
+    /**
+     * Aktualisiert subtype-spezifische Felder anhand des DTO-Datums.
+     * Für {@link SingleFreeTime} ist das das konkrete Datum.
+     *
+     * @param date Das neue konkrete Datum.
+     */
+    @Override
+    public void applyDtoDate(LocalDate date) {
         this.date = date;
     }
 
