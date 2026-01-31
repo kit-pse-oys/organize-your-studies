@@ -21,12 +21,15 @@ services:
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}   # Macht den Server unter den Port erreichbar
     environment:
-      # Diese Variablen überschreiben die Werte in application.properties
+      # Notwendige Umgebungsvariablen für die Java-Anwendung im Container
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-oys_db}
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD}
+      - SERVER_SSL_KEY_STORE=${SERVER_SSL_KEY_STORE}
+      - SERVER_SSL_KEY_STORE_PASSWORD=${SERVER_SSL_KEY_STORE_PASSWORD}
+      - SERVER_SSL_KEY_STORE_TYPE=${SERVER_SSL_KEY_STORE_TYPE}
+      - SERVER_PORT=${SERVER_PORT}
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
       - python-microservice # Wartet, bis der Python-Microservice-Container gestartet ist
