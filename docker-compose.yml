@@ -33,7 +33,8 @@ services:
     networks:
       - oys-network
     volumes:
-      - ${SSL_KEYSTORE_PATH}/keystore.p12:/keystore/keystore.p12:ro
+      - /etc/letsencrypt/live/organizeyourstudies.tech/keystore.p12:/etc/letsencrypt/keystore.p12:ro
+      # Pfad zum SSL-Keystore, nur lesbar und Mapping in den Container
 
   python-microservice:
     build: ./python-microservice
