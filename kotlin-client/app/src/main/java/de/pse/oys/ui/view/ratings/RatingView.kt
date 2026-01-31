@@ -38,7 +38,6 @@ import de.pse.oys.ui.navigation.AvailableRatings
 import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.RatingSlider
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeader
@@ -100,7 +99,6 @@ fun RatingView(viewModel: IRatingViewModel) {
                 }
             }
             SubmitButton(stringResource(id = R.string.save_rating)) { viewModel.submitRating() }
-            BackButton { TODO() }
         }
     }
 }
@@ -158,7 +156,11 @@ interface IRatingViewModel {
     fun submitMissed()
 }
 
-class RatingViewModel(private val api: RemoteAPI, private val target: Uuid, private val navController: NavController) : ViewModel(), IRatingViewModel {
+class RatingViewModel(
+    private val api: RemoteAPI,
+    private val target: Uuid,
+    private val navController: NavController
+) : ViewModel(), IRatingViewModel {
     private var completion by mutableStateOf(Rating.MEDIUM)
     private var duration by mutableStateOf(Rating.MEDIUM)
     private var motivation by mutableStateOf(Rating.MEDIUM)

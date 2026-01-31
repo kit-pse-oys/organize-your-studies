@@ -34,7 +34,6 @@ import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.editFreeTime
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
 import de.pse.oys.ui.util.toFormattedString
 
@@ -47,10 +46,9 @@ fun FreeTimesView(viewModel: IFreeTimesViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ViewHeader(text = stringResource(id = R.string.my_free_times_button))
             if (viewModel.freeTimes.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -61,18 +59,13 @@ fun FreeTimesView(viewModel: IFreeTimesViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item {
-                        ViewHeader(text = stringResource(id = R.string.my_free_times_button))
-                    }
                     items(viewModel.freeTimes) { freeTime ->
                         FreeTimeButton(freeTime, viewModel)
                     }
                 }
-                BackButton(onClick = { TODO() })
             }
         }
     }

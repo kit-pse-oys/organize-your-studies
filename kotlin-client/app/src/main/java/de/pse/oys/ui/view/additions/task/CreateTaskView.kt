@@ -49,7 +49,6 @@ import de.pse.oys.data.facade.TaskData
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.DateSelectionRow
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
@@ -135,8 +134,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            SubmitButton(stringResource(id = R.string.save_task)) { TODO() }
-            BackButton(onClick = { TODO() })
+            SubmitButton(stringResource(id = R.string.save_task)) { viewModel.submit() }
 
             if (showExamDatePicker) {
                 LocalDatePickerDialog(
