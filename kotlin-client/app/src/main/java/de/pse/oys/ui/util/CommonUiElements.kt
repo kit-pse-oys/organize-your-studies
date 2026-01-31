@@ -26,12 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import de.pse.oys.R
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -233,25 +230,7 @@ fun SubmitButton(label: String, onClick: () -> Unit) {
         },
         modifier = Modifier
             .background(gradient, shape = shape)
-    )
-}
-
-@Composable
-fun BackButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        contentPadding = PaddingValues(),
-        content = {
-            Text(
-                stringResource(R.string.nav_back_button_label),
-                style = typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                color = Color.Gray,
-            )
-        }
+            .padding(vertical = 12.dp)
     )
 }
 

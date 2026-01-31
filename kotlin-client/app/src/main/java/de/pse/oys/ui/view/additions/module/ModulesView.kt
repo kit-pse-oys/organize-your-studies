@@ -34,7 +34,6 @@ import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.navigation.editModule
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
 
 @Composable
@@ -46,10 +45,9 @@ fun ModulesView(viewModel: IModulesViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ViewHeader(stringResource(id = R.string.my_modules_button))
             if (viewModel.modules.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -60,18 +58,13 @@ fun ModulesView(viewModel: IModulesViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item {
-                        ViewHeader(stringResource(id = R.string.my_modules_button))
-                    }
                     items(viewModel.modules) { module ->
                         ModuleButton(module, viewModel)
                     }
                 }
-                BackButton(onClick = { TODO() })
             }
         }
     }

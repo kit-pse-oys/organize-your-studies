@@ -33,7 +33,6 @@ import de.pse.oys.data.facade.Priority
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ColorPicker
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
@@ -61,8 +60,7 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
             InputLabel(stringResource(id = R.string.select_color))
             ColorPicker(onColorChanged = { viewModel.color = it })
             Spacer(modifier = Modifier.weight(1f))
-            SubmitButton(stringResource(id = R.string.save_module)) { TODO() }
-            BackButton(onClick = { TODO() })
+            SubmitButton(stringResource(id = R.string.save_module)) { viewModel.submit() }
         }
     }
 }

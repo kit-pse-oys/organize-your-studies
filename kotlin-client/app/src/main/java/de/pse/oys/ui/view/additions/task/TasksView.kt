@@ -37,7 +37,6 @@ import de.pse.oys.data.facade.Task
 import de.pse.oys.ui.navigation.editTask
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.BackButton
 import de.pse.oys.ui.util.ViewHeader
 
 @Composable
@@ -49,10 +48,9 @@ fun TasksView(viewModel: ITasksViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ViewHeader(text = stringResource(id = R.string.my_tasks_button))
             if (viewModel.tasks.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -63,18 +61,13 @@ fun TasksView(viewModel: ITasksViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    item {
-                        ViewHeader(text = stringResource(id = R.string.my_tasks_button))
-                    }
                     items(viewModel.tasks) { task ->
                         TaskButton(task, viewModel)
                     }
                 }
-                BackButton(onClick = { TODO() })
             }
         }
     }
