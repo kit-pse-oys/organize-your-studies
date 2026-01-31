@@ -121,4 +121,6 @@
     <string name="EVENING">Evening</string>
     <string name="delete_element_confirm_header">Do you really want to delete this?</string>
     <string name="delete_element_confirm_body">Deleting will be permanent and cannot be undone!</string>
+    <string name="open_menu_button">Open Menu</string>
+    <string name="open_additions_button">Open Additions</string>
 </resources>
