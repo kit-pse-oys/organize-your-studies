@@ -33,7 +33,7 @@ services:
     networks:
       - oys-network
     volumes:
-      - ${SSL_KEYSTORE_PATH:-/dummy}:/dummy:ro
+      - ${SSL_KEYSTORE_PATH}/keystore.p12:/keystore/keystore.p12:ro
 
   python-microservice:
     build: ./python-microservice
