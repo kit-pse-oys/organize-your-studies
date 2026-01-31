@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -47,6 +48,40 @@ public class SingleFreeTime extends FreeTime {
     @Override
     public RecurrenceType getRecurrenceType() {
         return RecurrenceType.ONCE;
+    }
+
+    /**
+     * Prüft, ob diese Freizeit an einem bestimmten Datum "gilt".
+     * Für {@link SingleFreeTime} muss das Datum exakt übereinstimmen.
+     *
+     * @param date Das zu prüfende Datum.
+     * @return true, wenn das Datum exakt übereinstimmt.
+     */
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return Objects.equals(this.date, date);
+    }
+
+    /**
+     * Liefert das Datum, das im DTO-Feld "date" zurückgegeben werden soll.
+     * Für {@link SingleFreeTime} ist das das echte Datum dieses Ereignisses.
+     *
+     * @return Das konkrete Datum dieses Ereignisses.
+     */
+    @Override
+    public LocalDate getRepresentativeDate() {
+        return this.date;
+    }
+
+    /**
+     * Aktualisiert subtype-spezifische Felder anhand des DTO-Datums.
+     * Für {@link SingleFreeTime} ist das das konkrete Datum.
+     *
+     * @param date Das neue konkrete Datum.
+     */
+    @Override
+    public void applyDtoDate(LocalDate date) {
+        this.date = date;
     }
 
     /**

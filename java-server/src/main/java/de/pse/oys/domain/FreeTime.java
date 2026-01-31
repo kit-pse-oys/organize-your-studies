@@ -4,6 +4,7 @@ import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -17,7 +18,6 @@ import java.util.UUID;
 @Table(name = "free_times")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "recurrence_type_discriminator", discriminatorType = DiscriminatorType.STRING)
-
 public abstract class FreeTime {
 
     /** Eindeutige Kennung des Freizeitblocks (readOnly). */
@@ -71,6 +71,36 @@ public abstract class FreeTime {
      */
     @Transient
     public abstract RecurrenceType getRecurrenceType();
+
+    /**
+     * Prüft, ob diese Freizeit an einem bestimmten Datum "gilt".
+     * SingleFreeTime: Datum muss exakt übereinstimmen.
+     * RecurringFreeTime: Wochentag muss übereinstimmen.
+     *
+     * @param date Das zu prüfende Datum.
+     * @return true, wenn die Freizeit an diesem Datum gilt.
+     */
+    public abstract boolean occursOn(LocalDate date);
+
+    /**
+     * Liefert das Datum, das im DTO-Feld "date" zurückgegeben werden soll.
+     * - SingleFreeTime: echtes Datum
+     * - RecurringFreeTime: repräsentatives Datum, das den Wochentag kodiert
+     *
+     * @return DTO-kompatibles Datum.
+     */
+    public abstract LocalDate getRepresentativeDate();
+
+    /**
+     * Aktualisiert subtype-spezifische Felder anhand des DTO-Datums.
+     * - SingleFreeTime: setzt das konkrete Datum
+     * - RecurringFreeTime: setzt den Wochentag (aus date.getDayOfWeek())
+     *
+     * Hinweis: Diese Methode führt KEINEN Typwechsel durch.
+     *
+     * @param date Das neue Datum aus dem DTO.
+     */
+    public abstract void applyDtoDate(LocalDate date);
 
     /**
      * Berechnet die Dauer des Freizeitblocks in Minuten.
