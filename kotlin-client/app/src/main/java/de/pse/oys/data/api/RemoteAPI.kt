@@ -1,23 +1,15 @@
 package de.pse.oys.data.api
 
 import de.pse.oys.data.QuestionState
-import de.pse.oys.data.Questions
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
-import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
-import de.pse.oys.data.facade.Step
-import de.pse.oys.data.facade.Task
-import de.pse.oys.data.facade.TaskData
 import de.pse.oys.data.facade.UnitRatings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.HttpClientEngineConfig
-import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.engine.okhttp.OkHttpConfig
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
@@ -39,7 +31,9 @@ import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
@@ -157,13 +151,15 @@ internal constructor(
             response.statusResponse()
         }
 
-    override suspend fun register(credentials: Credentials): Response<Unit> {
-        return requestTokens("users", credentials)
-    }
+    override suspend fun register(credentials: Credentials): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            requestTokens("users", credentials)
+        }
 
-    override suspend fun login(credentials: Credentials): Response<Unit> {
-        return requestTokens("auth/login", credentials)
-    }
+    override suspend fun login(credentials: Credentials): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            requestTokens("auth/login", credentials)
+        }
 
     override fun logout() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -171,62 +167,66 @@ internal constructor(
         }
     }
 
-    override suspend fun deleteAccount(): Response<Unit> {
-        return client.delete(serverUrl) {
-            url {
-                apiPath("users")
-            }
-
-            // No body, since the authorized user should be deleted
-        }.statusResponse()
-    }
-
-    override suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit> {
-        return client.put(serverUrl) {
-            url {
-                apiPath("questionnaire")
-            }
-
-            contentType(ContentType.Application.Json)
-            setBody(buildJsonObject {
-                for (question in questions.questions) { // Use <questions.questions> instead of <Questions> for Testability
-                    put(question.id, buildJsonObject {
-                        for (answer in question.answers) {
-                            put(answer.id, questions.selected(question, answer))
-                        }
-                    })
+    override suspend fun deleteAccount(): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.delete(serverUrl) {
+                url {
+                    apiPath("users")
                 }
-            })
-        }.statusResponse()
-    }
 
-    override suspend fun markUnitFinished(unit: Uuid): Response<Unit> {
-        return client.post(serverUrl) {
-            url {
-                apiPath("plan/units")
-            }
+                // No body, since the authorized user should be deleted
+            }.statusResponse()
+        }
 
-            contentType(ContentType.Application.Json)
-            setBody(Routes.Unit(unit, finished = true))
-        }.statusResponse()
-    }
+    override suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.put(serverUrl) {
+                url {
+                    apiPath("questionnaire")
+                }
 
-    override suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep> {
-        return client.post(serverUrl) {
-            url {
-                apiPath("plan/units")
-            }
+                contentType(ContentType.Application.Json)
+                setBody(buildJsonObject {
+                    for (question in questions.questions) { // Use <questions.questions> instead of <Questions> for Testability
+                        put(question.id, buildJsonObject {
+                            for (answer in question.answers) {
+                                put(answer.id, questions.selected(question, answer))
+                            }
+                        })
+                    }
+                })
+            }.statusResponse()
+        }
 
-            contentType(ContentType.Application.Json)
-            setBody(Routes.Unit(unit, automaticNewTime = true))
-        }.responseAs()
-    }
+    override suspend fun markUnitFinished(unit: Uuid): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.post(serverUrl) {
+                url {
+                    apiPath("plan/units")
+                }
+
+                contentType(ContentType.Application.Json)
+                setBody(Routes.Unit(unit, finished = true))
+            }.statusResponse()
+        }
+
+    override suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep> =
+        withContext(Dispatchers.IO) {
+            client.post(serverUrl) {
+                url {
+                    apiPath("plan/units")
+                }
+
+                contentType(ContentType.Application.Json)
+                setBody(Routes.Unit(unit, automaticNewTime = true))
+            }.responseAs()
+        }
 
     override suspend fun moveUnit(
         unit: Uuid,
         newTime: LocalDateTime
-    ): Response<Unit> {
-        return client.post(serverUrl) {
+    ): Response<Unit> = withContext(Dispatchers.IO) {
+        client.post(serverUrl) {
             url {
                 apiPath("plan/units")
             }
@@ -236,8 +236,8 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun queryRateable(): Response<List<Uuid>> {
-        return client.get(serverUrl) {
+    override suspend fun queryRateable(): Response<List<Uuid>> = withContext(Dispatchers.IO) {
+        client.get(serverUrl) {
             url {
                 apiPath("plan/units/rateable")
             }
@@ -247,8 +247,8 @@ internal constructor(
     override suspend fun rateUnit(
         unit: Uuid,
         ratings: UnitRatings
-    ): Response<Unit> {
-        return client.post(serverUrl) {
+    ): Response<Unit> = withContext(Dispatchers.IO) {
+        client.post(serverUrl) {
             url {
                 apiPath("plan/units/ratings")
             }
@@ -258,54 +258,57 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun updatePlan(): Response<Unit> {
-        return client.put(serverUrl) {
+    override suspend fun updatePlan(): Response<Unit> = withContext(Dispatchers.IO) {
+        client.put(serverUrl) {
             url {
                 apiPath("plan")
             }
         }.statusResponse()
     }
 
-    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>> {
-        return client.get(serverUrl) {
+    override suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>> =
+        withContext(Dispatchers.IO) {
+            client.get(serverUrl) {
+                url {
+                    apiPath("plan")
+                }
+            }.responseAs()
+        }
+
+    override suspend fun queryModules(): Response<List<Module>> = withContext(Dispatchers.IO) {
+        client.get(serverUrl) {
             url {
-                apiPath("plan")
+                apiPath("modules")
             }
         }.responseAs()
     }
 
-    override suspend fun queryModules(): Response<List<Module>> {
-        return client.get(serverUrl) {
-            url {
-                apiPath("modules")
-            }
-        }.responseAs()
-    }
+    override suspend fun createModule(module: ModuleData): Response<Uuid> =
+        withContext(Dispatchers.IO) {
+            client.post(serverUrl) {
+                url {
+                    apiPath("modules")
+                }
 
-    override suspend fun createModule(module: ModuleData): Response<Uuid> {
-        return client.post(serverUrl) {
-            url {
-                apiPath("modules")
-            }
+                contentType(ContentType.Application.Json)
+                setBody(module)
+            }.idResponse()
+        }
 
-            contentType(ContentType.Application.Json)
-            setBody(module)
-        }.idResponse()
-    }
+    override suspend fun updateModule(module: Module): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.put(serverUrl) {
+                url {
+                    apiPath("modules")
+                }
 
-    override suspend fun updateModule(module: Module): Response<Unit> {
-        return client.put(serverUrl) {
-            url {
-                apiPath("modules")
-            }
+                contentType(ContentType.Application.Json)
+                setBody(module)
+            }.statusResponse()
+        }
 
-            contentType(ContentType.Application.Json)
-            setBody(module)
-        }.statusResponse()
-    }
-
-    override suspend fun deleteModule(module: Uuid): Response<Unit> {
-        return client.delete(serverUrl) {
+    override suspend fun deleteModule(module: Uuid): Response<Unit> = withContext(Dispatchers.IO) {
+        client.delete(serverUrl) {
             url {
                 apiPath("modules")
             }
@@ -315,38 +318,40 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun queryTasks(): Response<List<RemoteTask>> {
-        return client.get(serverUrl) {
+    override suspend fun queryTasks(): Response<List<RemoteTask>> = withContext(Dispatchers.IO) {
+        client.get(serverUrl) {
             url {
                 apiPath("tasks")
             }
         }.responseAs()
     }
 
-    override suspend fun createTask(task: RemoteTaskData): Response<Uuid> {
-        return client.post(serverUrl) {
-            url {
-                apiPath("tasks")
-            }
+    override suspend fun createTask(task: RemoteTaskData): Response<Uuid> =
+        withContext(Dispatchers.IO) {
+            client.post(serverUrl) {
+                url {
+                    apiPath("tasks")
+                }
 
-            contentType(ContentType.Application.Json)
-            setBody(task)
-        }.idResponse()
-    }
+                contentType(ContentType.Application.Json)
+                setBody(task)
+            }.idResponse()
+        }
 
-    override suspend fun updateTask(task: RemoteTask): Response<Unit> {
-        return client.put(serverUrl) {
-            url {
-                apiPath("tasks")
-            }
+    override suspend fun updateTask(task: RemoteTask): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.put(serverUrl) {
+                url {
+                    apiPath("tasks")
+                }
 
-            contentType(ContentType.Application.Json)
-            setBody(task)
-        }.statusResponse()
-    }
+                contentType(ContentType.Application.Json)
+                setBody(task)
+            }.statusResponse()
+        }
 
-    override suspend fun deleteTask(task: Uuid): Response<Unit> {
-        return client.delete(serverUrl) {
+    override suspend fun deleteTask(task: Uuid): Response<Unit> = withContext(Dispatchers.IO) {
+        client.delete(serverUrl) {
             url {
                 apiPath("tasks")
             }
@@ -356,44 +361,47 @@ internal constructor(
         }.statusResponse()
     }
 
-    override suspend fun queryFreeTimes(): Response<List<FreeTime>> {
-        return client.get(serverUrl) {
+    override suspend fun queryFreeTimes(): Response<List<FreeTime>> = withContext(Dispatchers.IO) {
+        client.get(serverUrl) {
             url {
                 apiPath("freeTimes")
             }
         }.responseAs()
     }
 
-    override suspend fun createFreeTime(freeTime: FreeTimeData): Response<Uuid> {
-        return client.post(serverUrl) {
-            url {
-                apiPath("freeTimes")
-            }
+    override suspend fun createFreeTime(freeTime: FreeTimeData): Response<Uuid> =
+        withContext(Dispatchers.IO) {
+            client.post(serverUrl) {
+                url {
+                    apiPath("freeTimes")
+                }
 
-            contentType(ContentType.Application.Json)
-            setBody(freeTime)
-        }.idResponse()
-    }
+                contentType(ContentType.Application.Json)
+                setBody(freeTime)
+            }.idResponse()
+        }
 
-    override suspend fun updateFreeTime(freeTime: FreeTime): Response<Unit> {
-        return client.put(serverUrl) {
-            url {
-                apiPath("freeTimes")
-            }
+    override suspend fun updateFreeTime(freeTime: FreeTime): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.put(serverUrl) {
+                url {
+                    apiPath("freeTimes")
+                }
 
-            contentType(ContentType.Application.Json)
-            setBody(freeTime)
-        }.statusResponse()
-    }
+                contentType(ContentType.Application.Json)
+                setBody(freeTime)
+            }.statusResponse()
+        }
 
-    override suspend fun deleteFreeTime(freeTime: Uuid): Response<Unit> {
-        return client.delete(serverUrl) {
-            url {
-                apiPath("freeTimes")
-            }
+    override suspend fun deleteFreeTime(freeTime: Uuid): Response<Unit> =
+        withContext(Dispatchers.IO) {
+            client.delete(serverUrl) {
+                url {
+                    apiPath("freeTimes")
+                }
 
-            contentType(ContentType.Application.Json)
-            setBody(Routes.Id(freeTime))
-        }.statusResponse()
-    }
+                contentType(ContentType.Application.Json)
+                setBody(Routes.Id(freeTime))
+            }.statusResponse()
+        }
 }
