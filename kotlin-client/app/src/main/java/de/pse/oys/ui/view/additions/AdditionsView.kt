@@ -81,7 +81,8 @@ interface IAdditionsViewModel {
     fun navigateToCreateFreeTime()
 }
 
-class AdditionsViewModel(private val navController: NavController) : ViewModel(), IAdditionsViewModel {
+class AdditionsViewModel(private val navController: NavController) : ViewModel(),
+    IAdditionsViewModel {
 
     override fun navigateToCreateModule() {
         navController.createModule()

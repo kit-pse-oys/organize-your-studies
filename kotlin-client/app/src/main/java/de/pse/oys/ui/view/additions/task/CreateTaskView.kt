@@ -3,6 +3,7 @@ package de.pse.oys.ui.view.additions.task
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,6 +55,7 @@ import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
 import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
+import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
 import de.pse.oys.ui.util.toFormattedTimeString
@@ -130,6 +132,9 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                     ) { showEndDatePicker = true }
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+            SubmitButton(stringResource(id = R.string.save_task)) { viewModel.submit() }
 
             if (showExamDatePicker) {
                 LocalDatePickerDialog(

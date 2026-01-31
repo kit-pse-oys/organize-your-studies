@@ -52,8 +52,6 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
             ViewHeader(stringResource(id = R.string.rate_units_header))
             if (viewModel.available.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

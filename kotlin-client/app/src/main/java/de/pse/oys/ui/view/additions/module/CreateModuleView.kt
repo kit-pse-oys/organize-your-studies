@@ -3,6 +3,7 @@ package de.pse.oys.ui.view.additions.module
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
@@ -35,10 +36,8 @@ import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ColorPicker
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
+import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
-import kotlin.collections.orEmpty
-import kotlin.collections.set
-import kotlin.collections.toMutableMap
 
 @Composable
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
@@ -60,6 +59,8 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
                 onSelect = { viewModel.priority = it })
             InputLabel(stringResource(id = R.string.select_color))
             ColorPicker(onColorChanged = { viewModel.color = it })
+            Spacer(modifier = Modifier.weight(1f))
+            SubmitButton(stringResource(id = R.string.save_module)) { viewModel.submit() }
         }
     }
 }
@@ -153,7 +154,11 @@ abstract class BaseCreateModuleViewModel(
     }
 }
 
-class CreateModuleViewModel(private val api: RemoteAPI, model: ModelFacade, navController: NavController) :
+class CreateModuleViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    navController: NavController
+) :
     BaseCreateModuleViewModel(model, navController) {
     override val showDelete = false
 
