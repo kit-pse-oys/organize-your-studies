@@ -1,17 +1,22 @@
 package de.pse.oys.dto;
 
-import java.time.LocalTime;
 import de.pse.oys.domain.enums.TaskCategory;
-import de.pse.oys.domain.enums.Weekday;
+
+import java.time.LocalDateTime;
 
 /**
- * DTO für Aufgaben mit wiederkehrender Abgabe.
+ * DTO für Aufgaben mit wiederkehrenden Abgaben (SubmissionTask).
  */
 public class SubmissionTaskDTO extends TaskDTO {
 
-    private Weekday submissionDay;
-    private LocalTime submissionTime;
+    /** Erste Deadline (Anchor), an der sich die Wiederholung ausrichtet. */
+    private LocalDateTime firstDeadline;
+
+    /** Rhythmus in Wochen (1 = wöchentlich, 2 = alle 2 Wochen, ...). */
     private Integer submissionCycle;
+
+    /** Zeitpunkt, ab dem die Aufgabe komplett vorbei ist (keine Deadlines mehr). */
+    private LocalDateTime endTime;
 
     /**
      * Default-Konstruktor (z.B. für Deserialisierung).
@@ -27,74 +32,74 @@ public class SubmissionTaskDTO extends TaskDTO {
      * @param moduleTitle      Titel des zugehörigen Moduls
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
      * @param sendNotification ob Benachrichtigungen gesendet werden sollen
-     * @param submissionDay    Wochentag der Abgabe
-     * @param submissionTime   Uhrzeit der Abgabe
-     * @param submissionCycle  Zyklus/Intervall (z.B. 1 = wöchentlich)
+     * @param firstDeadline    erste Deadline (Anchor)
+     * @param submissionCycle  Zyklus/Intervall in Wochen (1 = wöchentlich)
+     * @param endTime          Ende der wiederkehrenden Abgaben
      */
     public SubmissionTaskDTO(String title,
                              String moduleTitle,
                              Integer weeklyTimeLoad,
                              boolean sendNotification,
-                             Weekday submissionDay,
-                             LocalTime submissionTime,
-                             Integer submissionCycle) {
+                             LocalDateTime firstDeadline,
+                             Integer submissionCycle,
+                             LocalDateTime endTime) {
         super(title, moduleTitle, TaskCategory.SUBMISSION, weeklyTimeLoad, sendNotification);
-        this.submissionDay = submissionDay;
-        this.submissionTime = submissionTime;
+        this.firstDeadline = firstDeadline;
         this.submissionCycle = submissionCycle;
+        this.endTime = endTime;
     }
 
     /**
-     * Liefert den Wochentag der Abgabe.
+     * Liefert die erste Deadline (Anchor).
      *
-     * @return Wochentag der Abgabe
+     * @return erste Deadline
      */
-    public Weekday getSubmissionDay() {
-        return submissionDay;
+    public LocalDateTime getFirstDeadline() {
+        return firstDeadline;
     }
 
     /**
-     * Setzt den Wochentag der Abgabe.
+     * Setzt die erste Deadline (Anchor).
      *
-     * @param submissionDay Wochentag der Abgabe
+     * @param firstDeadline erste Deadline
      */
-    public void setSubmissionDay(Weekday submissionDay) {
-        this.submissionDay = submissionDay;
+    public void setFirstDeadline(LocalDateTime firstDeadline) {
+        this.firstDeadline = firstDeadline;
     }
 
     /**
-     * Liefert die Uhrzeit der Abgabe.
+     * Liefert den Abgabe-Zyklus in Wochen.
      *
-     * @return Uhrzeit der Abgabe
-     */
-    public LocalTime getSubmissionTime() {
-        return submissionTime;
-    }
-
-    /**
-     * Setzt die Uhrzeit der Abgabe.
-     *
-     * @param submissionTime Uhrzeit der Abgabe
-     */
-    public void setSubmissionTime(LocalTime submissionTime) {
-        this.submissionTime = submissionTime;
-    }
-
-    /**
-     * Liefert den Abgabe-Zyklus.
-     *
-     * @return Zyklus/Intervall (z.B. 1 = wöchentlich)
+     * @return Zyklus/Intervall in Wochen
      */
     public Integer getSubmissionCycle() {
         return submissionCycle;
     }
 
     /**
-     * Setzt den Abgabe-Zyklus.
+     * Setzt den Abgabe-Zyklus in Wochen.
      *
-     * @param submissionCycle Zyklus/Intervall (z.B. 1 = wöchentlich)
+     * @param submissionCycle Zyklus/Intervall in Wochen (>= 1)
      */
     public void setSubmissionCycle(Integer submissionCycle) {
         this.submissionCycle = submissionCycle;
+    }
+
+    /**
+     * Liefert das Ende der wiederkehrenden Abgaben.
+     *
+     * @return Endzeitpunkt
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * Setzt das Ende der wiederkehrenden Abgaben.
+     *
+     * @param endTime Endzeitpunkt
+     */
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 }
