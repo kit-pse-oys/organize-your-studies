@@ -184,14 +184,25 @@ class LearningUnitServiceTest {
         }
     }
 
-    private static final class TestTask extends Task {
+    private static final class TestTask extends Task { //TODO
+
         private TestTask(String title) {
-            super(title, 60, TaskCategory.OTHER);
+            // Wenn eure Task-Basisklasse so aussieht:
+            // Task(String title, int weeklyDurationMinutes, TaskCategory category)
+            // dann passt das:
+            super(title, 1, TaskCategory.OTHER);
         }
 
         @Override
         public LocalDateTime getHardDeadline() {
-            return null;
+            return null; // für den Test egal
+        }
+
+        @Override
+        protected boolean isActive() {
+            return true; // Test-Task immer aktiv
         }
     }
+
+
 }
