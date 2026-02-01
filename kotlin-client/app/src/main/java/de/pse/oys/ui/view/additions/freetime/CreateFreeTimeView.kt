@@ -1,6 +1,7 @@
 package de.pse.oys.ui.view.additions.freetime
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,8 @@ import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
+import de.pse.oys.ui.util.DeleteButton
+import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
@@ -50,72 +53,100 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
     val dateText = viewModel.date.toFormattedString()
-
+    val submitButtonActive = viewModel.title.isNotBlank() && viewModel.start <= viewModel.end
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
         ) {
-            ViewHeaderBig(text = stringResource(id = R.string.new_freetime))
-            InputLabel(text = stringResource(id = R.string.enter_title))
-            SingleLineInput(viewModel.title) { viewModel.title = it }
-            DateSelectionRow(stringResource(id = R.string.select_Date), dateText) {
-                showDatePicker = true
-            }
-            InputLabel(text = stringResource(id = R.string.select_time_period))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TimePickerButton(
-                    label = stringResource(id = R.string.select_start_time_from),
-                    time = viewModel.start
-                ) {
-                    showStartTimePicker = true
+            if (viewModel.showDelete) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+                    DeleteButton { confirmDelete = true }
                 }
-                Text("-", style = typography.headlineLarge)
-                TimePickerButton(
-                    label = stringResource(id = R.string.select_end_time_to),
-                    time = viewModel.end
-                ) { showEndTimePicker = true }
             }
-            NotifyCheckbox(
-                stringResource(id = R.string.repeat_freetime_weekly),
-                viewModel.weekly
-            ) { viewModel.weekly = it }
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ViewHeaderBig(
+                    if (viewModel.showDelete) stringResource(R.string.edit_freetime) else stringResource(
+                        id = R.string.new_freetime
+                    )
+                )
+                InputLabel(text = stringResource(id = R.string.enter_title))
+                SingleLineInput(viewModel.title) { viewModel.title = it }
+                DateSelectionRow(stringResource(id = R.string.select_Date), dateText) {
+                    showDatePicker = true
+                }
+                InputLabel(text = stringResource(id = R.string.select_time_period))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TimePickerButton(
+                        label = stringResource(id = R.string.select_start_time_from),
+                        time = viewModel.start
+                    ) {
+                        showStartTimePicker = true
+                    }
+                    Text("-", style = typography.headlineLarge)
+                    TimePickerButton(
+                        label = stringResource(id = R.string.select_end_time_to),
+                        time = viewModel.end
+                    ) { showEndTimePicker = true }
+                }
+                NotifyCheckbox(
+                    stringResource(id = R.string.repeat_freetime_weekly),
+                    viewModel.weekly
+                ) { viewModel.weekly = it }
 
-            Spacer(modifier = Modifier.weight(1f))
-            SubmitButton(stringResource(id = R.string.save_freetime)) { viewModel.submit() }
+                Spacer(modifier = Modifier.weight(1f))
+                SubmitButton(
+                    if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
+                        id = R.string.add_freetime_button
+                    ),
+                    submitButtonActive
+                ) { viewModel.submit() }
 
-            if (showDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.date,
-                    onDateSelected = {
-                        if (it != null) {
-                            viewModel.date = it
-                        }
-                    },
-                    onDismiss = { showDatePicker = false }
-                )
-            }
-            if (showStartTimePicker) {
-                LocalTimePickerDialog(
-                    initialTime = viewModel.start,
-                    onTimeSelected = { viewModel.start = it },
-                    onDismiss = { showStartTimePicker = false }
-                )
-            }
-            if (showEndTimePicker) {
-                LocalTimePickerDialog(
-                    initialTime = viewModel.end,
-                    onTimeSelected = { if (it >= viewModel.start) viewModel.end = it },
-                    onDismiss = { showEndTimePicker = false }
-                )
+                if (showDatePicker) {
+                    LocalDatePickerDialog(
+                        currentDate = viewModel.date,
+                        onDateSelected = {
+                            if (it != null) {
+                                viewModel.date = it
+                            }
+                        },
+                        onDismiss = { showDatePicker = false }
+                    )
+                }
+                if (showStartTimePicker) {
+                    LocalTimePickerDialog(
+                        initialTime = viewModel.start,
+                        onTimeSelected = { viewModel.start = it },
+                        onDismiss = { showStartTimePicker = false }
+                    )
+                }
+                if (showEndTimePicker) {
+                    LocalTimePickerDialog(
+                        initialTime = viewModel.end,
+                        onTimeSelected = { if (it >= viewModel.start) viewModel.end = it },
+                        onDismiss = { showEndTimePicker = false }
+                    )
+                }
+
+                if (confirmDelete) {
+                    DeleteElementDialog(
+                        onDismiss = { confirmDelete = false },
+                        onConfirm = viewModel::delete
+                    )
+                }
             }
         }
     }

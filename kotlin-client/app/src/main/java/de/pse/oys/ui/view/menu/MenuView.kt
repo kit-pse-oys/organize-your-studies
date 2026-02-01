@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -30,6 +32,10 @@ import de.pse.oys.ui.navigation.editQuestionnaire
 import de.pse.oys.ui.navigation.myFreeTimes
 import de.pse.oys.ui.navigation.myModules
 import de.pse.oys.ui.navigation.myTasks
+import de.pse.oys.ui.theme.Blue
+import de.pse.oys.ui.theme.MediumBlue
+import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
+import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,18 +48,28 @@ fun MenuView(viewModel: IMenuViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         val darkmode by viewModel.darkmode.collectAsStateWithLifecycle()
 
-        Box(Modifier.padding(innerPadding).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Box(
+            Modifier
+                .padding(innerPadding)
+                .fillMaxSize(), contentAlignment = Alignment.TopCenter
+        ) {
             Column(
-                modifier = Modifier.fillMaxWidth(0.9f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(stringResource(R.string.menu_header))
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                ViewHeader(stringResource(R.string.menu_header))
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth(0.95f)) {
                     Darkmode.entries.forEachIndexed { i, value ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(
                                 index = i,
                                 count = Darkmode.entries.size
+                            ),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = Blue,
+                                activeContentColor = Color.White,
+                                inactiveContainerColor = Color.Transparent,
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                                inactiveBorderColor = MediumBlue
                             ),
                             onClick = { viewModel.setDarkmode(value) },
                             selected = value == darkmode,
@@ -61,37 +77,37 @@ fun MenuView(viewModel: IMenuViewModel) {
                                 Text(
                                     value.label(),
                                     maxLines = 1,
-                                    fontSize = LocalTextStyle.current.fontSize / 1.5f
+                                    style = typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
                                 )
                             }
                         )
                     }
                 }
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.my_modules_button),
                     onClick = viewModel::navigateToModules
-                ) { Text(stringResource(R.string.my_modules_button)) }
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                )
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.my_tasks_button),
                     onClick = viewModel::navigateToTasks
-                ) { Text(stringResource(R.string.my_tasks_button)) }
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                )
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.my_free_times_button),
                     onClick = viewModel::navigateToFreeTimes
-                ) { Text(stringResource(R.string.my_free_times_button)) }
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                )
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.edit_questionnaire_button),
                     onClick = viewModel::navigateToEditQuestionnaire
-                ) { Text(stringResource(R.string.edit_questionnaire_button)) }
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.7f),
+                )
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.account_settings_button),
                     onClick = viewModel::navigateToAccountSettings
-                ) { Text(stringResource(R.string.account_settings_button)) }
-                Button(modifier = Modifier.fillMaxWidth(0.7f), onClick = viewModel::updatePlan) {
-                    Text(
-                        stringResource(R.string.update_plan_button)
-                    )
-                }
+                )
+                SimpleMenuAndAdditionsButton(
+                    stringResource(R.string.update_plan_button),
+                    onClick = viewModel::updatePlan
+                )
             }
         }
     }
@@ -117,9 +133,17 @@ interface IMenuViewModel {
     fun updatePlan()
 }
 
-class MenuViewModel(private val properties: Properties, private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
+class MenuViewModel(
+    private val properties: Properties,
+    private val api: RemoteAPI,
+    private val navController: NavController
+) : ViewModel(),
     IMenuViewModel {
-    override val darkmode = properties.darkmode.stateIn(viewModelScope + Dispatchers.IO, SharingStarted.Eagerly, Darkmode.SYSTEM)
+    override val darkmode = properties.darkmode.stateIn(
+        viewModelScope + Dispatchers.IO,
+        SharingStarted.Eagerly,
+        Darkmode.SYSTEM
+    )
 
     override fun setDarkmode(darkmode: Darkmode) {
         viewModelScope.launch {

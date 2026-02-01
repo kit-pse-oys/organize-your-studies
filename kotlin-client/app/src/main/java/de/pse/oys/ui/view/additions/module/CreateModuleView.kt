@@ -1,10 +1,12 @@
 package de.pse.oys.ui.view.additions.module
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -14,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,8 @@ import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ColorPicker
+import de.pse.oys.ui.util.DeleteButton
+import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
@@ -41,26 +46,55 @@ import de.pse.oys.ui.util.ViewHeaderBig
 
 @Composable
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
+    var confirmDelete by remember { mutableStateOf(false) }
+    val submitButtonActive = viewModel.title.isNotBlank() && viewModel.description.isNotBlank()
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
         ) {
-            ViewHeaderBig(text = stringResource(id = R.string.new_module))
-            InputLabel(text = stringResource(id = R.string.enter_title))
-            SingleLineInput(viewModel.title) { viewModel.title = it }
-            InputLabel(stringResource(id = R.string.enter_description))
-            SingleLineInput(viewModel.description) { viewModel.description = it }
-            InputLabel(stringResource(id = R.string.select_priority))
-            PriorityChips(
-                current = viewModel.priority,
-                onSelect = { viewModel.priority = it })
-            InputLabel(stringResource(id = R.string.select_color))
-            ColorPicker(onColorChanged = { viewModel.color = it })
-            Spacer(modifier = Modifier.weight(1f))
-            SubmitButton(stringResource(id = R.string.save_module)) { viewModel.submit() }
+            if (viewModel.showDelete) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+                    DeleteButton { confirmDelete = true }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ViewHeaderBig(
+                    if (viewModel.showDelete) stringResource(R.string.edit_module) else stringResource(
+                        id = R.string.new_module
+                    )
+                )
+                InputLabel(text = stringResource(id = R.string.enter_title))
+                SingleLineInput(viewModel.title) { viewModel.title = it }
+                InputLabel(stringResource(id = R.string.enter_description))
+                SingleLineInput(viewModel.description) { viewModel.description = it }
+                InputLabel(stringResource(id = R.string.select_priority))
+                PriorityChips(
+                    current = viewModel.priority,
+                    onSelect = { viewModel.priority = it })
+                InputLabel(stringResource(id = R.string.select_color))
+                ColorPicker(onColorChanged = { viewModel.color = it })
+                Spacer(modifier = Modifier.weight(1f))
+                SubmitButton(
+                    if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
+                        id = R.string.add_module_button
+                    ),
+                    submitButtonActive
+                ) { viewModel.submit() }
+            }
+
+            if (confirmDelete) {
+                DeleteElementDialog(
+                    onDismiss = { confirmDelete = false },
+                    onConfirm = viewModel::delete
+                )
+            }
         }
     }
 }

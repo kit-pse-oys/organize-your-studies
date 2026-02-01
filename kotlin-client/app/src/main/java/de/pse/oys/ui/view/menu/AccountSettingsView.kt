@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +22,8 @@ import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.login
+import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
+import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,14 +33,17 @@ fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         var confirmDelete by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.padding(innerPadding).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.manage_account_header))
-            Button(onClick = viewModel::logout) { Text(stringResource(R.string.logout_button)) }
-            Button(onClick = {
-                confirmDelete = true
-            }) {
-                Text(stringResource(R.string.delete_account_button))
-            }
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ViewHeader(stringResource(R.string.manage_account_header))
+            SimpleMenuAndAdditionsButton(stringResource(R.string.logout_button), viewModel::logout)
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.delete_account_button)
+            ) { confirmDelete = true }
         }
 
         if (confirmDelete) {
@@ -72,7 +75,10 @@ interface IAccountSettingsViewModel {
     fun deleteAccount()
 }
 
-class AccountSettingsViewModel(private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
+class AccountSettingsViewModel(
+    private val api: RemoteAPI,
+    private val navController: NavController
+) : ViewModel(),
     IAccountSettingsViewModel {
     override fun logout() {
         viewModelScope.launch {
