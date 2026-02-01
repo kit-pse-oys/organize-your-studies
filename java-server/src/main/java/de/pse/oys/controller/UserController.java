@@ -18,7 +18,7 @@ import java.util.UUID;
  * Ermöglicht die Registrierung neuer Nutzer sowie die Löschung von Konten.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController extends BaseController{
     private static final String ERROR_MSG_INTERNAL_SERVER = "Ein Fehler ist aufgetreten.";
 
@@ -38,28 +38,43 @@ public class UserController extends BaseController{
      * @return Eine ResponseEntity mit den Authentifizierungsdaten (Status 201).
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserDTO dto) {
+    public ResponseEntity<AuthResponseDTO> register(@RequestBody UserDTO dto) {
         try {
             AuthResponseDTO response = userService.register(dto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         } catch (Exception ex) {
             // Und für alle anderen Fehler noch einen Catch...
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_MSG_INTERNAL_SERVER);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * Löscht das Konto des aktuell authentifizierten Nutzers.
+     * Löscht das Konto des aktuell authentifizierten Nutzers permanent.
+     * Verifiziert die Anfrage anhand der im DTO bereitgestellten Daten.
+     *
      * @param dto Zusätzliche Daten zur Verifizierung der Löschung (z. B. Passwort).
-     * @return Eine leere ResponseEntity (Status 204).
+     * @return Status 204 (No Content) bei Erfolg oder 403 (Forbidden) bei falscher Verifizierung.
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteAccount(@RequestBody UserDTO dto) {
-        UUID userId = getAuthenticatedUserId();
+        try {
+            UUID userId = getAuthenticatedUserId();
 
-        userService.deleteAccount(userId, dto);
-        return ResponseEntity.noContent().build();
+            // Der Service prüft die Berechtigung (z.B. Passwortabgleich)
+            userService.deleteAccount(userId, dto);
+
+            return ResponseEntity.noContent().build();
+        } catch (SecurityException e) {
+            // Falls das Passwort falsch war oder die Berechtigung fehlt
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            // Falls der User nicht existiert oder das DTO fehlerhaft ist
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            // Unerwarteter Serverfehler
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
