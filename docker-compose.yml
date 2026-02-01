@@ -22,6 +22,7 @@ services:
       - ${SERVER_PORT}:${SERVER_PORT}   # Macht den Server unter den Port erreichbar
     environment:
       # Notwendige Umgebungsvariablen für die Java-Anwendung im Container
+      - SSL_ENABLED=${SSL_ENABLED}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-oys_db}
       - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
