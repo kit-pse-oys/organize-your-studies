@@ -43,7 +43,7 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
     List<FreeTime> findFreeTimeInPeriod(@Param("uid") UUID userId,
                                         @Param("start") LocalDate start,
                                         @Param("end") LocalDate end);
-}
+
 
     /**
      * DB-seitiger Overlap-Check für einen konkreten Tag (dto.date) inkl. Weekly-Blocks.

@@ -3,6 +3,9 @@ package de.pse.oys.controller;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.LearningUnitService;
+import de.pse.oys.service.exception.AccessDeniedException;
+import de.pse.oys.service.exception.ResourceNotFoundException;
+import de.pse.oys.service.exception.ValidationException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +39,7 @@ public class LearningUnitController extends BaseController {
      * @param dto Die neuen Daten der Einheit.
      * @return Der aktualisierte Gesamtplan als DTO.
      */
+    @PatchMapping("/{planId}/{unitId}")
     public ResponseEntity<LearningPlanDTO> updateLearningUnit(
             @PathVariable UUID planId,
             @PathVariable UUID unitId,
@@ -44,9 +48,9 @@ public class LearningUnitController extends BaseController {
             UUID userId = getAuthenticatedUserId();
             LearningPlanDTO updatedPlan = learningUnitService.updateLearningUnit(userId, planId, unitId, dto);
             return ResponseEntity.ok(updatedPlan);
-        } catch (SecurityException e) {
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
+        } catch (ValidationException | ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -71,9 +75,9 @@ public class LearningUnitController extends BaseController {
             UUID userId = getAuthenticatedUserId();
             LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitManually(userId, planId, unitId, start, end);
             return ResponseEntity.ok(updatedPlan);
-        } catch (SecurityException e) {
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
+        } catch (ValidationException | ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -87,7 +91,7 @@ public class LearningUnitController extends BaseController {
      * @param actualDuration Die tatsächlich benötigte Zeit in Minuten.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PostMapping("/{planId}/{unitId}/finish")
+    @PatchMapping("/{planId}/{unitId}/finish")
     public ResponseEntity<LearningPlanDTO> finishUnitEarly(
             @PathVariable UUID planId,
             @PathVariable UUID unitId,
@@ -96,9 +100,9 @@ public class LearningUnitController extends BaseController {
             UUID userId = getAuthenticatedUserId();
             LearningPlanDTO updatedPlan = learningUnitService.finishUnitEarly(userId, planId, unitId, actualDuration);
             return ResponseEntity.ok(updatedPlan);
-        } catch (SecurityException e) {
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
+        } catch (ValidationException | ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

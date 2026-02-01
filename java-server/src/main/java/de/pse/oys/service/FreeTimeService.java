@@ -56,7 +56,7 @@ public class FreeTimeService {
      * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
      * @return angelegte Freizeit als DTO
      */
-    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) {
+    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
         validate(dto);
         ensureNoOverlap(userId, dto, null);
@@ -73,7 +73,7 @@ public class FreeTimeService {
      * @param dto        neue Daten
      * @return aktualisierte Freizeit als DTO
      */
-    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) {
+    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException, AccessDeniedException {
         requireUserExists(userId);
         requireId(freeTimeId);
         validate(dto);
@@ -100,7 +100,7 @@ public class FreeTimeService {
      * @param userId     Nutzer-ID
      * @param freeTimeId ID der Freizeit
      */
-    public void deleteFreeTime(UUID userId, UUID freeTimeId) {
+    public void deleteFreeTime(UUID userId, UUID freeTimeId) throws ResourceNotFoundException, ValidationException, AccessDeniedException {
         requireUserExists(userId);
         requireId(freeTimeId);
 
@@ -117,7 +117,7 @@ public class FreeTimeService {
      *
      * @param dto Eingabedaten
      */
-    protected void validate(FreeTimeDTO dto) {
+    protected void validate(FreeTimeDTO dto) throws ValidationException {
         if (dto == null
                 || dto.getTitle() == null || dto.getTitle().isBlank()
                 || dto.getDate() == null
