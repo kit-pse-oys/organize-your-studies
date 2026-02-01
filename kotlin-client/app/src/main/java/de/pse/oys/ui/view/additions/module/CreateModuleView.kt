@@ -27,14 +27,18 @@ import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
+import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
-import de.pse.oys.ui.navigation.Intent
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ColorPicker
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.ViewHeaderBig
+import kotlin.collections.orEmpty
+import kotlin.collections.set
+import kotlin.collections.toMutableMap
 
 @Composable
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
@@ -131,20 +135,26 @@ interface ICreateModuleViewModel {
 }
 
 abstract class BaseCreateModuleViewModel(
-    initialTitle: String = "",
-    initialDescription: String = "",
-    initialPriority: Priority = Priority.NEUTRAL,
-    initialColor: Color = Color.Black
+    private val model: ModelFacade,
+    private val navController: NavController,
+    module: ModuleData? = null
 ) : ViewModel(), ICreateModuleViewModel {
+    override var title by mutableStateOf(module?.title ?: "")
+    override var description by mutableStateOf(module?.description ?: "")
+    override var priority by mutableStateOf(module?.priority ?: Priority.NEUTRAL)
+    override var color by mutableStateOf(module?.color ?: Color.Unspecified)
 
-    override var title by mutableStateOf(initialTitle)
-    override var description by mutableStateOf(initialDescription)
-    override var priority by mutableStateOf(initialPriority)
-    override var color by mutableStateOf(initialColor)
+    protected fun registerNewModule(module: Module) {
+        val modules = model.modules.orEmpty().toMutableMap()
+        model.modules = modules
+        modules[module.id] = module.data
+
+        navController.main()
+    }
 }
 
-class CreateModuleViewModel(val api: RemoteAPI, val navController: NavController) :
-    BaseCreateModuleViewModel() {
+class CreateModuleViewModel(private val api: RemoteAPI, model: ModelFacade, navController: NavController) :
+    BaseCreateModuleViewModel(model, navController) {
     override val showDelete = false
 
     override fun submit() {
@@ -152,20 +162,18 @@ class CreateModuleViewModel(val api: RemoteAPI, val navController: NavController
     }
 
     override fun delete() {
-        TODO("Not yet implemented")
+        error("Can't delete Module before creating it")
     }
 }
 
 class EditModuleViewModel(
-    val api: RemoteAPI,
-    val target: Module,
-    val navController: NavController
-) : BaseCreateModuleViewModel(
-    initialTitle = target.data.title,
-    initialDescription = target.data.description,
-    initialPriority = target.data.priority,
-    initialColor = target.data.color
-) {
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    target: Module,
+    navController: NavController
+) : BaseCreateModuleViewModel(model, navController, target.data) {
+    private val uuid = target.id
+
     override val showDelete = true
 
     override fun submit() {
@@ -176,20 +184,3 @@ class EditModuleViewModel(
         TODO("Not yet implemented")
     }
 }
-
-fun CreateModuleViewModel(
-    intent: Intent,
-    api: RemoteAPI,
-    model: ModelFacade,
-    navController: NavController
-): BaseCreateModuleViewModel {
-    return when (intent) {
-        is Intent.Create -> CreateModuleViewModel(api, navController)
-        is Intent.Edit -> EditModuleViewModel(
-            api,
-            intent.module(model) ?: TODO("Think about if this is even possible"),
-            navController
-        )
-    }
-}
-

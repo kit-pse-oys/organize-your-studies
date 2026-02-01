@@ -3,18 +3,16 @@ package de.pse.oys.service;
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
-import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.service.exception.AccessDeniedException;
+import de.pse.oys.service.exception.ResourceNotFoundException;
+import de.pse.oys.service.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -29,19 +27,13 @@ import java.util.UUID;
 @Transactional
 public class FreeTimeService {
 
-    private static final int DAYS_PER_WEEK = 7;
-
-    private static final String MSG_UPDATE_REQUIRES_ID = "Für updateFreeTime muss dto.id gesetzt sein.";
-    private static final String MSG_FREE_TIME_NOT_FOUND_TEMPLATE = "FreeTime mit ID %s wurde nicht gefunden.";
-    private static final String MSG_FREE_TIME_NOT_OWNED = "FreeTime gehört nicht zum angegebenen User.";
-    private static final String MSG_USER_NOT_FOUND_TEMPLATE = "User mit ID %s wurde nicht gefunden.";
-
-    private static final String MSG_REQUIRED_FIELDS_MISSING =
-            "Pflichtfelder fehlen (title/date/startTime/endTime).";
-    private static final String MSG_INVALID_RANGE =
-            "Ungültiger Zeitraum: startTime muss vor endTime liegen.";
-    private static final String MSG_OVERLAP =
-            "Freizeit überschneidet sich mit einer bestehenden Freizeit.";
+    private static final String MSG_REQUIRED_FIELDS_MISSING = "Pflichtfelder fehlen.";
+    private static final String MSG_INVALID_RANGE = "Die Startzeit muss vor der Endzeit liegen.";
+    private static final String MSG_USER_NOT_FOUND = "User existiert nicht.";
+    private static final String MSG_FREETIME_NOT_FOUND = "FreeTime existiert nicht.";
+    private static final String MSG_FORBIDDEN = "Zugriff verweigert.";
+    private static final String MSG_OVERLAP = "Die Freizeit überschneidet sich mit einem bestehenden Eintrag.";
+    private static final String MSG_TYPE_CHANGE_NOT_SUPPORTED = "Recurrence-Typ kann per Update nicht geändert werden.";
 
     private final UserRepository userRepository;
     private final FreeTimeRepository freeTimeRepository;
@@ -58,228 +50,179 @@ public class FreeTimeService {
     }
 
     /**
-     * Legt einen neuen Freizeitblock für einen Nutzer an.
+     * Koordiniert die Erstellung: validiert, prüft Überschneidungen, mappt DTO -> Entity und speichert.
      *
      * @param userId Nutzer-ID
      * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
      * @return angelegte Freizeit als DTO
      */
     public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) {
-        User user = loadUser(userId);
-        validateData(user, dto, null);
-
-        // id bleibt entweder aus DTO oder wird neu generiert (falls DTO null liefert)
-        UUID id = (dto.getId() != null) ? dto.getId() : UUID.randomUUID();
-        FreeTime entity = mapToEntity(dto);
-
-        user.addFreeTime(entity);
-        userRepository.save(user); // Cascade.ALL auf freeTimes
-
-        return mapToDto(entity);
+        requireUserExists(userId);
+        validate(dto);
+        ensureNoOverlap(userId, dto, null);
+        FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
+        return toDto(saved);
     }
 
     /**
-     * Aktualisiert einen bestehenden Freizeitblock.
+     * Koordiniert das Update: validiert, lädt bestehende Freizeit, prüft Ownership, verhindert Typwechsel
+     * und speichert die Änderungen.
      *
-     * @param userId Nutzer-ID
-     * @param dto neue Daten (dto.id muss gesetzt sein)
+     * @param userId     Nutzer-ID
+     * @param freeTimeId ID der Freizeit
+     * @param dto        neue Daten
      * @return aktualisierte Freizeit als DTO
      */
-    public FreeTimeDTO updateFreeTime(UUID userId, FreeTimeDTO dto) {
-        User user = loadUser(userId);
-
-        UUID freeTimeId = dto.getId();
-        if (freeTimeId == null) {
-            throw new IllegalArgumentException(MSG_UPDATE_REQUIRES_ID);
-        }
+    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) {
+        requireUserExists(userId);
+        requireId(freeTimeId);
+        validate(dto);
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format(MSG_FREE_TIME_NOT_FOUND_TEMPLATE, freeTimeId)));
+                .orElseThrow(() -> new ResourceNotFoundException(MSG_FREETIME_NOT_FOUND));
 
-        if (!belongsToUser(user, freeTimeId)) {
-            throw new IllegalArgumentException(MSG_FREE_TIME_NOT_OWNED);
+        assertOwner(existing, userId);
+
+        if (dto.isWeekly() != isWeekly(existing)) {
+            throw new ValidationException(MSG_TYPE_CHANGE_NOT_SUPPORTED);
         }
 
-        validateData(user, dto, freeTimeId);
+        ensureNoOverlap(userId, dto, existing.getFreeTimeId());
 
-        boolean wantsWeekly = dto.isWeekly();
-        boolean isWeekly = existing.getRecurrenceType() == RecurrenceType.WEEKLY;
+        applyUpdate(existing, dto);
 
-        // Wechsel zwischen Unterklassen (ONCE <-> WEEKLY) erfordert eine neue Entity.
-        if (wantsWeekly != isWeekly) {
-            user.deleteFreeTime(existing);
-            freeTimeRepository.delete(existing);
-
-            FreeTime replacement = mapToEntity(dto);
-            user.addFreeTime(replacement);
-
-            userRepository.save(user);
-            return mapToDto(replacement);
-        }
-
-        // Typ bleibt gleich: Felder direkt aktualisieren.
-        existing.setTitle(dto.getTitle());
-        existing.setStartTime(dto.getStartTime());
-        existing.setEndTime(dto.getEndTime());
-
-        if (existing.getRecurrenceType() == RecurrenceType.WEEKLY) {
-            ((RecurringFreeTime) existing).setDayOfWeek(dto.getDate().getDayOfWeek());
-        } else {
-            ((SingleFreeTime) existing).setDate(dto.getDate());
-        }
-
-        freeTimeRepository.save(existing);
-        userRepository.save(user);
-
-        return mapToDto(existing);
+        return toDto(freeTimeRepository.save(existing));
     }
 
     /**
-     * Löscht einen Freizeitblock.
+     * Koordiniert das Löschen: validiert, lädt bestehende Freizeit, prüft Ownership und löscht.
      *
-     * @param userId Nutzer-ID
-     * @param freeTimeId Freizeit-ID
+     * @param userId     Nutzer-ID
+     * @param freeTimeId ID der Freizeit
      */
     public void deleteFreeTime(UUID userId, UUID freeTimeId) {
-        User user = loadUser(userId);
+        requireUserExists(userId);
+        requireId(freeTimeId);
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format(MSG_FREE_TIME_NOT_FOUND_TEMPLATE, freeTimeId)));
+                .orElseThrow(() -> new ResourceNotFoundException(MSG_FREETIME_NOT_FOUND));
 
-        if (!belongsToUser(user, freeTimeId)) {
-            throw new IllegalArgumentException(MSG_FREE_TIME_NOT_OWNED);
-        }
+        assertOwner(existing, userId);
 
-        user.deleteFreeTime(existing);
         freeTimeRepository.delete(existing);
-        userRepository.save(user);
     }
 
     /**
-     * Ruft alle Freizeitblöcke eines bestimmten Nutzers ab.
-     * @param userId Die ID des Nutzers, dessen Freizeitblöcke geladen werden sollen.
-     * @return Eine Liste aller Freizeitblöcke als {@link FreeTimeDTO}.
+     * Prüft die logische Konsistenz der Eingabedaten und wirft bei Fehlern eine {@link ValidationException}.
+     *
+     * @param dto Eingabedaten
      */
-    public List<FreeTimeDTO> getFreeTimesByUserId(UUID userId) {
-        // Lädt alle FreeTime-Entitäten über das Repository anhand der Nutzer-ID
-        List<FreeTime> entities = freeTimeRepository.findByUserId(userId);
-
-        // Wandelt die Liste der Entitäten in eine Liste von DTOs um
-        return entities.stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    private User loadUser(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format(MSG_USER_NOT_FOUND_TEMPLATE, userId)));
-    }
-
-    private void validateData(User user, FreeTimeDTO dto, UUID ignoreId) {
+    protected void validate(FreeTimeDTO dto) {
         if (dto == null
-                || isBlank(dto.getTitle())
+                || dto.getTitle() == null || dto.getTitle().isBlank()
                 || dto.getDate() == null
                 || dto.getStartTime() == null
                 || dto.getEndTime() == null) {
-            throw new IllegalArgumentException(MSG_REQUIRED_FIELDS_MISSING);
+            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
         if (!dto.getStartTime().isBefore(dto.getEndTime())) {
-            throw new IllegalArgumentException(MSG_INVALID_RANGE);
-        }
-
-        List<FreeTime> existing = user.getFreeTimes();
-        if (existing == null) {
-            return;
-        }
-
-        for (FreeTime ft : existing) {
-            if (ft == null) {
-                continue;
-            }
-            if (ignoreId != null && ignoreId.equals(ft.getFreeTimeId())) {
-                continue;
-            }
-
-            if (!occursSameDay(ft, dto.getDate())) {
-                continue;
-            }
-
-            if (overlaps(ft.getStartTime(), ft.getEndTime(), dto.getStartTime(), dto.getEndTime())) {
-                throw new IllegalArgumentException(MSG_OVERLAP);
-            }
+            throw new ValidationException(MSG_INVALID_RANGE);
         }
     }
 
-    private boolean occursSameDay(FreeTime existing, LocalDate dtoDate) {
-        if (dtoDate == null) {
-            return false;
-        }
-
-        if (existing.getRecurrenceType() == RecurrenceType.WEEKLY) {
-            DayOfWeek dow = ((RecurringFreeTime) existing).getDayOfWeek();
-            return dow != null && dow == dtoDate.getDayOfWeek();
-        }
-
-        if (existing.getRecurrenceType() == RecurrenceType.ONCE) {
-            LocalDate d = ((SingleFreeTime) existing).getDate();
-            return d != null && d.equals(dtoDate);
-        }
-
-        return false;
-    }
-
-    private boolean overlaps(LocalTime aStart, LocalTime aEnd, LocalTime bStart, LocalTime bEnd) {
-        // Intervall-Logik: [start, end)
-        return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
-    }
-
-    private FreeTime mapToEntity(FreeTimeDTO dto) {
+    /**
+     * Transformiert das DTO in das Domänenmodell.
+     *
+     * @param userId Nutzer-ID
+     * @param dto    Eingabedaten
+     * @return Domain-Entität (Recurring oder Single)
+     */
+    protected FreeTime toEntity(UUID userId, FreeTimeDTO dto) {
         if (dto.isWeekly()) {
             return new RecurringFreeTime(
+                    userId,
                     dto.getTitle(),
                     dto.getStartTime(),
                     dto.getEndTime(),
                     dto.getDate().getDayOfWeek()
             );
         }
-        return new SingleFreeTime(dto.getTitle(), dto.getStartTime(), dto.getEndTime(), dto.getDate());
+
+        return new SingleFreeTime(
+                userId,
+                dto.getTitle(),
+                dto.getStartTime(),
+                dto.getEndTime(),
+                dto.getDate()
+        );
     }
 
-    private FreeTimeDTO mapToDto(FreeTime ft) {
-        boolean weekly = ft.getRecurrenceType() == RecurrenceType.WEEKLY;
+    // -------------------------
+    // Helpers
+    // -------------------------
 
-        LocalDate date;
-        if (weekly) {
-            DayOfWeek dow = ((RecurringFreeTime) ft).getDayOfWeek();
-            LocalDate today = LocalDate.now();
-            int delta = (dow.getValue() - today.getDayOfWeek().getValue() + DAYS_PER_WEEK) % DAYS_PER_WEEK;
-            date = today.plusDays(delta);
-        } else {
-            date = ((SingleFreeTime) ft).getDate();
+    /** DB-seitiger Overlap-Check. */
+    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
+        String weekday = dto.getDate().getDayOfWeek().name();
+
+        boolean overlap = freeTimeRepository.existsOverlap(
+                userId,
+                dto.getDate(),
+                weekday,
+                dto.getStartTime(),
+                dto.getEndTime(),
+                ignoreId
+        );
+
+        if (overlap) {
+            throw new ValidationException(MSG_OVERLAP);
         }
-
-        return new FreeTimeDTO(ft.getFreeTimeId(), ft.getTitle(), date, ft.getStartTime(), ft.getEndTime(), weekly);
     }
 
-    private boolean belongsToUser(User user, UUID freeTimeId) {
-        List<FreeTime> list = user.getFreeTimes();
-        if (list == null) {
-            return false;
+    /** Validiert, dass die ID gesetzt ist. */
+    private void requireId(UUID id) {
+        if (id == null) {
+            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
-
-        for (FreeTime ft : list) {
-            if (ft != null && Objects.equals(ft.getFreeTimeId(), freeTimeId)) {
-                return true;
-            }
-        }
-        return false;
     }
 
-    private boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
+    /** Validiert, dass der Nutzer existiert. */
+    private void requireUserExists(UUID userId) {
+        if (userId == null || !userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException(MSG_USER_NOT_FOUND);
+        }
+    }
+
+    /** Prüft, ob die Freizeit dem Nutzer gehört. */
+    private void assertOwner(FreeTime ft, UUID userId) {
+        if (!Objects.equals(ft.getUserId(), userId)) {
+            throw new AccessDeniedException(MSG_FORBIDDEN);
+        }
+    }
+
+    /** Prüft, ob die Freizeit wöchentlich wiederkehrend ist. */
+    private boolean isWeekly(FreeTime ft) {
+        return ft.getRecurrenceType() == RecurrenceType.WEEKLY;
+    }
+
+    /** Überträgt die DTO-Werte auf die bestehende Freizeit-Entität. */
+    private void applyUpdate(FreeTime existing, FreeTimeDTO dto) {
+        existing.setTitle(dto.getTitle());
+        existing.setStartTime(dto.getStartTime());
+        existing.setEndTime(dto.getEndTime());
+        existing.applyDtoDate(dto.getDate());
+    }
+
+    /** Mappt eine Freizeit-Entität auf ein DTO. */
+    private FreeTimeDTO toDto(FreeTime entity) {
+        FreeTimeDTO dto = new FreeTimeDTO();
+        dto.setTitle(entity.getTitle());
+        dto.setStartTime(entity.getStartTime());
+        dto.setEndTime(entity.getEndTime());
+        dto.setWeekly(entity.getRecurrenceType() == RecurrenceType.WEEKLY);
+        dto.setDate(entity.getRepresentativeDate());
+        return dto;
     }
 }
+

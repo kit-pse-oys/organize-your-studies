@@ -22,7 +22,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.ui.navigation.Main
+import de.pse.oys.ui.navigation.login
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
@@ -68,19 +72,25 @@ interface IAccountSettingsViewModel {
     fun deleteAccount()
 }
 
-class AccountSettingsViewModel(val api: RemoteAPI, val navController: NavController) : ViewModel(),
+class AccountSettingsViewModel(private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
     IAccountSettingsViewModel {
     override fun logout() {
         viewModelScope.launch {
             api.logout()
-            TODO("Navigate to login")
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.login(dontGoBack = Main)
+            }
         }
     }
 
     override fun deleteAccount() {
         viewModelScope.launch {
             api.deleteAccount()
-            TODO("Navigate to login")
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.login(dontGoBack = Main)
+            }
         }
     }
 }

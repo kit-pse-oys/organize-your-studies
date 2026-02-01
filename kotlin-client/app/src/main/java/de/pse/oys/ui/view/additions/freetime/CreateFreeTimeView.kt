@@ -20,7 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import de.pse.oys.R
+import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.facade.FreeTime
+import de.pse.oys.data.facade.FreeTimeData
+import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
 import de.pse.oys.ui.util.InputLabel
@@ -42,8 +48,7 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
-    val dateText =
-        viewModel.date?.toFormattedString() ?: stringResource(id = R.string.nothing_chosen)
+    val dateText = viewModel.date.toFormattedString()
 
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -85,7 +90,11 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
             if (showDatePicker) {
                 LocalDatePickerDialog(
                     currentDate = viewModel.date,
-                    onDateSelected = { viewModel.date = it },
+                    onDateSelected = {
+                        if (it != null) {
+                            viewModel.date = it
+                        }
+                    },
                     onDismiss = { showDatePicker = false }
                 )
             }
@@ -124,7 +133,7 @@ interface ICreateFreeTimeViewModel {
     val showDelete: Boolean
 
     var title: String
-    var date: LocalDate?
+    var date: LocalDate
     var start: LocalTime
     var end: LocalTime
     var weekly: Boolean
@@ -134,23 +143,58 @@ interface ICreateFreeTimeViewModel {
 }
 
 abstract class BaseCreateFreeTimeViewModel(
-    override val showDelete: Boolean = false,
-    initialTitle: String = "",
-    initialDate: LocalDate? = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()).date,
-    initialStart: LocalTime = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()).time,
-    initialEnd: LocalTime = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault()).time,
-    initialWeekly: Boolean = false
+    private val model: ModelFacade,
+    private val navController: NavController,
+    freeTime: FreeTimeData? = null
 ) : ViewModel(), ICreateFreeTimeViewModel {
 
-    override var title by mutableStateOf(initialTitle)
-    override var date by mutableStateOf(initialDate)
-    override var start by mutableStateOf(initialStart)
-    override var end by mutableStateOf(initialEnd)
-    override var weekly by mutableStateOf(initialWeekly)
+    override var title by mutableStateOf(freeTime?.title ?: "")
+    override var date by mutableStateOf(
+        freeTime?.date ?: Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault()).date
+    )
+    override var start by mutableStateOf(freeTime?.start ?: LocalTime(0, 0))
+    override var end by mutableStateOf(freeTime?.end ?: LocalTime(0, 0))
+    override var weekly by mutableStateOf(freeTime?.weekly ?: false)
 
-    abstract override fun submit()
-    abstract override fun delete()
+    protected fun registerNewFreeTime(freeTime: FreeTime) {
+        val freeTimes = model.freeTimes.orEmpty().toMutableMap()
+        model.freeTimes = freeTimes
+        freeTimes[freeTime.id] = freeTime.data
+
+        navController.main()
+    }
+}
+
+class CreateFreeTimeViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    navController: NavController
+) : BaseCreateFreeTimeViewModel(model, navController) {
+    override val showDelete = false
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        error("Can't delete FreeTime before creating it")
+    }
+}
+
+class EditFreeTimeViewModel(
+    private val api: RemoteAPI,
+    model: ModelFacade,
+    target: FreeTime,
+    navController: NavController
+) : BaseCreateFreeTimeViewModel(model, navController, target.data) {
+    override val showDelete = true
+
+    override fun submit() {
+        TODO("Not yet implemented")
+    }
+
+    override fun delete() {
+        TODO("Not yet implemented")
+    }
 }

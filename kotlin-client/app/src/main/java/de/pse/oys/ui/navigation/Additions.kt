@@ -3,25 +3,10 @@ package de.pse.oys.ui.navigation
 import androidx.annotation.MainThread
 import androidx.navigation.NavController
 import de.pse.oys.data.facade.FreeTime
-import de.pse.oys.data.facade.Identified
-import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.Task
 import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
-
-@Serializable
-sealed class Intent {
-    @Serializable
-    data object Create : Intent()
-
-    @Serializable
-    data class Edit(val target: Uuid) : Intent() {
-        fun module(model: ModelFacade) = model.modules?.get(target)?.let { Module(it, target) }
-        fun freeTime(model: ModelFacade) = model.freeTimes?.get(target)?.let { FreeTime(it, target) }
-        fun task(model: ModelFacade) = model.tasks?.get(target)?.let { Task(it, target) }
-    }
-}
 
 @Serializable
 data object Additions
@@ -30,30 +15,37 @@ data object Additions
 fun NavController.additions() = navigate(route = Additions)
 
 @Serializable
-data class CreateModule(val intent: Intent)
-
-@MainThread
-fun NavController.createModule() = navigate(route = CreateModule(Intent.Create))
-
-@MainThread
-fun NavController.editModule(module: Module) =
-    navigate(route = CreateModule(Intent.Edit(module.id)))
+data object CreateModule
 
 @Serializable
-data class CreateFreeTime(val intent: Intent)
+data class EditModule(val id: Uuid)
 
 @MainThread
-fun NavController.createFreeTime() = navigate(route = CreateFreeTime(Intent.Create))
+fun NavController.createModule() = navigate(route = CreateModule)
 
 @MainThread
-fun NavController.editFreeTime(freeTime: FreeTime) =
-    navigate(route = CreateFreeTime(Intent.Edit(freeTime.id)))
+fun NavController.editModule(module: Module) = navigate(route = EditModule(module.id))
 
 @Serializable
-data class CreateTask(val intent: Intent)
+data object CreateFreeTime
+
+@Serializable
+data class EditFreeTime(val id: Uuid)
 
 @MainThread
-fun NavController.createTask() = navigate(route = CreateTask(Intent.Create))
+fun NavController.createFreeTime() = navigate(route = CreateFreeTime)
 
 @MainThread
-fun NavController.editTask(task: Task) = navigate(route = CreateTask(Intent.Edit(task.id)))
+fun NavController.editFreeTime(freeTime: FreeTime) = navigate(route = EditFreeTime(freeTime.id))
+
+@Serializable
+data object CreateTask
+
+@Serializable
+data class EditTask(val id: Uuid)
+
+@MainThread
+fun NavController.createTask() = navigate(route = CreateTask)
+
+@MainThread
+fun NavController.editTask(task: Task) = navigate(route = EditTask(task.id))
