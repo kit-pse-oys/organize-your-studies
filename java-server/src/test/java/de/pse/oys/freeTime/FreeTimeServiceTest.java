@@ -1,4 +1,4 @@
-package de.pse.oys.service;
+package de.pse.oys.freeTime;
 
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
@@ -6,6 +6,7 @@ import de.pse.oys.domain.SingleFreeTime;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.service.FreeTimeService;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
