@@ -1,4 +1,4 @@
-package de.pse.oys.service;
+package de.pse.oys.learningUnit;
 
 import de.pse.oys.domain.LearningPlan;
 import de.pse.oys.domain.LearningUnit;
@@ -9,6 +9,7 @@ import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.service.LearningUnitService;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ValidationException;
 import org.junit.jupiter.api.Test;
@@ -192,6 +193,14 @@ class LearningUnitServiceTest {
         @Override
         public LocalDateTime getHardDeadline() {
             return null;
+        }
+
+        /**
+         * @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann.
+         */
+        @Override
+        protected boolean isActive() {
+            return false;
         }
     }
 }
