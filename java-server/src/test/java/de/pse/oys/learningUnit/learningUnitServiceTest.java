@@ -185,14 +185,15 @@ class LearningUnitServiceTest {
         }
     }
 
-    private static final class TestTask extends Task {
+    private static final class TestTask extends Task { //TODO
+
         private TestTask(String title) {
-            super(title, 60, TaskCategory.OTHER);
+            super(title, 1, TaskCategory.OTHER);
         }
 
         @Override
         public LocalDateTime getHardDeadline() {
-            return null;
+            return null; // für den Test egal
         }
 
         /**
@@ -203,4 +204,6 @@ class LearningUnitServiceTest {
             return false;
         }
     }
+
+
 }
