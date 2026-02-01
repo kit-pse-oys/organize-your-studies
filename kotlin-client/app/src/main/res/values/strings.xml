@@ -11,7 +11,7 @@
     <string name="register_header">Register</string>
     <string name="welcome_header">Welcome to</string>
     <string name="welcome_name" translatable="false">Organize Your Studies</string>
-    <string name="welcome_explanation">Please answersome questions, so that we can create your optimal learning plan!</string>
+    <string name="welcome_explanation">Please answer some questions, so that we can create your optimal learning plan!</string>
     <string name="welcome_start">Start!</string>
     <string name="welcome_hint">(You can change your answers at any time in the menu)</string>
     <string name="questionnaire_header">Questionnaire</string>
@@ -43,6 +43,10 @@
     <string name="new_module">New Module</string>
     <string name="new_task">New Task</string>
     <string name="new_freetime">New Freetime</string>
+    <string name="edit_module">Edit Module</string>
+    <string name="edit_task">Edit Task</string>
+    <string name="edit_freetime">Edit Freetime</string>
+    <string name="save_changes_button">Save Changes</string>
     <string name="enter_title">Title:</string>
     <string name="enter_description">Description:</string>
     <string name="select_priority">Select Priority:</string>
@@ -97,10 +101,24 @@
     <string name="rating_way_to_long">Way to long</string>
     <string name="nav_back_button_label">back</string>
     <string name="save_rating">Save Rating</string>
-    <string name="save_module">Save Module</string>
-    <string name="save_task">Save Task</string>
-    <string name="save_freetime">Save Freetime</string>
+    <string name="add_module_button">Add Module</string>
+    <string name="add_task_button">Add Task</string>
+    <string name="add_freetime_button">Add Freetime</string>
     <string name="no_tasks_available">You don\'t have any Tasks yet.</string>
     <string name="no_modules_available">You don\'t have any Modules yet.</string>
     <string name="no_freetimes_available">You don\'t have any Freetimes yet.</string>
+    <string name="min_unit_duration">What should the minimal Unit Duration be? (in minutes)</string>
+    <string name="max_unit_duration">What should the maximal Unit Duration be? (in minutes)</string>
+    <string name="max_day_load">What should the maximal amount of Units be (in one day)?</string>
+    <string name="time_before_deadline">How many days before a deadline do you want to be done with a task?</string>
+    <string name="preferred_pause_duration">How long should breaks between Units be? (in minutes)</string>
+    <string name="preferred_study_days">Please select all the days of the week that you prefer to study on.</string>
+    <string name="preferred_study_times">Please select all the times of the day that you prefer to study at.?</string>
+    <string name="MORNING">Morning</string>
+    <string name="FORENOON">Forenoon</string>
+    <string name="NOON">Noon</string>
+    <string name="AFTERNOON">Afternoon</string>
+    <string name="EVENING">Evening</string>
+    <string name="delete_element_confirm_header">Do you really want to delete this?</string>
+    <string name="delete_element_confirm_body">Deleting will be permanent and cannot be undone!</string>
 </resources>

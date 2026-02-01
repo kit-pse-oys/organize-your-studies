@@ -1,6 +1,7 @@
 package de.pse.oys.ui.view.additions.task
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +51,8 @@ import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
+import de.pse.oys.ui.util.DeleteButton
+import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
@@ -73,106 +76,137 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var showExamDatePicker by remember { mutableStateOf(false) }
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
-
+    var confirmDelete by remember { mutableStateOf(false) }
+    val submitButtonActive =
+        viewModel.title.isNotBlank() && viewModel.module != stringResource(id = R.string.nothing_chosen)
+                && viewModel.weeklyTimeLoad >= 0 && (if (viewModel.type == TaskType.SUBMISSION) viewModel.submissionCycle in 1..<10 else false)
+                && (if (viewModel.type == TaskType.OTHER) viewModel.start <= viewModel.end else false)
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
         ) {
-            ViewHeaderBig(text = stringResource(id = R.string.new_task))
-            InputLabel(text = stringResource(id = R.string.enter_title))
-            SingleLineInput(viewModel.title) { viewModel.title = it }
-            ModuleSelection(viewModel)
-            TimeLoadSelection(viewModel)
-            InputLabel(text = stringResource(id = R.string.select_task_type))
-            TaskTypeChips(
-                current = viewModel.type,
-                onSelect = { viewModel.type = it }
-            )
+            if (viewModel.showDelete) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+                    DeleteButton { confirmDelete = true }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ViewHeaderBig(
+                    if (viewModel.showDelete) stringResource(R.string.edit_task) else stringResource(
+                        id = R.string.new_task
+                    )
+                )
+                InputLabel(text = stringResource(id = R.string.enter_title))
+                SingleLineInput(viewModel.title) { viewModel.title = it }
+                ModuleSelection(viewModel)
+                TimeLoadSelection(viewModel)
+                InputLabel(text = stringResource(id = R.string.select_task_type))
+                TaskTypeChips(
+                    current = viewModel.type,
+                    onSelect = { viewModel.type = it }
+                )
 
-            when (viewModel.type) {
-                TaskType.EXAM -> {
-                    DateSelectionRow(
-                        stringResource(id = R.string.enter_exam_date),
-                        viewModel.examDate.toFormattedString()
-                    ) { showExamDatePicker = true }
-                    NotifyCheckbox(
-                        stringResource(id = R.string.notify_before_exam),
-                        viewModel.sendNotification
-                    ) {
-                        viewModel.sendNotification = it
+                when (viewModel.type) {
+                    TaskType.EXAM -> {
+                        DateSelectionRow(
+                            stringResource(id = R.string.enter_exam_date),
+                            viewModel.examDate.toFormattedString()
+                        ) { showExamDatePicker = true }
+                        NotifyCheckbox(
+                            stringResource(id = R.string.notify_before_exam),
+                            viewModel.sendNotification
+                        ) {
+                            viewModel.sendNotification = it
+                        }
+                    }
+
+                    TaskType.SUBMISSION -> {
+                        InputLabel(text = stringResource(id = R.string.enter_submission_date))
+                        SubmissionDateSelection(viewModel)
+                        SubmissionCycleSelection(viewModel)
+                        NotifyCheckbox(
+                            stringResource(id = R.string.notify_before_submission),
+                            viewModel.sendNotification
+                        ) {
+                            viewModel.sendNotification = it
+                        }
+                    }
+
+                    TaskType.OTHER -> {
+                        InputLabel(text = stringResource(id = R.string.select_time_period))
+                        DateSelectionRow(
+                            stringResource(id = R.string.select_start_date),
+                            viewModel.start.toFormattedString()
+                        ) {
+                            showStartDatePicker = true
+                        }
+                        DateSelectionRow(
+                            stringResource(id = R.string.select_end_date),
+                            viewModel.end.toFormattedString()
+                        ) { showEndDatePicker = true }
                     }
                 }
 
-                TaskType.SUBMISSION -> {
-                    InputLabel(text = stringResource(id = R.string.enter_submission_date))
-                    SubmissionDateSelection(viewModel)
-                    SubmissionCycleSelection(viewModel)
-                    NotifyCheckbox(
-                        stringResource(id = R.string.notify_before_submission),
-                        viewModel.sendNotification
-                    ) {
-                        viewModel.sendNotification = it
-                    }
+                Spacer(modifier = Modifier.weight(1f))
+                SubmitButton(
+                    if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
+                        id = R.string.add_task_button
+                    ),
+                    submitButtonActive
+                ) { viewModel.submit() }
+
+                if (showExamDatePicker) {
+                    LocalDatePickerDialog(
+                        currentDate = viewModel.examDate,
+                        onDateSelected = { selectedDate ->
+                            if (selectedDate != null) {
+                                viewModel.examDate = selectedDate
+                            }
+                            showExamDatePicker = false
+                        },
+                        onDismiss = { showExamDatePicker = false }
+                    )
                 }
 
-                TaskType.OTHER -> {
-                    InputLabel(text = stringResource(id = R.string.select_time_period))
-                    DateSelectionRow(
-                        stringResource(id = R.string.select_start_date),
-                        viewModel.start.toFormattedString()
-                    ) {
-                        showStartDatePicker = true
-                    }
-                    DateSelectionRow(
-                        stringResource(id = R.string.select_end_date),
-                        viewModel.end.toFormattedString()
-                    ) { showEndDatePicker = true }
+                if (showStartDatePicker) {
+                    LocalDatePickerDialog(
+                        currentDate = viewModel.start,
+                        onDateSelected = { selectedDate ->
+                            if (selectedDate != null) {
+                                viewModel.start = selectedDate
+                            }
+                            showStartDatePicker = false
+                        },
+                        onDismiss = { showStartDatePicker = false }
+                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.weight(1f))
-            SubmitButton(stringResource(id = R.string.save_task)) { viewModel.submit() }
+                if (showEndDatePicker) {
+                    LocalDatePickerDialog(
+                        currentDate = viewModel.end,
+                        onDateSelected = { selectedDate ->
+                            if (selectedDate != null && selectedDate >= viewModel.start) {
+                                viewModel.end = selectedDate
+                            }
+                            showEndDatePicker = false
+                        },
+                        onDismiss = { showEndDatePicker = false }
+                    )
+                }
 
-            if (showExamDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.examDate,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
-                            viewModel.examDate = selectedDate
-                        }
-                        showExamDatePicker = false
-                    },
-                    onDismiss = { showExamDatePicker = false }
-                )
-            }
-
-            if (showStartDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.start,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
-                            viewModel.start = selectedDate
-                        }
-                        showStartDatePicker = false
-                    },
-                    onDismiss = { showStartDatePicker = false }
-                )
-            }
-
-            if (showEndDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.end,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null && selectedDate >= viewModel.start) {
-                            viewModel.end = selectedDate
-                        }
-                        showEndDatePicker = false
-                    },
-                    onDismiss = { showEndDatePicker = false }
-                )
+                if (confirmDelete) {
+                    DeleteElementDialog(
+                        onDismiss = { confirmDelete = false },
+                        onConfirm = viewModel::delete
+                    )
+                }
             }
         }
     }

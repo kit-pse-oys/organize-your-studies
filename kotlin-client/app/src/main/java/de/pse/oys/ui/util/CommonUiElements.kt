@@ -1,34 +1,48 @@
 package de.pse.oys.ui.util
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import de.pse.oys.R
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
@@ -102,6 +116,27 @@ fun InputLabel(
             .fillMaxWidth()
             .padding(start = 20.dp, bottom = 4.dp, top = 4.dp)
     )
+}
+
+@Composable
+fun SimpleMenuAndAdditionsButton(label: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 20.dp)
+            .height(60.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(2.dp, Blue),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue)
+    ) {
+        Text(
+            text = label,
+            style = typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Blue
+        )
+    }
 }
 
 @Composable
@@ -213,25 +248,71 @@ fun RatingSlider(
 }
 
 @Composable
-fun SubmitButton(label: String, onClick: () -> Unit) {
-    val gradient = Brush.linearGradient(colors = listOf(Blue, MediumBlue))
+fun SubmitButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
+    val gradientColors = if (enabled) {
+        listOf(Blue, MediumBlue)
+    } else {
+        listOf(Color.Gray, Color.LightGray)
+    }
+    val gradient = Brush.linearGradient(colors = gradientColors)
     val shape = RoundedCornerShape(24.dp)
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        contentPadding = PaddingValues(),
-        shape = shape,
-        content = {
-            Text(
-                label,
-                style = typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 40.dp)
-            )
-        },
+    Box(
         modifier = Modifier
+            .padding(vertical = 20.dp)
             .background(gradient, shape = shape)
-            .padding(vertical = 12.dp)
-    )
+            .clip(shape),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+            shape = shape,
+            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+        ) {
+            Text(
+                text = label,
+                style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun DeleteButton(onClick: () -> Unit) {
+    OutlinedIconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(12.dp)
+            .size(56.dp),
+        shape = CircleShape
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = null,
+            modifier = Modifier.size(34.dp),
+        )
+    }
+}
+
+@Composable
+fun DeleteElementDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.confirm_yes)) }
+        }, dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.confirm_no)) }
+        }, title = {
+            Text(stringResource(R.string.delete_element_confirm_header))
+        }, text = {
+            Text(stringResource(R.string.delete_element_confirm_body))
+        })
 }
 
 fun LocalDate.toFormattedString(): String {

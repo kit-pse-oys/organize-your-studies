@@ -1,16 +1,25 @@
 package de.pse.oys.ui.view.onboarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,8 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,6 +44,10 @@ import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.ui.navigation.Login
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.navigation.questionnaire
+import de.pse.oys.ui.theme.Blue
+import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.theme.MediumBlue
+import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,7 +64,7 @@ fun LoginView(viewModel: ILoginViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
+            ViewHeader(
                 if (registering) stringResource(R.string.register_header)
                 else stringResource(R.string.login_header)
             )
@@ -54,14 +72,18 @@ fun LoginView(viewModel: ILoginViewModel) {
             UsernameTextField(
                 viewModel.username,
                 onUsernameChanged = { viewModel.username = it })
+            Spacer(Modifier.height(6.dp))
             PasswordTextField(
                 viewModel.password,
                 onPasswordChanged = { viewModel.password = it })
-            if (registering) PasswordTextField(
-                confirmPassword,
-                confirm = true,
-                isError = viewModel.password.isNotBlank() && viewModel.password != confirmPassword
-            ) { confirmPassword = it }
+            if (registering) {
+                Spacer(Modifier.height(6.dp))
+                PasswordTextField(
+                    confirmPassword,
+                    confirm = true,
+                    isError = viewModel.password.isNotBlank() && viewModel.password != confirmPassword
+                ) { confirmPassword = it }
+            }
             Spacer(Modifier.height(10.dp))
             LoginButton(
                 registering,
@@ -92,9 +114,21 @@ private fun UsernameTextField(
     TextField(
         value = username,
         onValueChange = onUsernameChanged,
+        modifier = Modifier
+            .fillMaxWidth(0.7f)
+            .height(50.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = LightBlue,
+            unfocusedContainerColor = LightBlue,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
+        ),
         singleLine = true,
         label = { Text(stringResource(R.string.username_field)) })
 }
+
 
 @Composable
 private fun PasswordTextField(
@@ -106,6 +140,17 @@ private fun PasswordTextField(
     TextField(
         value = password,
         onValueChange = onPasswordChanged,
+        modifier = Modifier
+            .fillMaxWidth(0.7f)
+            .height(50.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = LightBlue,
+            unfocusedContainerColor = LightBlue,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
+        ),
         singleLine = true,
         isError = isError,
         label = {
@@ -121,11 +166,38 @@ private fun PasswordTextField(
 
 @Composable
 private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> Unit) {
-    Button(onClick = onLogin, enabled = enabled) {
-        Text(
-            if (registering) stringResource(R.string.register_button)
-            else stringResource(R.string.login_button)
-        )
+    val gradientColors = if (enabled) {
+        listOf(Blue, MediumBlue)
+    } else {
+        listOf(Color.Gray, Color.LightGray)
+    }
+    val gradient = Brush.linearGradient(colors = gradientColors)
+    val shape = RoundedCornerShape(24.dp)
+    Box(
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .background(gradient, shape = shape)
+            .clip(shape),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = onLogin,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+            shape = shape,
+            modifier = Modifier.defaultMinSize(minHeight = 40.dp)
+        ) {
+            Text(
+                if (registering) stringResource(R.string.register_button)
+                else stringResource(R.string.login_button),
+                style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
+            )
+        }
     }
 }
 
@@ -135,7 +207,8 @@ private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
         Text((if (registering) stringResource(R.string.login_account_yes) else stringResource(R.string.login_account_no)) + " ")
         Text(
             if (registering) stringResource(R.string.login_button) else stringResource(R.string.register_button),
-            modifier = Modifier.clickable(onClick = onSwitchMode)
+            modifier = Modifier.clickable(onClick = onSwitchMode),
+            textDecoration = TextDecoration.Underline
         )
     }
 }
@@ -152,7 +225,8 @@ interface ILoginViewModel {
     fun registerWithOIDC()
 }
 
-class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) : ViewModel(),
+class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) :
+    ViewModel(),
     ILoginViewModel {
     override var username by mutableStateOf("")
     override var password by mutableStateOf("")
