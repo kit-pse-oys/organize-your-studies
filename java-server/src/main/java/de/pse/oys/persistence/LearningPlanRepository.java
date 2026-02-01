@@ -44,4 +44,32 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
             LIMIT 1
             """, nativeQuery = true)
     Optional<LearningPlan> findByUserIdAndWeekStart(@Param("uid") UUID userId, @Param("weekStart") LocalDate weekStart);
+
+    /**
+     * Lädt einen LearningPlan nur dann, wenn er dem angegebenen User gehört.
+     * <p>
+     * Diese Methode dient als Ownership-Check ohne direkten User-Bezug in der Entity:
+     * Der Plan wird im User-Scope geladen (planid + userid).
+     * </p>
+     *
+     * @param planId ID des Lernplans
+     * @param userId ID des Users
+     * @return Optional des Plans, falls vorhanden und dem User zugeordnet
+     */
+    @Query(value = """
+        SELECT * FROM learning_plans
+        WHERE planid = :planId AND userid = :userId
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<LearningPlan> findByIdAndUserId(@Param("planId") UUID planId,
+                                             @Param("userId") UUID userId);
+
+
+
+
+
 }
+
+
+
+
