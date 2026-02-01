@@ -19,14 +19,18 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
 
     /**
      * Findet alle FreeTime-Einträge für einen bestimmten Benutzer.
+     * @param userId die ID des Benutzers
+     * @return Liste der FreeTime-Einträge des Benutzers
      */
     @Query(value = "SELECT * FROM free_times WHERE userid = :uid", nativeQuery = true)
     List<FreeTime> findByUserId(@Param("uid") UUID userId);
 
     /**
      * Findet alle FreeTime-Einträge für einen bestimmten Benutzer in einem gegebenen Zeitraum.
-     *
-     * Hinweis: Weekly (weekday != null) ist immer relevant; ONCE nur wenn specific_date im Zeitraum liegt.
+     * @param userId die ID des Benutzers
+     * @param start das Startdatum des Zeitraums
+     * @param end das Enddatum des Zeitraums
+     * @return Liste der FreeTime-Einträge im angegebenen Zeitraum
      */
     @Query(value = """
             SELECT * FROM free_times
@@ -39,6 +43,7 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
     List<FreeTime> findFreeTimeInPeriod(@Param("uid") UUID userId,
                                         @Param("start") LocalDate start,
                                         @Param("end") LocalDate end);
+
 
     /**
      * DB-seitiger Overlap-Check für einen konkreten Tag (dto.date) inkl. Weekly-Blocks.

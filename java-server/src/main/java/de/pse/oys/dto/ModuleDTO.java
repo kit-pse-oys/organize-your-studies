@@ -2,11 +2,16 @@ package de.pse.oys.dto;
 
 import de.pse.oys.domain.enums.ModulePriority;
 
+import java.util.UUID;
+
 /**
  * Datentransferobjekt für die Erstellung und Verwaltung von Modulen.
  * Dieses DTO enthält die grundlegenden Konfigurationsdaten eines Moduls.
  */
 public class ModuleDTO {
+
+    ///** Die eindeutige Kennung des Moduls. */
+    private UUID id;
 
     /** Der Titel des Moduls. */
     private String title;
@@ -29,6 +34,9 @@ public class ModuleDTO {
 
     // Getter
 
+    /** @return Die eindeutige ID des Moduls. */
+    public UUID getId() { return id; }
+
     /** @return Der Titel des Moduls. */
     public String getTitle() { return title; }
 
@@ -42,6 +50,9 @@ public class ModuleDTO {
     public String getColor() { return color; }
 
     // Setter
+
+    /** @param id Die zu setzende Modul-ID. */
+    public void setId(UUID id) { this.id = id; }
 
     /** @param title Der zu setzende Modulname. */
     public void setTitle(String title) { this.title = title; }

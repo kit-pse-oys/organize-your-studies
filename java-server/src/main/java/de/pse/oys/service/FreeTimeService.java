@@ -17,8 +17,12 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Kapselt die Geschäftslogik für das Erstellen und Verwalten von Freizeiten.
+ * Service für das Verwalten von Freizeitblöcken eines Nutzers.
+ *
+ * @author uqvfm
+ * @version 1.0
  */
+
 @Service
 @Transactional
 public class FreeTimeService {
@@ -34,6 +38,12 @@ public class FreeTimeService {
     private final UserRepository userRepository;
     private final FreeTimeRepository freeTimeRepository;
 
+    /**
+     * Erstellt einen neuen Service.
+     *
+     * @param userRepository Repository für Nutzer
+     * @param freeTimeRepository Repository für Freizeitblöcke
+     */
     public FreeTimeService(UserRepository userRepository, FreeTimeRepository freeTimeRepository) {
         this.userRepository = userRepository;
         this.freeTimeRepository = freeTimeRepository;
@@ -43,10 +53,10 @@ public class FreeTimeService {
      * Koordiniert die Erstellung: validiert, prüft Überschneidungen, mappt DTO -> Entity und speichert.
      *
      * @param userId Nutzer-ID
-     * @param dto    Eingabedaten
-     * @return gespeicherte Freizeit als DTO
+     * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
+     * @return angelegte Freizeit als DTO
      */
-    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) {
+    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
         validate(dto);
         ensureNoOverlap(userId, dto, null);
@@ -63,7 +73,7 @@ public class FreeTimeService {
      * @param dto        neue Daten
      * @return aktualisierte Freizeit als DTO
      */
-    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) {
+    public FreeTimeDTO updateFreeTime(UUID userId, UUID freeTimeId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException, AccessDeniedException {
         requireUserExists(userId);
         requireId(freeTimeId);
         validate(dto);
@@ -90,7 +100,7 @@ public class FreeTimeService {
      * @param userId     Nutzer-ID
      * @param freeTimeId ID der Freizeit
      */
-    public void deleteFreeTime(UUID userId, UUID freeTimeId) {
+    public void deleteFreeTime(UUID userId, UUID freeTimeId) throws ResourceNotFoundException, ValidationException, AccessDeniedException {
         requireUserExists(userId);
         requireId(freeTimeId);
 
@@ -107,7 +117,7 @@ public class FreeTimeService {
      *
      * @param dto Eingabedaten
      */
-    protected void validate(FreeTimeDTO dto) {
+    protected void validate(FreeTimeDTO dto) throws ValidationException {
         if (dto == null
                 || dto.getTitle() == null || dto.getTitle().isBlank()
                 || dto.getDate() == null

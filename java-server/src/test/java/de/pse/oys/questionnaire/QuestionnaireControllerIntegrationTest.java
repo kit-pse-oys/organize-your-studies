@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.persistence.UserRepository;
-import de.pse.oys.dto.QuestionnaireDTO;
-import de.pse.oys.security.UserPrincipal;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -34,7 +32,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class QuestionnaireControllerIntegrationTest {
 
-    private static final String QUESTIONNAIRE_BASE = "/api/questionnaire";
+    private static final String QUESTIONNAIRE_BASE = "/questionnaire";
     private static final String SUBMIT = QUESTIONNAIRE_BASE + "/submit";
     private static final String STATUS = QUESTIONNAIRE_BASE + "/status";
 

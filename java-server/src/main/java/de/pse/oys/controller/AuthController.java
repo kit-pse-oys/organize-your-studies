@@ -4,6 +4,7 @@ import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.service.auth.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,19 +41,12 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (IllegalStateException | IllegalArgumentException e){
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    /**
-     * Beendet die Sitzung und invalidiert den Refresh-Token in der Datenbank.
-     * @param dto Enthält den zu invalidierenden Refresh-Token.
-     * @return ResponseEntity mit Status 204 (No Content) bei Erfolg.
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody AuthResponseDTO dto) {
-        // Logik zur Invalidierung des Refresh-Tokens
-        return ResponseEntity.noContent().build();
-    }
+    //logout wird nicht verwendet, deshalb nicht implementiert
 
     /**
      * Erneuert den Access-Token unter Verwendung eines gültigen Refresh-Tokens.
@@ -66,6 +60,8 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e){
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

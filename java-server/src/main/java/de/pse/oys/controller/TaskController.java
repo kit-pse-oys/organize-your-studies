@@ -16,7 +16,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/tasks")
 public class TaskController extends BaseController {
 
     private final TaskService taskService;
@@ -35,9 +35,15 @@ public class TaskController extends BaseController {
      */
     @GetMapping
     public ResponseEntity<List<TaskDTO>> getTasks() {
-        UUID userId = getAuthenticatedUserId();
-        List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
-        return ResponseEntity.ok(tasks);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
+            return ResponseEntity.ok(tasks);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -47,9 +53,17 @@ public class TaskController extends BaseController {
      */
     @PostMapping
     public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        TaskDTO createdTask = taskService.createTask(userId, dto);
-        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            TaskDTO createdTask = taskService.createTask(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -59,21 +73,37 @@ public class TaskController extends BaseController {
      */
     @PutMapping
     public ResponseEntity<TaskDTO> updateTask(@RequestBody TaskDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        TaskDTO updatedTask = taskService.updateTask(userId, dto);
-        return ResponseEntity.ok(updatedTask);
+        try {
+            UUID userId = getAuthenticatedUserId();
+            TaskDTO updatedTask = taskService.updateTask(userId, dto);
+            return ResponseEntity.ok(updatedTask);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Löscht eine Aufgabe.
-     * @param dto Das DTO, welches die zu löschende Aufgabe identifiziert.
+     *
+     * @param taskId Die ID der zu löschenden Aufgabe.
      * @return No Content Status.
      */
-    @DeleteMapping
-    public ResponseEntity<Void> deleteTask(@RequestBody TaskDTO dto) {
-        UUID userId = getAuthenticatedUserId();
-        // Hier ziehen wir die Task-UUID aus dem DTO, um sie an den Service zu geben
-        taskService.deleteTask(userId, null);//todo: null durch taskId aus dto ersetzen
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{taskId}")
+    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
+        try {
+            UUID userId = getAuthenticatedUserId();
+            taskService.deleteTask(userId, taskId);
+            return ResponseEntity.noContent().build();
+        }catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

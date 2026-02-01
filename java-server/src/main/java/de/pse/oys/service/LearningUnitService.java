@@ -60,7 +60,7 @@ public class LearningUnitService {
      * @param dto    neue Werte
      * @return aktualisierter Plan als DTO
      */
-    public LearningPlanDTO updateLearningUnit(UUID userId, UUID planId, UUID unitId, UnitDTO dto) {
+    public LearningPlanDTO updateLearningUnit(UUID userId, UUID planId, UUID unitId, UnitDTO dto) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
         if (userId == null || planId == null || unitId == null || dto == null) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }

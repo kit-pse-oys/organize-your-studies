@@ -238,4 +238,13 @@ public abstract class User {
     public List<LearningPlan> getLearningPlans() {
         return learningPlans;
     }
+
+    /**
+     * Gibt die Liste der dem Nutzer zugeordneten Studienmodule zurück.
+     * @return Liste der dem Nutzer zugeordneten Studienmodule
+     */
+    public List<Module> getModules() {
+        return modules;
+    }
+
 }
