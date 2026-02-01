@@ -52,6 +52,11 @@ public class OtherTask extends Task {
         return endTime;
     }
 
+    @Override
+    protected boolean isActive() {
+        LocalDateTime now = LocalDateTime.now();
+        return (startTime != null && endTime != null) && now.isAfter(startTime) && now.isBefore(endTime);
+    }
     // Getter & Setter
 
     /** @return Den Start des Zeitrahmens. */
