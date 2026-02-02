@@ -10,6 +10,7 @@ import java.util.List;
 public class PlanningTaskDTO {
     private String id;
     private int duration;
+    private int start;
     private int deadline;
     private List<CostDTO> costs;
     /** Konstruktor für TaskDTO.
@@ -19,19 +20,26 @@ public class PlanningTaskDTO {
      * @param deadline Abgabefrist der Aufgabe.
      * @param costs    Kosteninformationen der Aufgabe.
      */
-    public PlanningTaskDTO(String id, int duration, int deadline, List<CostDTO> costs) {
+    public PlanningTaskDTO(String id, int duration, int start, int deadline, List<CostDTO> costs) {
         this.id = id;
         this.duration = duration;
+        this.start = start;
         this.deadline = deadline;
         this.costs = costs;
     }
     /** @return Eindeutige ID der Aufgabe. */
     public String getId() {
+
         return id;
     }
     /** @return Dauer der Aufgabe. */
     public int getDuration() {
+
         return duration;
+    }
+    /** @return Startzeit der Aufgabe. */
+    public int getStart() {
+        return start;
     }
     /** @return Abgabefrist der Aufgabe. */
     public int getDeadline() {

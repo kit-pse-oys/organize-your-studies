@@ -40,6 +40,10 @@ public class Module {
     @Column(name = "priority", nullable = false)
     private ModulePriority priority;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // Wir nennen die Spalte explizit user_id
+    private User user;
+
     /**
      * Liste der Aufgaben, die diesem Modul untergeordnet sind.
      * cascade = ALL stellt sicher, dass Aufgaben bei Modullöschung mitentfernt werden.
@@ -141,5 +145,13 @@ public class Module {
     /** @param priority Die neue Prioritätsstufe. */
     public void setPriority(ModulePriority priority) {
         this.priority = priority;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

@@ -30,7 +30,7 @@ public abstract class Task {
     private String title;
 
     /** Wöchentlicher Aufwand in Minuten. */
-    @Column(name = "weekly_duration_minutes", nullable = false)
+    @Column(name = "weekly_effort_minutes", nullable = false)
     private int weeklyDurationMinutes;
 
     /**
@@ -186,6 +186,9 @@ public abstract class Task {
      * @return Eine nicht veränderbare Liste aller zugehörigen Lerneinheiten.
      */
     public List<LearningUnit> getLearningUnits() {
+        if (learningUnits == null) {
+            learningUnits = new ArrayList<>();
+        }
         return List.copyOf(learningUnits);
     }
 

@@ -1,4 +1,5 @@
 package de.pse.oys.persistence;
+import de.pse.oys.domain.enums.TaskStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +38,7 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             t.weekly_effort_minutes AS weekly_duration_minutes
         FROM tasks t
         JOIN modules m ON m.moduleid = t.moduleid
-        WHERE m.userid = :userId
+        WHERE m.user_id = :userId
           AND (
                 (t.fixed_deadline IS NOT NULL AND t.fixed_deadline < :deadline)
              OR (t.time_frame_end IS NOT NULL AND t.time_frame_end < :deadline)
@@ -60,7 +61,7 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
         FROM tasks t
         JOIN modules m ON m.moduleid = t.moduleid
         WHERE t.moduleid = :moduleId
-          AND m.userid = :userId
+          AND m.user_id = :userId
         """, nativeQuery = true)
     List<Task> findByModuleId(@Param("userId") UUID userId,
                               @Param("moduleId") UUID moduleId);
@@ -76,17 +77,13 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
      * @param status  Statuswert gemäß {@code task_status} (z. B. {@code "active"}, {@code "completed"})
      * @return Liste der Tasks des Users mit dem angegebenen Status
      */
-    @Query(value = """
-        SELECT
-            t.*,
-            t.weekly_effort_minutes AS weekly_duration_minutes
-        FROM tasks t
-        JOIN modules m ON m.moduleid = t.moduleid
-        WHERE m.userid = :userId
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.module.user.userId = :userId
           AND t.status = :status
-        """, nativeQuery = true)
+        """)
     List<Task> findAllByUserAndStatus(@Param("userId") UUID userId,
-                                      @Param("status") String status);
+                                      @Param("status") TaskStatus status);
 }
 
 

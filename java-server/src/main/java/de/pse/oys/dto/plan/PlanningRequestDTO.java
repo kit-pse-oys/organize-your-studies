@@ -24,31 +24,26 @@ public class PlanningRequestDTO {
         return horizon;
     }
 
-    public List<PlanningTaskDTO> getTasks() {
-        return tasks;
-    }
-
-    public String getPreference_time() {
-        return preference_time;
+    public int getCurrent_slot() {
+        return current_slot;
     }
 
     public List<Integer> getBlocked_days() {
         return blocked_days;
     }
 
-    public int getCurrent_slot() {
-        return current_slot;
+    public String getPreference_time() {
+        return preference_time;
     }
 
     public List<FixedBlockDTO> getFixed_blocks() {
         return fixed_blocks;
     }
 
-    public String getPreferredSlots() {
-        return preference_time;
+    public List<PlanningTaskDTO> getTasks() {
+        return tasks;
     }
 
-    public List<FixedBlockDTO> getFixedBlocks() {
-        return fixed_blocks;
-    }
+
+
 }
