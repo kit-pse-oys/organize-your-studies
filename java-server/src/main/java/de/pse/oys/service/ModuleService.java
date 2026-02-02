@@ -60,7 +60,7 @@ public class ModuleService {
         Module saved = moduleRepository.save(entity);
         userRepository.save(user);
 
-        return mapToDto(saved);
+        return saved.getModuleId();
     }
 
     /**

@@ -101,7 +101,7 @@ public class TaskService {
         Module module = requireOwnedModule(userId, dto.getModuleTitle());
         Task task = mapToEntity(dto);
         module.addTask(task);
-        return mapToDto(taskRepository.save(task));
+        return task.getTaskId();
     }
 
     /**
