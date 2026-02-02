@@ -23,6 +23,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
@@ -91,12 +92,26 @@ internal constructor(
 
         private fun URLBuilder.apiPath(path: String) = appendPathSegments("api/v1", path)
 
-        private fun HttpResponse.statusResponse() = Response(Unit, status.value)
+        private fun HttpResponse.statusResponse(): Response<Unit> {
+            if (status.isSuccess()) {
+                return Response(Unit, status.value)
+            }
+            return Response(null, status.value)
+        }
 
-        private suspend fun HttpResponse.idResponse() = Response(body<Routes.Id>().id, status.value)
+        private suspend fun HttpResponse.idResponse(): Response<Uuid> {
+            if (status.isSuccess()) {
+                return Response(body<Routes.Id>().id, status.value)
+            }
+            return Response(null, status.value)
+        }
 
-        private suspend inline fun <reified T> HttpResponse.responseAs() =
-            Response(body<T>(), status.value)
+        private suspend inline fun <reified T> HttpResponse.responseAs(): Response<T> {
+            if (status.isSuccess()) {
+                return Response(body<T>(), status.value)
+            }
+            return Response(null, status.value)
+        }
     }
 
     private val client = HttpClient(engine) {

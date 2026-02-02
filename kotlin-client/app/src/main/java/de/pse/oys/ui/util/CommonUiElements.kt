@@ -292,7 +292,7 @@ fun DeleteButton(onClick: () -> Unit) {
         shape = CircleShape
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.baseline_delete_outline_24),
+            painter = painterResource(id = R.drawable.outline_delete_24),
             contentDescription = null,
             modifier = Modifier.size(34.dp),
         )

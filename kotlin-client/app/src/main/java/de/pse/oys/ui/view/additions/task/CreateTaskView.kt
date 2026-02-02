@@ -119,24 +119,12 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                             stringResource(id = R.string.enter_exam_date),
                             viewModel.examDate.toFormattedString()
                         ) { showExamDatePicker = true }
-                        NotifyCheckbox(
-                            stringResource(id = R.string.notify_before_exam),
-                            viewModel.sendNotification
-                        ) {
-                            viewModel.sendNotification = it
-                        }
                     }
 
                     TaskType.SUBMISSION -> {
                         InputLabel(text = stringResource(id = R.string.enter_submission_date))
                         SubmissionDateSelection(viewModel)
                         SubmissionCycleSelection(viewModel)
-                        NotifyCheckbox(
-                            stringResource(id = R.string.notify_before_submission),
-                            viewModel.sendNotification
-                        ) {
-                            viewModel.sendNotification = it
-                        }
                     }
 
                     TaskType.OTHER -> {
@@ -453,7 +441,6 @@ interface ICreateTaskViewModel {
     var module: String
     var type: TaskType
     var weeklyTimeLoad: Int
-    var sendNotification: Boolean
 
     var examDate: LocalDate
 
@@ -489,7 +476,6 @@ abstract class BaseCreateTaskViewModel(
         }
     )
     override var weeklyTimeLoad by mutableIntStateOf(task?.weeklyTimeLoad ?: 0)
-    override var sendNotification by mutableStateOf(task?.sendNotification ?: false)
 
     override var examDate by mutableStateOf(
         (task as? ExamTaskData?)?.examDate ?: Clock.System.now()
