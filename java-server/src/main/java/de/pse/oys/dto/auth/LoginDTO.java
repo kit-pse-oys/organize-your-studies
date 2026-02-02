@@ -25,6 +25,10 @@ public class LoginDTO {
     /** ID-Token für externe Provider */
     private String externalToken; // nur für oidc Authentifizierung relevant
 
+    // ----- Standard-Konstruktor für Jackson -----
+    public LoginDTO() {}
+
+
     // ----- Getter & Setter -----
 
     /**
@@ -58,14 +62,14 @@ public class LoginDTO {
     /**
      * @return den AuthType
      */
-    public AuthType getAuthType() {
+    public AuthType getType() {
         return type;
     }
 
     /**
      * @param type den AuthType
      */
-    public void setAuthType(AuthType type) {
+    public void setType(AuthType type) {
         this.type = type;
     }
 
