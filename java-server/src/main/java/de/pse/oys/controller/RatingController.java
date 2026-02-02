@@ -38,8 +38,8 @@ public class RatingController extends BaseController {
      * @param dto Das DTO mit den Bewertungsinformationen (Konzentration, Dauer, Erfolg).
      * @return Eine leere ResponseEntity bei Erfolg.
      */
-    @PostMapping("/{learningUnitId}/rate")
-    public ResponseEntity<Void> rateUnit(@PathVariable UUID learningUnitId, @RequestBody RatingDTO dto) {
+    @PostMapping
+    public ResponseEntity<Void> rateUnit(@RequestBody UUID learningUnitId, @RequestBody RatingDTO dto) {
         // Der RatingService verarbeitet die Logik und aktualisiert ggf. die CostMatrix
         try {
             ratingService.submitRating(learningUnitId, dto);
@@ -59,8 +59,8 @@ public class RatingController extends BaseController {
      * @param unitId Die UUID der Aufgabe, die als verpasst markiert werden soll.
      * @return Status 200 (OK) bei Erfolg.
      */
-    @PostMapping("/{unitId}/missed")
-    public ResponseEntity<Void> markAsMissed(@PathVariable UUID unitId) {
+    @PostMapping("/missed")
+    public ResponseEntity<Void> markAsMissed(@RequestBody UUID unitId) {
         try {
             ratingService.markAsMissed(unitId);
             return ResponseEntity.ok().build();

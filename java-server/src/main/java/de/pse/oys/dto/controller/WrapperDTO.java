@@ -21,7 +21,7 @@ public class WrapperDTO<T> {
     private T data;
 
     /**
-     * Erzeugt einen neuen Wrapper mit ID und Daten.
+     * Erzeugt einen neuen WrapperDTO mit ID und Daten.
      * @param id   Die UUID des Objekts.
      * @param data Das eingebettete DTO.
      */
