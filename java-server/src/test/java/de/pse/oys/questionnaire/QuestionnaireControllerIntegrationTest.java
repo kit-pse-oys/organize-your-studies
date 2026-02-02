@@ -99,7 +99,7 @@ class QuestionnaireControllerIntegrationTest {
         // Die Method wird verwendet um einen Access Token für den Testuser zu erhalten.
         // Dadurch kann der Test unter den realen Sicherheitsbedingungen durch UserPrincipal durchgeführt werden.
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setAuthType(AuthType.BASIC);
+        loginDTO.setType(AuthType.BASIC);
         loginDTO.setUsername(testUser.getUsername());
         loginDTO.setPassword(rawPassword);
 
