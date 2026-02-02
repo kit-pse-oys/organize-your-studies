@@ -16,7 +16,7 @@ fun NavController.availableRatings(dontGoBack: Any? = null) = navigate(route = A
 }
 
 @Serializable
-data class Rating(val step: Uuid)
+data class Rating(val step: String)
 
 @MainThread
-fun NavController.rating(step: Uuid) = navigate(route = Rating(step))
+fun NavController.rating(step: Uuid) = navigate(route = Rating(step.toHexDashString()))

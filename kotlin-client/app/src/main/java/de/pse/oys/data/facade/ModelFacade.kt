@@ -1,5 +1,6 @@
 package de.pse.oys.data.facade
 
+import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
@@ -10,5 +11,5 @@ class ModelFacade(
     var modules: Map<Uuid, ModuleData>? = null,
     var tasks: Map<Uuid, TaskData>? = null,
     var freeTimes: Map<Uuid, FreeTimeData>? = null,
-    var steps: Map<Uuid, StepData>? = null
+    var steps: Map<DayOfWeek, Map<Uuid, StepData>>? = null
 )

@@ -31,6 +31,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.ensureUnits
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.theme.LightBlue
@@ -126,13 +127,18 @@ class AvailableRatingsViewModel(
         require(model.steps != null)
 
         viewModelScope.launch {
+            val units = model.ensureUnits(api)
+            if (units.status != HttpStatusCode.OK.value) {
+                // TODO: Show error
+            }
+
             val rateable = api.queryRateable()
             if (rateable.status != HttpStatusCode.OK.value) {
                 // TODO: Show error
             }
             val uuids = rateable.response ?: error("No response with Status 200")
             _available = uuids.associateBy { uuid ->
-                val step = model.steps?.get(uuid) ?: error("Task not found")
+                val step = units.response?.values?.firstOrNull { it.values.any { it.task.id == uuid } }?.get(uuid) ?: error("Task not found")
                 RatingTarget(step.task.data.title, step.task.data.module.data.color)
             }
         }

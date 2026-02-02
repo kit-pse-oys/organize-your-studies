@@ -440,6 +440,7 @@ interface ICreateTaskViewModel {
     var module: String
     var type: TaskType
     var weeklyTimeLoad: Int
+
     var examDate: LocalDate
 
     var submissionDate: LocalDateTime

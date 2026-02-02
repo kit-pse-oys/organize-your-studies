@@ -58,6 +58,7 @@ import de.pse.oys.ui.view.ratings.AvailableRatingsView
 import de.pse.oys.ui.view.ratings.AvailableRatingsViewModel
 import de.pse.oys.ui.view.ratings.RatingView
 import de.pse.oys.ui.view.ratings.RatingViewModel
+import kotlin.uuid.Uuid
 
 @Composable
 fun EntryPoint(
@@ -79,7 +80,8 @@ fun EntryPoint(
             QuestionnaireView(viewModel { QuestionnaireViewModel(firstTime, api, navController) })
         }
         composable<Rating> { backEntry ->
-            val target = backEntry.toRoute<Rating>().step
+            val id = backEntry.toRoute<Rating>().step
+            val target = Uuid.parse(id)
             RatingView(viewModel { RatingViewModel(api, target, navController) })
         }
         composable<AvailableRatings> {
@@ -91,7 +93,8 @@ fun EntryPoint(
             CreateModuleView(viewModel { CreateModuleViewModel(api, model, navController) })
         }
         composable<EditModule> { backEntry ->
-            val target = backEntry.toRoute<EditModule>().id
+            val id = backEntry.toRoute<EditModule>().id
+            val target = Uuid.parse(id)
             val module =
                 model.modules?.get(target) ?: error("Module not found")
             CreateModuleView(viewModel {
@@ -105,7 +108,8 @@ fun EntryPoint(
             CreateFreeTimeView(viewModel { CreateFreeTimeViewModel(api, model, navController) })
         }
         composable<EditFreeTime> { backEntry ->
-            val target = backEntry.toRoute<EditFreeTime>().id
+            val id = backEntry.toRoute<EditFreeTime>().id
+            val target = Uuid.parse(id)
             val freeTime =
                 model.freeTimes?.get(target) ?: error("FreeTime not found")
             CreateFreeTimeView(viewModel {
@@ -119,7 +123,8 @@ fun EntryPoint(
             CreateTaskView(viewModel { CreateTaskViewModel(api, model, navController) })
         }
         composable<EditTask> { backEntry ->
-            val target = backEntry.toRoute<EditTask>().id
+            val id = backEntry.toRoute<EditTask>().id
+            val target = Uuid.parse(id)
             val task =
                 model.tasks?.get(target) ?: error("Task not found")
             CreateTaskView(viewModel {

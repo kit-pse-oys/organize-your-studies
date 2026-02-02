@@ -18,34 +18,34 @@ fun NavController.additions() = navigate(route = Additions)
 data object CreateModule
 
 @Serializable
-data class EditModule(val id: Uuid)
+data class EditModule(val id: String)
 
 @MainThread
 fun NavController.createModule() = navigate(route = CreateModule)
 
 @MainThread
-fun NavController.editModule(module: Module) = navigate(route = EditModule(module.id))
+fun NavController.editModule(module: Module) = navigate(route = EditModule(module.id.toHexDashString()))
 
 @Serializable
 data object CreateFreeTime
 
 @Serializable
-data class EditFreeTime(val id: Uuid)
+data class EditFreeTime(val id: String)
 
 @MainThread
 fun NavController.createFreeTime() = navigate(route = CreateFreeTime)
 
 @MainThread
-fun NavController.editFreeTime(freeTime: FreeTime) = navigate(route = EditFreeTime(freeTime.id))
+fun NavController.editFreeTime(freeTime: FreeTime) = navigate(route = EditFreeTime(freeTime.id.toHexDashString()))
 
 @Serializable
 data object CreateTask
 
 @Serializable
-data class EditTask(val id: Uuid)
+data class EditTask(val id: String)
 
 @MainThread
 fun NavController.createTask() = navigate(route = CreateTask)
 
 @MainThread
-fun NavController.editTask(task: Task) = navigate(route = EditTask(task.id))
+fun NavController.editTask(task: Task) = navigate(route = EditTask(task.id.toHexDashString()))

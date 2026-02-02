@@ -64,8 +64,7 @@ public abstract class User {
     private LearningPreferences preferences;
 
     /** Liste der dem Nutzer zugeordneten Studienmodule. */
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Module> modules;
 
     /** Liste der definierten Freizeiten und Zeitrestriktionen. */
@@ -136,21 +135,23 @@ public abstract class User {
         return freeTimes;
     }
 
-    /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher[cite: 789, 817].
+    /** Fügt ein Modul hinzu und stellt die bidirektionale Konsistenz sicher.
      * @param module das hinzuzufügende Modul
      */
     public void addModule(Module module) {
-        if (module != null) {
+        if (module != null && !this.modules.contains(module)) {
             this.modules.add(module);
+            module.setUser(this);
         }
     }
 
-    /** Entfernt ein Modul konsistent aus dem Profil[cite: 787, 817].
+    /** Entfernt ein Modul konsistent aus dem Profil.
      * @param module das zu entfernende Modul
      */
     public void deleteModule(Module module) {
         if (module != null) {
             this.modules.remove(module);
+            module.setUser(null);
         }
     }
 

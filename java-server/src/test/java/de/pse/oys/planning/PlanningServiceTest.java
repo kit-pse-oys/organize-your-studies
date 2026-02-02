@@ -2,6 +2,7 @@ package de.pse.oys.planning;
 
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.TaskCategory;
+import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
@@ -123,7 +124,8 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), anyString())).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class)))
+                .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
@@ -168,7 +170,8 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), anyString())).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class)))
+                .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 

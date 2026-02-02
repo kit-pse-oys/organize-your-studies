@@ -2,6 +2,7 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.ModulePriority;
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,14 @@ public class Module {
     private ModulePriority priority;
 
     /**
+     * Besitzer des Moduls.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private User user;
+
+    /**
      * Liste der Aufgaben, die diesem Modul untergeordnet sind.
      * cascade = ALL stellt sicher, dass Aufgaben bei Modullöschung mitentfernt werden.
      */
@@ -64,11 +73,11 @@ public class Module {
         this.priority = priority;
     }
 
-
     /**
      * Fügt eine neue Aufgabe zu diesem Modul hinzu und stellt die
      * bidirektionale Konsistenz sicher.
-     * * @param task Die hinzuzufügende Aufgabe.
+     *
+     * @param task Die hinzuzufügende Aufgabe.
      */
     public void addTask(Task task) {
         if (task != null && !this.tasks.contains(task)) {
@@ -78,14 +87,14 @@ public class Module {
     }
 
     /**
-     * Entfernt eine Aufgabe aus diesem Modul und löst die
-     * bidirektionale Verknüpfung auf.
-     * * @param task Die zu entfernende Aufgabe.
+     * Entfernt eine Aufgabe aus der Collection.
+     * Das echte Löschen aus der Datenbank passiert im Taskservice.
+     *
+     * @param task Die zu entfernende Aufgabe.
      */
     public void deleteTask(Task task) {
-        if (task != null && this.tasks.contains(task)) {
+        if (task != null) {
             this.tasks.remove(task);
-            task.setModule(null);
         }
     }
 
@@ -104,6 +113,11 @@ public class Module {
     /** @return Die Priorität des Moduls. */
     public ModulePriority getPriority() {
         return priority;
+    }
+
+    /** @return Der Besitzer (User) des Moduls. */
+    public User getUser() {
+        return user;
     }
 
     /** @return Die Liste der zugehörigen Aufgaben. */
@@ -141,5 +155,14 @@ public class Module {
     /** @param priority Die neue Prioritätsstufe. */
     public void setPriority(ModulePriority priority) {
         this.priority = priority;
+    }
+
+    /**
+     * Setzt den Besitzer des Moduls.
+     *
+     * WHY: wird von User.addModule/deleteModule genutzt, um die Beziehung konsistent zu halten.
+     */
+    public void setUser(User user) {
+        this.user = user;
     }
 }
