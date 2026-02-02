@@ -23,7 +23,6 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
@@ -32,9 +31,7 @@ import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
@@ -57,6 +54,7 @@ interface RemoteAPI {
 
     suspend fun queryRateable(): Response<List<Uuid>>
     suspend fun rateUnit(unit: Uuid, ratings: UnitRatings): Response<Unit>
+    suspend fun rateUnitMissed(unit: Uuid): Response<Unit>
 
     suspend fun updatePlan(): Response<Unit>
     suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>>
@@ -147,24 +145,23 @@ internal constructor(
         }
     }
 
-    private suspend fun requestTokens(path: String, credentials: Credentials): Response<Unit> =
-        withContext(Dispatchers.IO) {
-            val response = client.post(serverUrl) {
-                url {
-                    apiPath(path)
-                }
-
-                contentType(ContentType.Application.Json)
-                setBody(credentials)
+    private suspend fun requestTokens(path: String, credentials: Credentials): Response<Unit> {
+        val response = client.post(serverUrl) {
+            url {
+                apiPath(path)
             }
 
-            if (response.status.isSuccess()) {
-                session.setSession(response.body())
-                client.authProvider<BearerAuthProvider>()!!.clearToken()
-            }
-
-            response.statusResponse()
+            contentType(ContentType.Application.Json)
+            setBody(credentials)
         }
+
+        if (response.status.isSuccess()) {
+            session.setSession(response.body())
+            client.authProvider<BearerAuthProvider>()!!.clearToken()
+        }
+
+        return response.statusResponse()
+    }
 
     override suspend fun register(credentials: Credentials): Response<Unit> =
         withContext(Dispatchers.IO) {
@@ -254,7 +251,7 @@ internal constructor(
     override suspend fun queryRateable(): Response<List<Uuid>> = withContext(Dispatchers.IO) {
         client.get(serverUrl) {
             url {
-                apiPath("plan/units/rateable")
+                apiPath("plan/units/ratings")
             }
         }.responseAs()
     }
@@ -270,6 +267,19 @@ internal constructor(
 
             contentType(ContentType.Application.Json)
             setBody(Routes.Unit(unit, ratings = ratings))
+        }.statusResponse()
+    }
+
+    override suspend fun rateUnitMissed(
+        unit: Uuid
+    ): Response<Unit> = withContext(Dispatchers.IO) {
+        client.post(serverUrl) {
+            url {
+                apiPath("plan/units/ratings/missed")
+            }
+
+            contentType(ContentType.Application.Json)
+            setBody(Routes.Id(unit))
         }.statusResponse()
     }
 
