@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
         loginViewModel = LoginViewModel(api, testNavController)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken("549888352558-jpn57b44j23ulud1vpmcqn7sbr8rvcd7.apps.googleusercontent.com")
+            .requestIdToken("client_id")
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)

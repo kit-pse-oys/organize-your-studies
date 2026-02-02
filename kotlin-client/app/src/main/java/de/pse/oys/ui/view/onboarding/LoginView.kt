@@ -224,7 +224,7 @@ private fun GoogleButton(registering: Boolean, enabled: Boolean, onClick: () -> 
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
-            contentColor = Color.White
+            contentColor = Color.Gray
         ),
         modifier = Modifier.fillMaxWidth(0.7f).padding(vertical = 8.dp)
     ) {
@@ -233,7 +233,7 @@ private fun GoogleButton(registering: Boolean, enabled: Boolean, onClick: () -> 
             if (registering) stringResource(R.string.register_with_google)
             else stringResource(R.string.login_with_google),
             style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-            color = Color.White
+            color = Color.Black
         )
     }
 }
