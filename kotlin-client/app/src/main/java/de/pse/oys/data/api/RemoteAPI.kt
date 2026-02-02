@@ -12,6 +12,7 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.authProvider
+import io.ktor.client.plugins.auth.clearAuthTokens
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -157,7 +158,7 @@ internal constructor(
 
         if (response.status.isSuccess()) {
             session.setSession(response.body())
-            client.authProvider<BearerAuthProvider>()!!.clearToken()
+            client.clearAuthTokens()
         }
 
         return response.statusResponse()
@@ -176,6 +177,7 @@ internal constructor(
     override fun logout() {
         CoroutineScope(Dispatchers.IO).launch {
             session.setSession(null)
+            client.clearAuthTokens()
         }
     }
 

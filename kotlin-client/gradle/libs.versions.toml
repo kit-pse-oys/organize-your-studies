@@ -7,18 +7,18 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxCoroutinesTest = "x.x.x"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.2"
-composeBom = "2026.01.00"
+activityCompose = "1.12.3"
+composeBom = "2026.01.01"
 mockk = "1.14.9"
-navigation = "2.9.6"
+navigation = "2.9.7"
 datastorePreferences = "1.2.0"
-kotlinxSerialization = "1.10.0-RC"
+kotlinxSerialization = "1.10.0"
 kotlinxDateTime = "0.7.1"
-ktor = "3.3.3"
-foundationLayout = "1.10.1"
+ktor = "3.4.0"
+foundationLayout = "1.10.2"
+appauth = "0.11.1"
 
 [libraries]
-androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -47,6 +47,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

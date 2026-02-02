@@ -16,9 +16,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,6 +36,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.ensureFreeTimes
 import de.pse.oys.data.ensureUnits
 import de.pse.oys.data.facade.FreeTimeData
@@ -44,13 +49,13 @@ import de.pse.oys.ui.theme.Typography
 import de.pse.oys.ui.util.CalendarDay
 import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
@@ -61,8 +66,18 @@ import kotlin.uuid.Uuid
 @Composable
 fun MainView(viewModel: IMainViewModel) {
     var weeklyCalendar by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         Column(
             Modifier
                 .padding(innerPadding)
@@ -185,6 +200,8 @@ data class PlannedFreeTime(
 )
 
 interface IMainViewModel {
+    var error: Boolean
+
     val units: Map<DayOfWeek, List<PlannedUnit>>
     val unitsToday: List<PlannedUnit>
     val unitsTomorrow: List<PlannedUnit>
@@ -222,15 +239,19 @@ class MainViewModel(
         }.toMap()
         this._units = _units.map { (id, unit) -> unit.second to id }.toMap()
 
-        this.units = _units.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
+        this.units =
+            _units.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
         this.unitsToday = this.units[today.dayOfWeek] ?: listOf()
-        this.unitsTomorrow = this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)] ?: listOf()
+        this.unitsTomorrow =
+            this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)] ?: listOf()
     }
 
     private var _freeTimes: Map<PlannedFreeTime, Uuid> = mapOf()
     private fun updateFreeTimes(freeTimes: Map<Uuid, FreeTimeData>) {
-        val startOfWeek = today - (DateTimePeriod(days = today.dayOfWeek.isoDayNumber - 1) as DatePeriod)
-        val endOfWeek = today + (DateTimePeriod(days = 7 - today.dayOfWeek.isoDayNumber) as DatePeriod)
+        val startOfWeek =
+            today - (DateTimePeriod(days = today.dayOfWeek.isoDayNumber - 1) as DatePeriod)
+        val endOfWeek =
+            today + (DateTimePeriod(days = 7 - today.dayOfWeek.isoDayNumber) as DatePeriod)
         val week = startOfWeek..endOfWeek
         val _freeTimes = freeTimes.mapNotNull { (id, freeTime) ->
             if (!freeTime.weekly && freeTime.date !in week) return@mapNotNull null
@@ -244,7 +265,8 @@ class MainViewModel(
         }.toMap()
         this._freeTimes = _freeTimes.map { (id, freeTime) -> freeTime.second to id }.toMap()
 
-        this.freeTimes = _freeTimes.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
+        this.freeTimes = _freeTimes.map { it.value }.groupBy { it.first }
+            .mapValues { it.value.map { it.second } }
         this.freeTimesToday = this.freeTimes[today.dayOfWeek] ?: listOf()
     }
 
@@ -255,16 +277,15 @@ class MainViewModel(
     override var freeTimes: Map<DayOfWeek, List<PlannedFreeTime>> by mutableStateOf(mapOf())
     override var freeTimesToday: List<PlannedFreeTime> by mutableStateOf(listOf())
 
+    override var error: Boolean by mutableStateOf(false)
+
     init {
         if (model.steps != null) {
             updateUnits(model.steps!!)
         } else {
             viewModelScope.launch {
-                val steps = model.ensureUnits(api)
-                if (steps.status != HttpStatusCode.OK.value) {
-                    // TODO: Show error
-                } else {
-                    updateUnits(steps.response!!)
+                model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let {
+                    updateUnits(it)
                 }
             }
         }
@@ -273,11 +294,8 @@ class MainViewModel(
             updateFreeTimes(model.freeTimes!!)
         } else {
             viewModelScope.launch {
-                val freeTimes = model.ensureFreeTimes(api)
-                if (freeTimes.status != HttpStatusCode.OK.value) {
-                    // TODO: Show error
-                } else {
-                    updateFreeTimes(freeTimes.response!!)
+                model.ensureFreeTimes(api).defaultHandleError(navController) { error = true }?.let {
+                    updateFreeTimes(it)
                 }
             }
         }
@@ -287,7 +305,10 @@ class MainViewModel(
         unit: PlannedUnit,
         newStart: LocalTime
     ) {
-        TODO("Not yet implemented")
+        val uuid = _units[unit] ?: return
+        viewModelScope.launch {
+            api.moveUnit(uuid, today.atTime(newStart))
+        }
     }
 
     override fun moveUnit(
@@ -295,15 +316,26 @@ class MainViewModel(
         newDay: DayOfWeek,
         newStart: LocalTime
     ) {
-        TODO("Not yet implemented")
+        val uuid = _units[unit] ?: return
+        val date =
+            today + (DateTimePeriod(days = (newDay.isoDayNumber - today.dayOfWeek.isoDayNumber + 7) % 7) as DatePeriod)
+        viewModelScope.launch {
+            api.moveUnit(uuid, date.atTime(newStart))
+        }
     }
 
     override fun moveUnitAutomatically(unit: PlannedUnit) {
-        TODO("Not yet implemented")
+        val uuid = _units[unit] ?: return
+        viewModelScope.launch {
+            api.moveUnitAutomatically(uuid)
+        }
     }
 
     override fun marksAsFinished(unit: PlannedUnit) {
-        TODO("Not yet implemented")
+        val uuid = _units[unit] ?: return
+        viewModelScope.launch {
+            api.markUnitFinished(uuid)
+        }
     }
 
     override fun navigateToMenu() {
