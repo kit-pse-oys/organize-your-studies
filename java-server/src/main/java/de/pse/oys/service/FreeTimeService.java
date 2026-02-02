@@ -61,7 +61,7 @@ public class FreeTimeService {
         validate(dto);
         ensureNoOverlap(userId, dto, null);
         FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
-        return toDto(saved);
+        return toDto(saved); //todo: uuid der freetime zurückgeben
     }
 
     /**

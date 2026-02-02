@@ -1,6 +1,8 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.FreeTimeDTO;
+import de.pse.oys.dto.controller.IdDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.FreeTimeService;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
@@ -8,14 +10,15 @@ import de.pse.oys.service.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -25,7 +28,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/freeTimes")
+@RequestMapping("/api/v1/freeTimes")
 public class FreeTimeController extends BaseController {
 
     private final FreeTimeService freeTimeService;
@@ -40,16 +43,28 @@ public class FreeTimeController extends BaseController {
 
 
     /**
+     * Ruft alle Freizeiträume ab.
+     *
+     * @return Eine Liste aller FreeTimeDTOs des authentifizierten Nutzers.
+     */
+    @GetMapping
+    public ResponseEntity<List<WrapperDTO<FreeTimeDTO>>> queryFreeTimes() {
+        UUID userId = getAuthenticatedUserId();
+        List<WrapperDTO<FreeTimeDTO>> freeTimes = freeTimeService.getFreeTimesByUserId(userId);
+        return ResponseEntity.ok(freeTimes); //todo rückgabe klasse mit id und data (date= dto)
+    }
+
+    /**
      * Erstellt einen neuen Zeitraum für Freizeit.
      * @param dto Die Daten des neuen Zeitfensters.
      * @return Das erstellte DTO oder 400 bei Validierungsfehlern.
      */
     @PostMapping
-    public ResponseEntity<FreeTimeDTO> createFreeTime(@RequestBody FreeTimeDTO dto) {
+    public ResponseEntity<Map<String, String>> createFreeTime(@RequestBody FreeTimeDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            FreeTimeDTO created = freeTimeService.createFreeTime(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            UUID created = freeTimeService.createFreeTime(userId, dto);
+            return ResponseEntity.ok(Map.of("id", created.toString())); //todo: return created id wird vom service bereit gestellt
         } catch (ResourceNotFoundException | ValidationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
@@ -61,16 +76,16 @@ public class FreeTimeController extends BaseController {
      * Aktualisiert einen bestehenden Zeitraum.
      * Prüft dabei, ob das Objekt existiert und dem Nutzer gehört.
      *
-     * @param freeTimeId Die ID des zu ändernden Freizeitraums.
-     * @param dto Die aktualisierten Daten (muss eine gültige ID enthalten).
-     * @return Das geänderte FreeTimeDTO oder ein entsprechender Fehlerstatus.
+     * @param wrapperDTO@return Das geänderte FreeTimeDTO oder ein entsprechender Fehlerstatus.
      */
-    @PatchMapping("/{freeTimeId}")
-    public ResponseEntity<FreeTimeDTO> updateFreeTime(@PathVariable UUID freeTimeId, @RequestBody FreeTimeDTO dto) {
+    @PutMapping
+    public ResponseEntity<Void> updateFreeTime(@RequestBody WrapperDTO<FreeTimeDTO> wrapperDTO) {
+        FreeTimeDTO dto = wrapperDTO.getData();
+        UUID freeTimeId = wrapperDTO.getId();
         try {
             UUID userId = getAuthenticatedUserId();
-            FreeTimeDTO updated = freeTimeService.updateFreeTime(userId, freeTimeId, dto);
-            return ResponseEntity.ok(updated);
+            freeTimeService.updateFreeTime(userId, freeTimeId, dto);
+            return ResponseEntity.ok().build();
         } catch (AccessDeniedException e) {
             // 403 Forbidden, falls der Nutzer nicht der Besitzer ist
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -86,14 +101,14 @@ public class FreeTimeController extends BaseController {
     /**
      * Löscht einen Freizeitraum anhand der im Body übergebenen ID.
      *
-     * @param freeTimeId Die ID des zu löschenden Freizeitraums.
+     * @param idDto DTO mit der ID des zu löschenden Freizeitraums.
      * @return 204 bei Erfolg, 403 bei fehlender Berechtigung oder 404.
      */
-    @DeleteMapping("/{freeTimeId}")
-    public ResponseEntity<Void> deleteFreeTime(@PathVariable UUID freeTimeId) {
+    @DeleteMapping
+    public ResponseEntity<Void> deleteFreeTime(@RequestBody IdDTO idDto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            freeTimeService.deleteFreeTime(userId, freeTimeId);
+            freeTimeService.deleteFreeTime(userId, idDto.asUuid());
             return ResponseEntity.noContent().build();
         } catch (AccessDeniedException e) {
             // Falls das Objekt nicht dem User gehört

@@ -38,7 +38,7 @@ public class UserController extends BaseController{
      * @return Eine ResponseEntity mit den Authentifizierungsdaten (Status 201).
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@RequestBody UserDTO dto) {
+    public ResponseEntity<AuthResponseDTO> register(@RequestBody UserDTO dto) { //todo user dto ist quatsch, login dto ist besser
         try {
             AuthResponseDTO response = userService.register(dto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -58,7 +58,7 @@ public class UserController extends BaseController{
      * @return Status 204 (No Content) bei Erfolg oder 403 (Forbidden) bei falscher Verifizierung.
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteAccount(@RequestBody UserDTO dto) {
+    public ResponseEntity<Void> deleteAccount(@RequestBody UserDTO dto) { //todo kein dto benötigt, da user eh schon authentifiziert ist
         try {
             UUID userId = getAuthenticatedUserId();
 
