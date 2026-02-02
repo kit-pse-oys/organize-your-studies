@@ -290,7 +290,6 @@ class TaskServiceTest {
         dto.setModuleTitle(moduleTitle);
         dto.setCategory(TaskCategory.OTHER);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
-        dto.setSendNotification(true); // wird im Service bewusst ignoriert/konstant gesetzt
         dto.setStartTime(OTHER_START);
         dto.setEndTime(OTHER_END);
         return dto;
@@ -302,7 +301,6 @@ class TaskServiceTest {
         dto.setModuleTitle(moduleTitle);
         dto.setCategory(TaskCategory.SUBMISSION);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
-        dto.setSendNotification(true);
 
         LocalDateTime first = T0.plusDays(1);
         dto.setFirstDeadline(first);
@@ -318,7 +316,6 @@ class TaskServiceTest {
         dto.setModuleTitle(moduleTitle);
         dto.setCategory(TaskCategory.EXAM);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
-        dto.setSendNotification(true);
         dto.setExamDate(EXAM_DATE);
         return dto;
     }

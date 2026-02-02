@@ -29,9 +29,6 @@ import java.util.UUID;
  * - Erstellen, Updaten und Löschen von Tasks
  * - Validierung von DTOs und Mapping DTO <-> Entity
  *
- * Hinweis: sendNotification ist aktuell NICHT als Feld in der Task-Entity persistiert.
- * Deshalb wird es im Mapping bewusst konstant gesetzt (siehe fillBase).
- *
  * @author uqvfm
  * @version 1.1
  */
@@ -358,9 +355,6 @@ public class TaskService {
         dto.setModuleTitle(task.getModule() != null ? task.getModule().getTitle() : null);
         dto.setCategory(task.getCategory());
         dto.setWeeklyTimeLoad(task.getWeeklyDurationMinutes());
-
-        // aktuell nicht persistierbar -> bewusst konstant
-        dto.setSendNotification(false); // TODO: falls später persistiert, hier mappen
     }
 
     /**

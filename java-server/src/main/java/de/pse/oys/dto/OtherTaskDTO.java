@@ -27,17 +27,15 @@ public class OtherTaskDTO extends TaskDTO {
      * @param title            Titel der Aufgabe
      * @param moduleTitle      Titel des Moduls
      * @param weeklyTimeLoad   Wöchentlicher Aufwand (Minuten)
-     * @param sendNotification Ob Benachrichtigungen aktiv sind
      * @param startTime        Startzeitpunkt
      * @param endTime          Endzeitpunkt
      */
     public OtherTaskDTO(String title,
                         String moduleTitle,
                         Integer weeklyTimeLoad,
-                        boolean sendNotification,
                         LocalDateTime startTime,
                         LocalDateTime endTime) {
-        super(title, moduleTitle, TaskCategory.OTHER, weeklyTimeLoad, sendNotification);
+        super(title, moduleTitle, TaskCategory.OTHER, weeklyTimeLoad);
         this.startTime = startTime;
         this.endTime = endTime;
     }

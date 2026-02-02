@@ -11,7 +11,6 @@ public abstract class TaskDTO {
     private String moduleTitle;
     private TaskCategory category;
     private Integer weeklyTimeLoad;
-    private boolean sendNotification;
 
     /**
      * Default-Konstruktor (z.B. für Deserialisierung).
@@ -26,18 +25,15 @@ public abstract class TaskDTO {
      * @param moduleTitle      Titel des zugehörigen Moduls
      * @param category         Kategorie der Aufgabe
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
-     * @param sendNotification ob Benachrichtigungen gesendet werden sollen
      */
     protected TaskDTO(String title,
                       String moduleTitle,
                       TaskCategory category,
-                      Integer weeklyTimeLoad,
-                      boolean sendNotification) {
+                      Integer weeklyTimeLoad) {
         this.title = title;
         this.moduleTitle = moduleTitle;
         this.category = category;
         this.weeklyTimeLoad = weeklyTimeLoad;
-        this.sendNotification = sendNotification;
     }
 
     /**
@@ -110,23 +106,5 @@ public abstract class TaskDTO {
      */
     public void setWeeklyTimeLoad(Integer weeklyTimeLoad) {
         this.weeklyTimeLoad = weeklyTimeLoad;
-    }
-
-    /**
-     * Gibt an, ob Benachrichtigungen gesendet werden sollen.
-     *
-     * @return true, wenn Benachrichtigungen aktiv sind, sonst false
-     */
-    public boolean isSendNotification() {
-        return sendNotification;
-    }
-
-    /**
-     * Setzt, ob Benachrichtigungen gesendet werden sollen.
-     *
-     * @param sendNotification true, wenn Benachrichtigungen aktiv sein sollen
-     */
-    public void setSendNotification(boolean sendNotification) {
-        this.sendNotification = sendNotification;
     }
 }
