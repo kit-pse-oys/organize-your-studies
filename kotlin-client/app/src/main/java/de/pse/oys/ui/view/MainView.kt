@@ -28,10 +28,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.ensureFreeTimes
+import de.pse.oys.data.ensureUnits
+import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.data.facade.StepData
 import de.pse.oys.ui.navigation.additions
 import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.navigation.menu
@@ -39,8 +44,19 @@ import de.pse.oys.ui.theme.Typography
 import de.pse.oys.ui.util.CalendarDay
 import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.launch
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.isoDayNumber
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 @Composable
 fun MainView(viewModel: IMainViewModel) {
@@ -190,17 +206,82 @@ class MainViewModel(
     private val model: ModelFacade,
     private val navController: NavController
 ) : ViewModel(), IMainViewModel {
-    override val units: Map<DayOfWeek, List<PlannedUnit>>
-        get() = TODO("Not yet implemented")
-    override val unitsToday: List<PlannedUnit>
-        get() = TODO("Not yet implemented")
-    override val unitsTomorrow: List<PlannedUnit>
-        get() = TODO("Not yet implemented")
+    private val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    private var _units: Map<PlannedUnit, Uuid> = mapOf()
+    private fun updateUnits(units: Map<DayOfWeek, Map<Uuid, StepData>>) {
+        val _units = units.flatMap { (day, units) ->
+            units.map { (id, unit) ->
+                id to (day to PlannedUnit(
+                    unit.task.data.title,
+                    unit.task.data.module.data.description,
+                    unit.task.data.module.data.color,
+                    unit.start,
+                    unit.end
+                ))
+            }
+        }.toMap()
+        this._units = _units.map { (id, unit) -> unit.second to id }.toMap()
 
-    override val freeTimes: Map<DayOfWeek, List<PlannedFreeTime>>
-        get() = TODO("Not yet implemented")
-    override val freeTimesToday: List<PlannedFreeTime>
-        get() = TODO("Not yet implemented")
+        this.units = _units.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
+        this.unitsToday = this.units[today.dayOfWeek] ?: listOf()
+        this.unitsTomorrow = this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)] ?: listOf()
+    }
+
+    private var _freeTimes: Map<PlannedFreeTime, Uuid> = mapOf()
+    private fun updateFreeTimes(freeTimes: Map<Uuid, FreeTimeData>) {
+        val startOfWeek = today - (DateTimePeriod(days = today.dayOfWeek.isoDayNumber - 1) as DatePeriod)
+        val endOfWeek = today + (DateTimePeriod(days = 7 - today.dayOfWeek.isoDayNumber) as DatePeriod)
+        val week = startOfWeek..endOfWeek
+        val _freeTimes = freeTimes.mapNotNull { (id, freeTime) ->
+            if (!freeTime.weekly && freeTime.date !in week) return@mapNotNull null
+
+            val dayOfWeek = freeTime.date.dayOfWeek
+            (id to (dayOfWeek to PlannedFreeTime(
+                freeTime.title,
+                freeTime.start,
+                freeTime.end
+            )))
+        }.toMap()
+        this._freeTimes = _freeTimes.map { (id, freeTime) -> freeTime.second to id }.toMap()
+
+        this.freeTimes = _freeTimes.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
+        this.freeTimesToday = this.freeTimes[today.dayOfWeek] ?: listOf()
+    }
+
+    override var units: Map<DayOfWeek, List<PlannedUnit>> by mutableStateOf(mapOf())
+    override var unitsToday: List<PlannedUnit> by mutableStateOf(listOf())
+    override var unitsTomorrow: List<PlannedUnit> by mutableStateOf(listOf())
+
+    override var freeTimes: Map<DayOfWeek, List<PlannedFreeTime>> by mutableStateOf(mapOf())
+    override var freeTimesToday: List<PlannedFreeTime> by mutableStateOf(listOf())
+
+    init {
+        if (model.steps != null) {
+            updateUnits(model.steps!!)
+        } else {
+            viewModelScope.launch {
+                val steps = model.ensureUnits(api)
+                if (steps.status != HttpStatusCode.OK.value) {
+                    // TODO: Show error
+                } else {
+                    updateUnits(steps.response!!)
+                }
+            }
+        }
+
+        if (model.freeTimes != null) {
+            updateFreeTimes(model.freeTimes!!)
+        } else {
+            viewModelScope.launch {
+                val freeTimes = model.ensureFreeTimes(api)
+                if (freeTimes.status != HttpStatusCode.OK.value) {
+                    // TODO: Show error
+                } else {
+                    updateFreeTimes(freeTimes.response!!)
+                }
+            }
+        }
+    }
 
     override fun moveUnitToday(
         unit: PlannedUnit,
