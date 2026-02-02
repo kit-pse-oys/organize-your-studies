@@ -299,7 +299,9 @@ public class PlanningService {
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration) {
         LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
+        plan = learningPlanRepository.save(plan);
         List<LearningUnit> newLearningUnits = new ArrayList<>();
+
         for (PlanningResponseDTO result : results) {
             String id = result.getId();
             String originalTaskIdStr = id.split(ID_SEPERATOR)[0];
@@ -315,8 +317,12 @@ public class PlanningService {
                 LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
                 task.addLearningUnit(unit);
                 taskRepository.save(task);
-                newLearningUnits.add(unit);
-
+                Task savedTask = taskRepository.findById(originalTaskId).orElse(task);
+                List<LearningUnit> units = savedTask.getLearningUnits();
+                if (!units.isEmpty()) {
+                    LearningUnit savedUnit = units.get(units.size() - 1);
+                    newLearningUnits.add(savedUnit);
+                }
 
             }
         }

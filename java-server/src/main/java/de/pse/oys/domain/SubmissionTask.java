@@ -19,15 +19,15 @@ import java.time.temporal.ChronoUnit;
 public class SubmissionTask extends Task {
 
     /** Zeitpunkt, ab dem die Aufgabe komplett vorbei ist (keine Deadlines mehr). */
-    @Column(name = "end_time", nullable = false)
+    @Column(name = "end_time")
     private LocalDateTime endTime;
 
     /** Erste Deadline (Anchor), an der sich die Wiederholung ausrichtet. */
-    @Column(name = "first_deadline", nullable = false)
+    @Column(name = "first_deadline")
     private LocalDateTime firstDeadline;
 
     /** Rhythmus in Wochen (1 = wöchentlich, 2 = alle 2 Wochen, ...). */
-    @Column(name = "cycle_weeks", nullable = false)
+    @Column(name = "cycle_weeks")
     private int cycleWeeks;
 
     /** Standardkonstruktor für JPA/Hibernate. */
