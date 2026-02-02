@@ -2,15 +2,17 @@ package de.pse.oys.dto;
 
 import de.pse.oys.domain.enums.TaskCategory;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
- * DTO für "OTHER"-Tasks mit Start- und Enddatum.
+ * DTO für "OTHER"-Tasks mit Start- und Endzeitpunkt (LocalDateTime).
+ *
+ * @author uqvfm
  */
 public class OtherTaskDTO extends TaskDTO {
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     /**
      * Default-Konstruktor (z.B. für JSON).
@@ -26,53 +28,53 @@ public class OtherTaskDTO extends TaskDTO {
      * @param moduleTitle      Titel des Moduls
      * @param weeklyTimeLoad   Wöchentlicher Aufwand (Minuten)
      * @param sendNotification Ob Benachrichtigungen aktiv sind
-     * @param startDate        Startdatum
-     * @param endDate          Enddatum
+     * @param startTime        Startzeitpunkt
+     * @param endTime          Endzeitpunkt
      */
     public OtherTaskDTO(String title,
                         String moduleTitle,
                         Integer weeklyTimeLoad,
                         boolean sendNotification,
-                        LocalDate startDate,
-                        LocalDate endDate) {
+                        LocalDateTime startTime,
+                        LocalDateTime endTime) {
         super(title, moduleTitle, TaskCategory.OTHER, weeklyTimeLoad, sendNotification);
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     /**
-     * Gibt das Startdatum zurück.
+     * Gibt den Startzeitpunkt zurück.
      *
-     * @return Startdatum
+     * @return Startzeitpunkt
      */
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
     /**
-     * Setzt das Startdatum.
+     * Setzt den Startzeitpunkt.
      *
-     * @param startDate Startdatum
+     * @param startTime Startzeitpunkt
      */
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     /**
-     * Gibt das Enddatum zurück.
+     * Gibt den Endzeitpunkt zurück.
      *
-     * @return Enddatum
+     * @return Endzeitpunkt
      */
-    public LocalDate getEndDate() {
-        return endDate;
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
     /**
-     * Setzt das Enddatum.
+     * Setzt den Endzeitpunkt.
      *
-     * @param endDate Enddatum
+     * @param endTime Endzeitpunkt
      */
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 }
