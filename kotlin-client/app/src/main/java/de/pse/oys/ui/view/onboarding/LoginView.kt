@@ -272,9 +272,9 @@ private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> U
 }
 
 /**
- * Button for switching between login and register.
+ * Button for logging in or registering with Google.
  * @param registering whether the user is registering or logging in.
- * @param onSwitchMode the function to be called when the button is clicked.
+ * @param onClick the function to be called when the button is clicked.
  */
 @Composable
 fun GoogleLoginButton(registering: Boolean, onClick: () -> Unit) {
@@ -298,6 +298,11 @@ fun GoogleLoginButton(registering: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Button for switching between login and register.
+ * @param registering whether the user is registering or logging in.
+ * @param onSwitchMode the function to be called when the button is clicked.
+ */
 @Composable
 private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     Row {
@@ -329,7 +334,6 @@ interface ILoginViewModel {
     /**
      * Logs in the user with OIDC.
      */
-    fun loginWithOIDC()
     fun loginWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>)
 
     /**
@@ -340,7 +344,12 @@ interface ILoginViewModel {
     /**
      * Registers the user with OIDC.
      */
-    fun registerWithOIDC()
+    fun registerWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>)
+
+    /**
+     * Handles the result of the OIDC login.
+     */
+    fun handleOIDCResult(intent: Intent?)
 }
 
 /**
@@ -348,12 +357,6 @@ interface ILoginViewModel {
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) :
-    fun registerWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>)
-
-    fun handleOIDCResult(intent: Intent?)
-}
-
 class LoginViewModel(
     private val api: RemoteAPI,
     context: Context,
@@ -368,7 +371,7 @@ class LoginViewModel(
         )
         private const val CLIENT_ID = "549888352558-jpn57b44j23ulud1vpmcqn7sbr8rvcd7"
         private val REDIRECT_URI =
-            "com.googleusercontent.apps.549888352558-jpn57b44j23ulud1vpmcqn7sbr8rvcd7:/oauth2redirect".toUri()
+            "com.googleusercontent.apps.$CLIENT_ID:/oauth2redirect".toUri()
     }
 
     private val authService = AuthorizationService(context)
