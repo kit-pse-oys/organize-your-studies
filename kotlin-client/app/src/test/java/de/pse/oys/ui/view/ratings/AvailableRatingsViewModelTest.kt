@@ -3,11 +3,14 @@ package de.pse.oys.ui.view.ratings
 import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.Response
+import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.data.facade.OtherTaskData
 import de.pse.oys.data.facade.StepData
-import de.pse.oys.data.facade.TaskData
 import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.view.TestUtils.TEST_COLOR
+import de.pse.oys.ui.view.TestUtils.TEST_DATE
+import de.pse.oys.ui.view.TestUtils.TEST_TIME
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.randomUuid
 import io.ktor.http.HttpStatusCode
@@ -40,15 +43,26 @@ class AvailableRatingsViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        val testTaskData = OtherTaskData(
+            title = TEST_TITLE,
+            module = mockk {
+                every { data.color } returns TEST_COLOR
+            },
+            weeklyTimeLoad = 2,
+            sendNotification = false,
+            start = TEST_DATE,
+            end = TEST_DATE
+        )
 
-        val mockStepData = mockk<StepData>(relaxed = true)
+        val testTask = Identified(testTaskData, testUuid)
 
-        every { model.steps } returns mapOf(testUuid to mockStepData)
-
-        val mockTaskData = mockk<TaskData>(relaxed = true)
-        every { mockStepData.task.data } returns mockTaskData
-        every { mockTaskData.title } returns TEST_TITLE
-        every { mockTaskData.module.data.color } returns TEST_COLOR
+        val testStepData = StepData(
+            task = testTask,
+            date = TEST_DATE,
+            start = TEST_TIME,
+            end = TEST_TIME
+        )
+        every { model.steps } returns mapOf(testUuid to testStepData)
 
         coEvery { api.queryRateable() } returns Response(
             status = HttpStatusCode.OK.value,
@@ -91,5 +105,18 @@ class AvailableRatingsViewModelTest {
         viewModel.selectRating(unknownTarget)
 
         verify(exactly = 0) { navController.rating(any()) }
+    }
+
+    @Test
+    fun `available list is empty when api returns no uuids`() = runTest {
+        coEvery { api.queryRateable() } returns Response(
+            status = HttpStatusCode.OK.value,
+            response = emptyList()
+        )
+
+        val viewModel = AvailableRatingsViewModel(api, model, navController)
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.available.size)
     }
 }

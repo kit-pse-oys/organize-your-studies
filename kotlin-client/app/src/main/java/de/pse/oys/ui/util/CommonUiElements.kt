@@ -85,9 +85,16 @@ fun SingleLineInput(
     value: String,
     onValueChange: (String) -> Unit,
 ) {
+    val maxLength = 35
+    val tooLong = value.length > maxLength
     TextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = { newValue ->
+            if (newValue.length <= maxLength) {
+                onValueChange(newValue)
+            }
+        },
+        isError = tooLong,
         modifier = Modifier
             .fillMaxWidth(0.9f)
             .padding(bottom = 14.dp)
@@ -98,7 +105,9 @@ fun SingleLineInput(
             unfocusedContainerColor = LightBlue,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray
         ),
         singleLine = true
     )
@@ -304,9 +313,15 @@ fun DeleteElementDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.confirm_yes)) }
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = Blue)
+            ) { Text(stringResource(R.string.confirm_yes)) }
         }, dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.confirm_no)) }
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = Blue)
+            ) { Text(stringResource(R.string.confirm_no)) }
         }, title = {
             Text(stringResource(R.string.delete_element_confirm_header))
         }, text = {

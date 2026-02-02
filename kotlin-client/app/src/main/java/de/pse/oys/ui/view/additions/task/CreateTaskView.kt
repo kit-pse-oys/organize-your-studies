@@ -56,7 +56,6 @@ import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
-import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
@@ -413,7 +412,7 @@ private fun TaskTypeChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = LightBlue,
             containerColor = Color.Transparent,
-            labelColor = Color.DarkGray,
+            selectedLabelColor = Color.DarkGray,
             selectedLeadingIconColor = Color.Blue,
         ),
         border = FilterChipDefaults.filterChipBorder(

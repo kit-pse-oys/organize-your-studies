@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -88,29 +90,31 @@ private fun TaskButton(task: Task, viewModel: ITasksViewModel) {
             contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 2.dp)
-        ) {
-            Text(
-                task.data.title, style = typography.titleLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 2.dp)
+            ) {
+                Text(
+                    task.data.title, style = typography.titleLarge.copy(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
-            )
-            Text(stringResource(id = R.string.task_from_module) + task.data.module.data.title)
-            when (task.data) {
-                is ExamTaskData -> {
-                    Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.examTask))
-                }
+                Text(stringResource(id = R.string.task_from_module) + task.data.module.data.title)
+                when (task.data) {
+                    is ExamTaskData -> {
+                        Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.examTask))
+                    }
 
-                is SubmissionTaskData -> {
-                    Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.submissionTask))
-                }
+                    is SubmissionTaskData -> {
+                        Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.submissionTask))
+                    }
 
-                is OtherTaskData -> {
-                    Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.otherTask))
+                    is OtherTaskData -> {
+                        Text(stringResource(id = R.string.task_type_is) + stringResource(id = R.string.otherTask))
+                    }
                 }
             }
         }

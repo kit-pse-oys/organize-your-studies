@@ -111,6 +111,8 @@ private fun UsernameTextField(
     username: String,
     onUsernameChanged: (String) -> Unit
 ) {
+    val maxLength = 20
+    val tooLong = username.length > maxLength
     TextField(
         value = username,
         onValueChange = onUsernameChanged,
@@ -123,8 +125,11 @@ private fun UsernameTextField(
             unfocusedContainerColor = LightBlue,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray
         ),
+        isError = tooLong,
         singleLine = true,
         label = { Text(stringResource(R.string.username_field)) })
 }
@@ -137,6 +142,8 @@ private fun PasswordTextField(
     isError: Boolean = false,
     onPasswordChanged: (String) -> Unit
 ) {
+    val maxLength = 20
+    val tooLong = password.length > maxLength
     TextField(
         value = password,
         onValueChange = onPasswordChanged,
@@ -149,10 +156,12 @@ private fun PasswordTextField(
             unfocusedContainerColor = LightBlue,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray
         ),
         singleLine = true,
-        isError = isError,
+        isError = isError || tooLong,
         label = {
             Text(
                 if (confirm) stringResource(R.string.confirm_password_field) else stringResource(

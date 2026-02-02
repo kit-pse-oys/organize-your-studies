@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -85,22 +87,24 @@ private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
             containerColor = LightBlue, contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 2.dp)
-        ) {
-            Text(
-                freeTime.data.title, style = typography.titleLarge.copy(
-                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 2.dp)
+            ) {
+                Text(
+                    freeTime.data.title, style = typography.titleLarge.copy(
+                        fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                    )
                 )
-            )
-            if (freeTime.data.weekly) {
-                Text(stringResource(id = R.string.weekly_freetime_since) + freeTime.data.date.toFormattedString())
-            } else {
-                Text(stringResource(id = R.string.freetime_on_date) + freeTime.data.date.toFormattedString())
+                if (freeTime.data.weekly) {
+                    Text(stringResource(id = R.string.weekly_freetime_since) + freeTime.data.date.toFormattedString())
+                } else {
+                    Text(stringResource(id = R.string.freetime_on_date) + freeTime.data.date.toFormattedString())
+                }
+                Text(stringResource(id = R.string.at_time) + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
             }
-            Text(stringResource(id = R.string.at_time) + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
         }
     }
 }

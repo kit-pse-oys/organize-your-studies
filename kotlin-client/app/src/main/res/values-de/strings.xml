@@ -121,4 +121,9 @@
     <string name="delete_element_confirm_body">Löschen ist permanent und kann nicht zurückgenommen werden!</string>
     <string name="edit_module">Modul bearbeiten</string>
     <string name="edit_task">Aufgabe bearbeiten</string>
+    <string name="open_additions_button">Hinzufügen öffnen</string>
+    <string name="save_module">Modul speichern</string>
+    <string name="save_task">Aufgabe speichern</string>
+    <string name="save_freetime">Freizeit speichern</string>
+    <string name="open_menu_button">Menü öffnen</string>
 </resources>

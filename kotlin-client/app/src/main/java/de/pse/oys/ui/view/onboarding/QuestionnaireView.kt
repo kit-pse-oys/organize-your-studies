@@ -16,10 +16,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,46 +103,48 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Column(Modifier.padding(10.dp)) {
-                            Text(
-                                stringResource(R.string.question_header, i + 1),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(question.getDisplayQuestion())
-                            Spacer(Modifier.height(4.dp))
-                            FlowRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp),
-                                maxItemsInEachRow = Int.MAX_VALUE
-                            ) {
-                                question.answers.forEach { answer ->
-                                    val selected by viewModel.selected(question, answer)
-                                        .collectAsStateWithLifecycle()
+                        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+                            Column(Modifier.padding(10.dp)) {
+                                Text(
+                                    stringResource(R.string.question_header, i + 1),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Text(question.getDisplayQuestion())
+                                Spacer(Modifier.height(4.dp))
+                                FlowRow(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp),
+                                    maxItemsInEachRow = Int.MAX_VALUE
+                                ) {
+                                    question.answers.forEach { answer ->
+                                        val selected by viewModel.selected(question, answer)
+                                            .collectAsStateWithLifecycle()
 
-                                    FilterChip(
-                                        modifier = Modifier.padding(horizontal = 4.dp),
-                                        selected = selected,
-                                        onClick = { viewModel.select(question, answer) },
-                                        shape = RoundedCornerShape(20.dp),
-                                        label = {
-                                            Text(
-                                                text = answer.getDisplayLabel(),
-                                                textAlign = TextAlign.Center
-                                            )
-                                        },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = Blue,
-                                            selectedLabelColor = Color.White,
-                                            containerColor = Color.Transparent,
-                                        ),
-                                        border = FilterChipDefaults.filterChipBorder(
-                                            enabled = true,
+                                        FilterChip(
+                                            modifier = Modifier.padding(horizontal = 4.dp),
                                             selected = selected,
-                                            borderColor = MediumBlue,
-                                            borderWidth = 1.3.dp
+                                            onClick = { viewModel.select(question, answer) },
+                                            shape = RoundedCornerShape(20.dp),
+                                            label = {
+                                                Text(
+                                                    text = answer.getDisplayLabel(),
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = Blue,
+                                                selectedLabelColor = Color.White,
+                                                containerColor = Color.Transparent,
+                                            ),
+                                            border = FilterChipDefaults.filterChipBorder(
+                                                enabled = true,
+                                                selected = selected,
+                                                borderColor = MediumBlue,
+                                                borderWidth = 1.3.dp
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }

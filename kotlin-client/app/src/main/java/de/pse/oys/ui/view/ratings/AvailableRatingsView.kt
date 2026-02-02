@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -92,7 +91,7 @@ private fun RatingSelectionItem(
         border = BorderStroke(2.dp, target.color),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = LightBlue,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = Color.Black
         )
     ) {
         Text(
