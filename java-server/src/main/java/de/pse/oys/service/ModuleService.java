@@ -48,7 +48,7 @@ public class ModuleService {
      * @return Das erstellte Modul als {@link ModuleDTO} mit generierter ID[cite: 5].
      * @throws IllegalArgumentException wenn der Nutzer nicht existiert oder Validierungsfehler auftreten.
      */
-    public ModuleDTO createModule(UUID userId, ModuleDTO dto) {
+    public UUID createModule(UUID userId, ModuleDTO dto) {
         validateData(dto);
 
         User user = userRepository.findById(userId)

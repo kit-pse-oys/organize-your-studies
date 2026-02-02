@@ -94,14 +94,15 @@ public class TaskService {
      * @throws ValidationException       wenn das DTO ungültig ist
      * @throws ResourceNotFoundException wenn Nutzer oder Modul nicht existiert/gehört
      */
-    public TaskDTO createTask(UUID userId, TaskDTO dto) {
+    public UUID createTask(UUID userId, TaskDTO dto) {
         Objects.requireNonNull(userId, "userId");
         validateData(dto);
         requireUserExists(userId);
         Module module = requireOwnedModule(userId, dto.getModuleTitle());
         Task task = mapToEntity(dto);
         module.addTask(task);
-        return task.getTaskId();
+        Task saved = taskRepository.save(task);
+        return saved.getTaskId();
     }
 
     /**

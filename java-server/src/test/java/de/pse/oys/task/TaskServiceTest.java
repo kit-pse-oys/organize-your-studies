@@ -137,24 +137,32 @@ class TaskServiceTest {
             when(moduleRepository.findByUserIdAndTitle(USER_ID, NEW_MODULE_TITLE))
                     .thenReturn(Optional.of(module));
 
-            when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
+            UUID generatedId = UUID.randomUUID();
+
+            Task savedMock = mock(Task.class);
+            when(savedMock.getTaskId()).thenReturn(generatedId);
+
+            when(taskRepository.save(any(Task.class))).thenReturn(savedMock);
 
             OtherTaskDTO dto = validOtherDto(NEW_MODULE_TITLE);
 
-            TaskDTO created = sut.createTask(USER_ID, dto);
+            UUID createdId = sut.createTask(USER_ID, dto);
 
-            assertThat(created.getTitle()).isEqualTo(dto.getTitle());
-            assertThat(created.getModuleTitle()).isEqualTo(NEW_MODULE_TITLE);
-            assertThat(created.getCategory()).isEqualTo(TaskCategory.OTHER);
-            assertThat(created.getWeeklyTimeLoad()).isEqualTo(WEEKLY_LOAD);
+            assertThat(createdId).isEqualTo(generatedId);
 
             ArgumentCaptor<Task> savedCaptor = ArgumentCaptor.forClass(Task.class);
             verify(taskRepository).save(savedCaptor.capture());
 
             Task saved = savedCaptor.getValue();
+            assertThat(saved).isInstanceOf(OtherTask.class);
+            assertThat(saved.getTitle()).isEqualTo(dto.getTitle());
+            assertThat(saved.getCategory()).isEqualTo(TaskCategory.OTHER);
+            assertThat(saved.getWeeklyDurationMinutes()).isEqualTo(WEEKLY_LOAD);
+
             assertThat(saved.getModule()).isNotNull();
             assertThat(saved.getModule().getTitle()).isEqualTo(NEW_MODULE_TITLE);
         }
+
     }
 
     // ------------------------------------------------------------

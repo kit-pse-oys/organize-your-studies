@@ -56,7 +56,7 @@ public class FreeTimeService {
      * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
      * @return angelegte Freizeit als DTO
      */
-    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
+    public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
         validate(dto);
         ensureNoOverlap(userId, dto, null);

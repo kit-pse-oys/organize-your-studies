@@ -47,7 +47,7 @@ class FreeTimeServiceTest {
     class CreateFreeTime {
 
         @Test
-        void createsSingleFreeTime_andReturnsDto() {
+        void createsSingleFreeTime_andReturnsUuid() {
             UUID userId = UUID.randomUUID();
             LocalDate date = LocalDate.of(2026, 1, 31);
             LocalTime start = LocalTime.of(10, 0);
@@ -58,27 +58,30 @@ class FreeTimeServiceTest {
             givenUserExists(userId);
             givenNoOverlap(userId, input, null);
 
-            when(freeTimeRepository.save(any(FreeTime.class)))
-                    .thenAnswer(inv -> inv.getArgument(0));
+            UUID generatedId = UUID.randomUUID();
 
-            FreeTimeDTO result = sut.createFreeTime(userId, input);
+            FreeTime savedMock = mock(FreeTime.class);
+            when(savedMock.getFreeTimeId()).thenReturn(generatedId);
 
-            assertThat(result.getTitle()).isEqualTo("Gym");
-            assertThat(result.isWeekly()).isFalse();
-            assertThat(result.getStartTime()).isEqualTo(start);
-            assertThat(result.getEndTime()).isEqualTo(end);
-            assertThat(result.getDate()).isEqualTo(date);
+            when(freeTimeRepository.save(any(FreeTime.class))).thenReturn(savedMock);
+
+            UUID result = sut.createFreeTime(userId, input);
+
+            assertThat(result).isEqualTo(generatedId);
 
             ArgumentCaptor<FreeTime> saved = ArgumentCaptor.forClass(FreeTime.class);
             verify(freeTimeRepository).save(saved.capture());
+
             assertThat(saved.getValue()).isInstanceOf(SingleFreeTime.class);
             assertThat(saved.getValue().getTitle()).isEqualTo("Gym");
             assertThat(saved.getValue().getStartTime()).isEqualTo(start);
             assertThat(saved.getValue().getEndTime()).isEqualTo(end);
+            assertThat(((SingleFreeTime) saved.getValue()).getDate()).isEqualTo(date);
         }
 
+
         @Test
-        void createsRecurringFreeTime_andReturnsDto() {
+        void createsRecurringFreeTime_andReturnsUuid_withoutReflection() {
             UUID userId = UUID.randomUUID();
             LocalDate date = LocalDate.of(2026, 2, 2);
             LocalTime start = LocalTime.of(8, 0);
@@ -89,20 +92,26 @@ class FreeTimeServiceTest {
             givenUserExists(userId);
             givenNoOverlap(userId, input, null);
 
-            when(freeTimeRepository.save(any(FreeTime.class)))
-                    .thenAnswer(inv -> inv.getArgument(0));
+            UUID generatedId = UUID.randomUUID();
 
-            FreeTimeDTO result = sut.createFreeTime(userId, input);
+            FreeTime savedMock = mock(FreeTime.class);
+            when(savedMock.getFreeTimeId()).thenReturn(generatedId);
 
-            assertThat(result.getTitle()).isEqualTo("Training");
-            assertThat(result.isWeekly()).isTrue();
-            assertThat(result.getStartTime()).isEqualTo(start);
-            assertThat(result.getEndTime()).isEqualTo(end);
+            when(freeTimeRepository.save(any(FreeTime.class))).thenReturn(savedMock);
 
-            ArgumentCaptor<FreeTime> saved = ArgumentCaptor.forClass(FreeTime.class);
-            verify(freeTimeRepository).save(saved.capture());
-            assertThat(saved.getValue()).isInstanceOf(RecurringFreeTime.class);
+            UUID result = sut.createFreeTime(userId, input);
+
+            assertThat(result).isEqualTo(generatedId);
+
+            ArgumentCaptor<FreeTime> captor = ArgumentCaptor.forClass(FreeTime.class);
+            verify(freeTimeRepository).save(captor.capture());
+
+            assertThat(captor.getValue()).isInstanceOf(RecurringFreeTime.class);
+            assertThat(captor.getValue().getTitle()).isEqualTo("Training");
+            assertThat(captor.getValue().getStartTime()).isEqualTo(start);
+            assertThat(captor.getValue().getEndTime()).isEqualTo(end);
         }
+
 
         @Test
         void throwsResourceNotFound_whenUserMissing() {

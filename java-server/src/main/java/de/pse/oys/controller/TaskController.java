@@ -52,11 +52,11 @@ public class TaskController extends BaseController {
      * @return Das erstellte TaskDTO.
      */
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO dto) {
+    public ResponseEntity<UUID> createTask(@RequestBody TaskDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            TaskDTO createdTask = taskService.createTask(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+            UUID taskId = taskService.createTask(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(taskId);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalArgumentException e) {
