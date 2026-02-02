@@ -1,4 +1,5 @@
 package de.pse.oys.service;
+import de.pse.oys.controller.Wrapper;
 
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
@@ -13,6 +14,7 @@ import de.pse.oys.service.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -110,6 +112,25 @@ public class FreeTimeService {
         assertOwner(existing, userId);
 
         freeTimeRepository.delete(existing);
+    }
+
+    /**
+     * Liefert alle Freizeiten eines Nutzers als Liste von Wrapper-Objekten.
+     * Jeder Eintrag enthält die ID der Freizeit sowie das zugehörige {@link FreeTimeDTO}
+     * im Format {@code { "id": "...", "data": { ... } }}.
+     *
+     * @param userId ID des Nutzers, dessen Freizeiten abgefragt werden.
+     * @return Liste aller Freizeiten des Nutzers (leer, wenn keine vorhanden sind).
+     * @throws NullPointerException     wenn {@code userId} {@code null} ist.
+     * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
+     */
+    public List<Wrapper<FreeTimeDTO>> getFreeTimesByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        requireUserExists(userId);
+
+        return freeTimeRepository.findByUserId(userId).stream()
+                .map(freeTime -> new Wrapper<>(getId(freeTime), toDto(freeTime)))
+                .toList();
     }
 
     /**
@@ -223,6 +244,13 @@ public class FreeTimeService {
         dto.setWeekly(entity.getRecurrenceType() == RecurrenceType.WEEKLY);
         dto.setDate(entity.getRepresentativeDate());
         return dto;
+    }
+
+    /**
+     * Extrahiert die ID aus einer {@link FreeTime}-Entität.
+     */
+    private UUID getId(FreeTime freeTime) {
+        return freeTime.getFreeTimeId();
     }
 }
 
