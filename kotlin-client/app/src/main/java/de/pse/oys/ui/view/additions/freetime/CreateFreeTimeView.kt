@@ -47,7 +47,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-
+/**
+ * View for creating a new free time or editing an existing one.
+ * Different user input fields filled with either default values (when creating) or existing values (when editing).
+ * @param viewModel the [ICreateFreeTimeViewModel] for this view.
+ */
 @Composable
 fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var showDatePicker by remember { mutableStateOf(false) }
@@ -152,6 +156,12 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     }
 }
 
+/**
+ * Button for selecting a time.
+ * @param label the label to be displayed next to the button.
+ * @param time the [LocalTime] to be displayed.
+ * @param onClick the function to be called when the button is clicked.
+ */
 @Composable
 private fun TimePickerButton(label: String, time: LocalTime, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -165,6 +175,9 @@ private fun TimePickerButton(label: String, time: LocalTime, onClick: () -> Unit
     }
 }
 
+/**
+ * Interface for the view model of [CreateFreeTimeView].
+ */
 interface ICreateFreeTimeViewModel {
     val showDelete: Boolean
 
@@ -174,10 +187,23 @@ interface ICreateFreeTimeViewModel {
     var end: LocalTime
     var weekly: Boolean
 
+    /**
+     * Submits the form data to the server and navigates to the main screen.
+     */
     fun submit()
+
+    /**
+     * Deletes the free time from the server and navigates to the main screen.
+     */
     fun delete()
 }
 
+/**
+ * Base view model for [CreateFreeTimeView] with default values.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ * @param freeTime the [FreeTimeData] to be used instead of default values.
+ */
 abstract class BaseCreateFreeTimeViewModel(
     private val model: ModelFacade,
     private val navController: NavController,
@@ -193,6 +219,10 @@ abstract class BaseCreateFreeTimeViewModel(
     override var end by mutableStateOf(freeTime?.end ?: LocalTime(0, 0))
     override var weekly by mutableStateOf(freeTime?.weekly ?: false)
 
+    /**
+     * Registers a new free time in the [ModelFacade].
+     * @param freeTime the [FreeTime] to be registered.
+     */
     protected fun registerNewFreeTime(freeTime: FreeTime) {
         val freeTimes = model.freeTimes.orEmpty().toMutableMap()
         model.freeTimes = freeTimes
@@ -202,6 +232,12 @@ abstract class BaseCreateFreeTimeViewModel(
     }
 }
 
+/**
+ * View model for creating a new free time.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class CreateFreeTimeViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,
@@ -218,6 +254,13 @@ class CreateFreeTimeViewModel(
     }
 }
 
+/**
+ * View model for editing an existing free time.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param target the [FreeTime] to be edited.
+ * @param navController the [NavController] for navigation.
+ */
 class EditFreeTimeViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,

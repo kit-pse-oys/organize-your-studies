@@ -56,6 +56,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * View for the welcome and questionnaire screen.
+ * Shows the welcome screen if the user has not answered the questionnaire before and lets the user start the questionnaire.
+ * Allows the user to answer the [Questions] by selecting given answers.
+ * @param viewModel the [IQuestionnaireViewModel] for this view.
+ */
 @Composable
 fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -161,7 +167,10 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
     }
 }
 
-
+/**
+ * Converts a [Question] to a string.
+ * @return the string representation of the question.
+ */
 @SuppressLint("DiscouragedApi", "LocalContextResourcesRead")
 @Composable
 fun Question.getDisplayQuestion(): String {
@@ -174,6 +183,10 @@ fun Question.getDisplayQuestion(): String {
     return if (resId != 0) stringResource(resId) else id
 }
 
+/**
+ * Converts an [Answer] to a string or the id if the string resource is not found.
+ * @return the string representation of the answer or the id.
+ */
 @SuppressLint("DiscouragedApi", "LocalContextResourcesRead")
 @Composable
 fun Answer.getDisplayLabel(): String {
@@ -184,16 +197,44 @@ fun Answer.getDisplayLabel(): String {
     return if (resId != 0) stringResource(resId) else id
 }
 
+/**
+ * Interface for the view model of the [QuestionnaireView].
+ * @property showWelcome whether the welcome screen should be shown.
+ */
 interface IQuestionnaireViewModel {
     val showWelcome: Boolean
 
+    /**
+     * Returns a observable state whether the given answer is currently selected for a question.
+     * @param question the question to check.
+     * @param answer the answer to check.
+     * @return a [StateFlow] emitting true if selected, false otherwise.
+     */
     fun selected(question: Question, answer: Answer): StateFlow<Boolean>
+
+    /**
+     * Toggles or sets the selection state of an answer for a specific question.
+     * @param question the question to update.
+     * @param answer the answer to select.
+     */
     fun select(question: Question, answer: Answer)
 
+    /**
+     * Shows the questionnaire.
+     */
     fun showQuestionnaire()
+
+    /**
+     * Submits the questionnaire and navigates to the main screen.
+     */
     fun submitQuestionnaire()
 }
 
+/**
+ * Base view model for the [QuestionnaireView].
+ * @param api the [RemoteAPI] for this view.
+ * @property state the current state of the questionnaire.
+ */
 abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
     ViewModel(),
     IQuestionnaireViewModel {
@@ -240,9 +281,17 @@ abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
         }
     }
 
+    /**
+     * Navigates to the main screen.
+     */
     abstract fun navigateToMain()
 }
 
+/**
+ * View model for the [QuestionnaireView] for when its a users first time using the app.
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class FirstQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
     BaseQuestionnaireViewModel(api) {
     override var showWelcome by mutableStateOf(true)
@@ -256,6 +305,11 @@ class FirstQuestionnaireViewModel(api: RemoteAPI, private val navController: Nav
     }
 }
 
+/**
+ * View model for the [QuestionnaireView] for when a users wants to edit their questionnaire.
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class EditQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
     BaseQuestionnaireViewModel(api) {
     init {
@@ -272,6 +326,13 @@ class EditQuestionnaireViewModel(api: RemoteAPI, private val navController: NavC
     }
 }
 
+/**
+ * Decides which view model to use for the [QuestionnaireView] (edit or first time).
+ * @param firstTime whether the user is a new user.
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ * @return the [BaseQuestionnaireViewModel] for the [QuestionnaireView].
+ */
 fun QuestionnaireViewModel(
     firstTime: Boolean,
     api: RemoteAPI,

@@ -39,6 +39,11 @@ import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
 import de.pse.oys.ui.util.toFormattedString
 
+/**
+ * View for the existing [FreeTime]s and some of their attributes.
+ * Each is a button that leads to the EditFreeTimeView.
+ * @param viewModel the [IFreeTimesViewModel] used to handle the free times.
+ */
 @Composable
 fun FreeTimesView(viewModel: IFreeTimesViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -73,7 +78,10 @@ fun FreeTimesView(viewModel: IFreeTimesViewModel) {
     }
 }
 
-
+/**
+ * Button to display the details for a [FreeTime].
+ * @param freeTime the [FreeTime] to be displayed.
+ */
 @Composable
 private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
     OutlinedButton(
@@ -109,12 +117,25 @@ private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
     }
 }
 
+/**
+ * Interface for the view model of the [FreeTimesView].
+ * @property freeTimes the list of [FreeTime]s.
+ */
 interface IFreeTimesViewModel {
     val freeTimes: List<FreeTime>
 
+    /**
+     * Select a [FreeTime] and navigate to the EditFreeTimeView.
+     * @param freeTime the [FreeTime] to be selected.
+     */
     fun select(freeTime: FreeTime)
 }
 
+/**
+ * View model for the [FreeTimesView].
+ * @param model the [ModelFacade] used to handle the free times.
+ * @param navController the [NavController] used to navigate.
+ */
 class FreeTimesViewModel(
     model: ModelFacade,
     private val navController: NavController

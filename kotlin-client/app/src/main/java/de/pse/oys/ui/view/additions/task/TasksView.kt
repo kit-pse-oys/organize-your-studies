@@ -41,6 +41,10 @@ import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
 
+/**
+ * View for displaying a list of tasks.
+ * @param viewModel the [ITasksViewModel] for this view.
+ */
 @Composable
 fun TasksView(viewModel: ITasksViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -75,7 +79,12 @@ fun TasksView(viewModel: ITasksViewModel) {
     }
 }
 
-
+/**
+ * Button for selecting a task.
+ * Displays the task's title, module, and type.
+ * @param task the [Task] to be displayed.
+ * @param viewModel the [ITasksViewModel] for this view.
+ */
 @Composable
 private fun TaskButton(task: Task, viewModel: ITasksViewModel) {
     OutlinedButton(
@@ -121,13 +130,24 @@ private fun TaskButton(task: Task, viewModel: ITasksViewModel) {
     }
 }
 
-
+/**
+ * Interface for the view model of [TasksView].
+ */
 interface ITasksViewModel {
     val tasks: List<Task>
 
+    /**
+     * Selects a task.
+     * @param task the [Task] to be selected.
+     */
     fun select(task: Task)
 }
 
+/**
+ * View model for [TasksView].
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class TasksViewModel(
     model: ModelFacade,
     private val navController: NavController
