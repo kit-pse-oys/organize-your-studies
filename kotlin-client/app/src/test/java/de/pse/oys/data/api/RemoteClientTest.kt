@@ -429,7 +429,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units/rateable", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/ratings", request.url.encodedPath)
                 assertEquals(HttpMethod.Get, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
@@ -488,6 +488,34 @@ class RemoteClientTest {
                     motivation = Rating.MEDIUM
                 )
             )
+            assertEquals(200, response.status)
+        }
+    }
+
+    @Test
+    fun rateUnitMissed() {
+        val step1 = Uuid.random()
+
+        runBlocking {
+            val (engine, client) = createClient()
+
+            engine += { request ->
+                assertEquals("/api/v1/plan/units/ratings/missed", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("id", step1.toHexDashString())
+                }, json)
+
+                respondOk()
+            }
+            val response = client.rateUnitMissed(step1)
             assertEquals(200, response.status)
         }
     }
