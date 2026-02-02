@@ -85,9 +85,16 @@ fun SingleLineInput(
     value: String,
     onValueChange: (String) -> Unit,
 ) {
+    val maxLength = 35
+    val tooLong = value.length > maxLength
     TextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = { newValue ->
+            if (newValue.length <= maxLength) {
+                onValueChange(newValue)
+            }
+        },
+        isError = tooLong,
         modifier = Modifier
             .fillMaxWidth(0.9f)
             .padding(bottom = 14.dp)
