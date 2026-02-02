@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -84,18 +86,20 @@ private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
             contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = 2.dp)
-        ) {
-            Text(
-                module.data.title, style = typography.titleLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 2.dp)
+            ) {
+                Text(
+                    module.data.title, style = typography.titleLarge.copy(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
-            )
-            Text(module.data.description)
+                Text(module.data.description)
+            }
         }
     }
 }

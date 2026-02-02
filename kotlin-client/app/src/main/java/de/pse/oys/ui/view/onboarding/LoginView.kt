@@ -123,7 +123,9 @@ private fun UsernameTextField(
             unfocusedContainerColor = LightBlue,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray
         ),
         singleLine = true,
         label = { Text(stringResource(R.string.username_field)) })
@@ -149,7 +151,9 @@ private fun PasswordTextField(
             unfocusedContainerColor = LightBlue,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray
         ),
         singleLine = true,
         isError = isError,

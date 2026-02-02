@@ -142,7 +142,7 @@ private fun PriorityChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = LightBlue,
             containerColor = Color.Transparent,
-            labelColor = Color.DarkGray,
+            selectedLabelColor = Color.DarkGray,
             selectedLeadingIconColor = Color.Blue,
             iconColor = LightBlue
         ),

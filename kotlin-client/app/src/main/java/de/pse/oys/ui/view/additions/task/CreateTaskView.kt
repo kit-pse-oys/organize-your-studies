@@ -56,7 +56,6 @@ import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
-import de.pse.oys.ui.util.NotifyCheckbox
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
@@ -119,24 +118,12 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                             stringResource(id = R.string.enter_exam_date),
                             viewModel.examDate.toFormattedString()
                         ) { showExamDatePicker = true }
-                        NotifyCheckbox(
-                            stringResource(id = R.string.notify_before_exam),
-                            viewModel.sendNotification
-                        ) {
-                            viewModel.sendNotification = it
-                        }
                     }
 
                     TaskType.SUBMISSION -> {
                         InputLabel(text = stringResource(id = R.string.enter_submission_date))
                         SubmissionDateSelection(viewModel)
                         SubmissionCycleSelection(viewModel)
-                        NotifyCheckbox(
-                            stringResource(id = R.string.notify_before_submission),
-                            viewModel.sendNotification
-                        ) {
-                            viewModel.sendNotification = it
-                        }
                     }
 
                     TaskType.OTHER -> {
@@ -425,7 +412,7 @@ private fun TaskTypeChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = LightBlue,
             containerColor = Color.Transparent,
-            labelColor = Color.DarkGray,
+            selectedLabelColor = Color.DarkGray,
             selectedLeadingIconColor = Color.Blue,
         ),
         border = FilterChipDefaults.filterChipBorder(
@@ -453,8 +440,6 @@ interface ICreateTaskViewModel {
     var module: String
     var type: TaskType
     var weeklyTimeLoad: Int
-    var sendNotification: Boolean
-
     var examDate: LocalDate
 
     var submissionDate: LocalDateTime
@@ -489,7 +474,6 @@ abstract class BaseCreateTaskViewModel(
         }
     )
     override var weeklyTimeLoad by mutableIntStateOf(task?.weeklyTimeLoad ?: 0)
-    override var sendNotification by mutableStateOf(task?.sendNotification ?: false)
 
     override var examDate by mutableStateOf(
         (task as? ExamTaskData?)?.examDate ?: Clock.System.now()
