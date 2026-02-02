@@ -24,15 +24,13 @@ public class ExamTaskDTO extends TaskDTO {
      * @param title            Titel der Aufgabe
      * @param moduleTitle      Titel des zugehörigen Moduls
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
-     * @param sendNotification ob Benachrichtigungen gesendet werden sollen
      * @param examDate         Datum der Prüfung
      */
     public ExamTaskDTO(String title,
                        String moduleTitle,
                        Integer weeklyTimeLoad,
-                       boolean sendNotification,
                        LocalDate examDate) {
-        super(title, moduleTitle, TaskCategory.EXAM, weeklyTimeLoad, sendNotification);
+        super(title, moduleTitle, TaskCategory.EXAM, weeklyTimeLoad);
         this.examDate = examDate;
     }
 

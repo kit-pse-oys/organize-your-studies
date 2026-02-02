@@ -71,11 +71,13 @@ public class TaskController extends BaseController {
      * @param dto Die aktualisierten Daten.
      * @return Das geänderte TaskDTO.
      */
-    @PutMapping
-    public ResponseEntity<TaskDTO> updateTask(@RequestBody TaskDTO dto) {
+    @PutMapping("/{taskId}")
+    public ResponseEntity<TaskDTO> updateTask(@PathVariable UUID taskId, @RequestBody TaskDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            TaskDTO updatedTask = taskService.updateTask(userId, dto);
+
+            TaskDTO updatedTask = taskService.updateTask(userId, taskId, dto);
+
             return ResponseEntity.ok(updatedTask);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

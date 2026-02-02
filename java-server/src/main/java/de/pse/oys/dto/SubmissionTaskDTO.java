@@ -31,7 +31,6 @@ public class SubmissionTaskDTO extends TaskDTO {
      * @param title            Titel der Aufgabe
      * @param moduleTitle      Titel des zugehörigen Moduls
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
-     * @param sendNotification ob Benachrichtigungen gesendet werden sollen
      * @param firstDeadline    erste Deadline (Anchor)
      * @param submissionCycle  Zyklus/Intervall in Wochen (1 = wöchentlich)
      * @param endTime          Ende der wiederkehrenden Abgaben
@@ -39,11 +38,10 @@ public class SubmissionTaskDTO extends TaskDTO {
     public SubmissionTaskDTO(String title,
                              String moduleTitle,
                              Integer weeklyTimeLoad,
-                             boolean sendNotification,
                              LocalDateTime firstDeadline,
                              Integer submissionCycle,
                              LocalDateTime endTime) {
-        super(title, moduleTitle, TaskCategory.SUBMISSION, weeklyTimeLoad, sendNotification);
+        super(title, moduleTitle, TaskCategory.SUBMISSION, weeklyTimeLoad);
         this.firstDeadline = firstDeadline;
         this.submissionCycle = submissionCycle;
         this.endTime = endTime;
