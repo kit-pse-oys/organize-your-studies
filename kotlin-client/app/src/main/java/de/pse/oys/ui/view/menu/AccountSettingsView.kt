@@ -28,6 +28,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * View for the account settings.
+ * Allows the user to logout and delete their account.
+ * @param viewModel the [IAccountSettingsViewModel] for this view.
+ */
 @Composable
 fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -55,6 +60,11 @@ fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
     }
 }
 
+/**
+ * Dialog for confirming the deletion of an account.
+ * @param onDismiss the function to be called when the dialog is dismissed.
+ * @param onConfirm the function to be called when the user confirms the deletion.
+ */
 @Composable
 private fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
@@ -70,11 +80,26 @@ private fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         })
 }
 
+/**
+ * Interface for the view model of [AccountSettingsView].
+ */
 interface IAccountSettingsViewModel {
+    /**
+     * Logs out the user and navigates to the login screen.
+     */
     fun logout()
+
+    /**
+     * Deletes the user's account and navigates to the login screen.
+     */
     fun deleteAccount()
 }
 
+/**
+ * View model for [AccountSettingsView].
+ * @param api the [RemoteAPI] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class AccountSettingsViewModel(
     private val api: RemoteAPI,
     private val navController: NavController

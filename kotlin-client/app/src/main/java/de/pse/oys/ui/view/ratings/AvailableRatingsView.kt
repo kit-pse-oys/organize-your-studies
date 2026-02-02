@@ -40,6 +40,11 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
+/**
+ * View for the available ratings.
+ * Shows a list of available ratings and allows the user to select one and navigate to the rating view.
+ * @param viewModel the [IAvailableRatingsViewModel] for this view.
+ */
 @Composable
 fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -77,6 +82,11 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
     }
 }
 
+/**
+ * Presents a unit that's available for rating.
+ * @param target the [RatingTarget] to be displayed.
+ * @param onClick the function to be called when the item is clicked.
+ */
 @Composable
 private fun RatingSelectionItem(
     target: RatingTarget,
@@ -105,14 +115,33 @@ private fun RatingSelectionItem(
     }
 }
 
+/**
+ * Data class representing a rating target.
+ * @param name the name of the rating target.
+ * @param color the color of the module associated with the rating target.
+ */
 data class RatingTarget(val name: String, val color: Color)
 
+/**
+ * Interface for the view model of the [AvailableRatingsView].
+ * @property available the list of available ratings.
+ */
 interface IAvailableRatingsViewModel {
     val available: List<RatingTarget>
 
+    /**
+     * Selects a rating target and navigates to the rating view.
+     * @param rating the [RatingTarget] to be selected.
+     */
     fun selectRating(rating: RatingTarget)
 }
 
+/**
+ * View model for the [AvailableRatingsView].
+ * @param api the [RemoteAPI] for this view.
+ * @param model the [ModelFacade] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class AvailableRatingsViewModel(
     private val api: RemoteAPI,
     private val model: ModelFacade,

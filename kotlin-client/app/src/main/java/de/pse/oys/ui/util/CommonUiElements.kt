@@ -56,6 +56,10 @@ import java.time.format.FormatStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
+/**
+ * Creates basic header for views.
+ * @param text the header to be displayed.
+ */
 @Composable
 fun ViewHeader(
     text: String,
@@ -68,6 +72,10 @@ fun ViewHeader(
     )
 }
 
+/**
+ * Creates big header for views.
+ * @param text the header to be displayed.
+ */
 @Composable
 fun ViewHeaderBig(
     text: String,
@@ -80,6 +88,11 @@ fun ViewHeaderBig(
     )
 }
 
+/**
+ * Creates a single line input field with a maxLength character limit.
+ * @param value the current value of the input field.
+ * @param onValueChange the function to be called when the value changes.
+ */
 @Composable
 fun SingleLineInput(
     value: String,
@@ -113,6 +126,10 @@ fun SingleLineInput(
     )
 }
 
+/**
+ * Creates a label to be put over/ next to input fields.
+ * @param text the label to be displayed.
+ */
 @Composable
 fun InputLabel(
     text: String,
@@ -126,6 +143,11 @@ fun InputLabel(
     )
 }
 
+/**
+ * Creates a simple button.
+ * @param label the label to be displayed.
+ * @param onClick the function to be called when the button is clicked.
+ */
 @Composable
 fun SimpleMenuAndAdditionsButton(label: String, onClick: () -> Unit) {
     OutlinedButton(
@@ -147,6 +169,12 @@ fun SimpleMenuAndAdditionsButton(label: String, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Creates a checkbox with clickable text.
+ * @param text the text to be displayed next to the checkbox.
+ * @param checked the current state of the checkbox.
+ * @param onCheckedChange the function to be called when the checkbox is clicked.
+ */
 @Composable
 fun NotifyCheckbox(
     text: String,
@@ -179,6 +207,12 @@ fun NotifyCheckbox(
     }
 }
 
+/**
+ * Creates a button for date selection.
+ * @param label the label to be displayed next to the button.
+ * @param dateText the current date to be displayed.
+ * @param onClick the function to be called when the button is clicked.
+ */
 @Composable
 fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
     Row(
@@ -198,6 +232,14 @@ fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Creates a slider for [Rating] with 5 options.
+ * @param currentRating the current [Rating] to be displayed.
+ * @param labels the labels to be displayed for the slider options.
+ * @param enabled whether the slider is enabled or not.
+ * @param onRatingChange the function to be called when the slider is changed.
+ * @param activeColor the color of the slider when it is active.
+ */
 @Composable
 fun RatingSlider(
     currentRating: Rating,
@@ -255,6 +297,12 @@ fun RatingSlider(
     }
 }
 
+/**
+ * Creates a button with gradient for submitting or saving things.
+ * @param label the label to be displayed on the button.
+ * @param enabled whether the button is enabled or not.
+ * @param onClick the function to be called when the button is clicked.
+ */
 @Composable
 fun SubmitButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     val gradientColors = if (enabled) {
@@ -291,6 +339,10 @@ fun SubmitButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Creates a delete button in the form of a trashcan icon.
+ * @param onClick the function to be called when the icon is clicked.
+ */
 @Composable
 fun DeleteButton(onClick: () -> Unit) {
     OutlinedIconButton(
@@ -308,6 +360,11 @@ fun DeleteButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * Dialog that confirms whether an element should be deleted.
+ * @param onDismiss the function to be called when the dialog is dismissed.
+ * @param onConfirm the function to be called when the dialog is confirmed
+ */
 @Composable
 fun DeleteElementDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
@@ -329,6 +386,10 @@ fun DeleteElementDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         })
 }
 
+/**
+ * Formats a date to a readable string.
+ * @return the formatted date.
+ */
 fun LocalDate.toFormattedString(): String {
     val formatter = DateTimeFormatter
         .ofLocalizedDate(FormatStyle.MEDIUM)
@@ -337,6 +398,10 @@ fun LocalDate.toFormattedString(): String {
     return this.toJavaLocalDate().format(formatter)
 }
 
+/**
+ * Formats a time to a readable string.
+ * @return the formatted time.
+ */
 fun LocalTime.toFormattedString(): String {
     val formatter = DateTimeFormatter
         .ofLocalizedTime(FormatStyle.SHORT)
@@ -345,10 +410,18 @@ fun LocalTime.toFormattedString(): String {
     return this.toJavaLocalTime().format(formatter)
 }
 
+/**
+ * Formats a date and time to a readable string.
+ * @return the formatted date and time.
+ */
 fun LocalDateTime.toFormattedString(): String {
     return "${date.toFormattedString()}, ${time.toFormattedString()}"
 }
 
+/**
+ * Formats an Int to a HH:MM time string.
+ * @return the formatted time.
+ */
 fun Int.toFormattedTimeString(): String {
     val hours = this / 60
     val minutes = this % 60

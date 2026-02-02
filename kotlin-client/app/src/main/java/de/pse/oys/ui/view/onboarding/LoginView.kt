@@ -52,6 +52,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * View for the login screen.
+ * Allows the user to login or register and switches between the two.
+ * Login/ Register Button only enabled when username and password are not empty and passwords match.
+ * @param viewModel the [ILoginViewModel] for this view.
+ */
 @Composable
 fun LoginView(viewModel: ILoginViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -105,7 +111,11 @@ fun LoginView(viewModel: ILoginViewModel) {
     }
 }
 
-
+/**
+ * Text field for the username, character limit is 20.
+ * @param username the current username.
+ * @param onUsernameChanged the function to be called when the username is changed.
+ */
 @Composable
 private fun UsernameTextField(
     username: String,
@@ -134,7 +144,13 @@ private fun UsernameTextField(
         label = { Text(stringResource(R.string.username_field)) })
 }
 
-
+/**
+ * Text field for the password, character limit is 20.
+ * @param password the current password.
+ * @param confirm whether the passwordTextField is for confirmation.
+ * @param isError whether the password is too long.
+ * @param onPasswordChanged the function to be called when the password is changed.
+ */
 @Composable
 private fun PasswordTextField(
     password: String,
@@ -173,6 +189,10 @@ private fun PasswordTextField(
     )
 }
 
+/**
+ * Button for logging in or registering.
+ * @param registering whether the user is registering or logging in.
+ */
 @Composable
 private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> Unit) {
     val gradientColors = if (enabled) {
@@ -210,6 +230,11 @@ private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> U
     }
 }
 
+/**
+ * Button for switching between login and register.
+ * @param registering whether the user is registering or logging in.
+ * @param onSwitchMode the function to be called when the button is clicked.
+ */
 @Composable
 private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     Row {
@@ -222,18 +247,41 @@ private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     }
 }
 
-
+/**
+ * Interface for the view model of the [LoginView].
+ * @property username the current username.
+ * @property password the current password.
+ */
 interface ILoginViewModel {
     var username: String
     var password: String
 
+    /**
+     * Logs in the user.
+     */
     fun login()
+
+    /**
+     * Logs in the user with OIDC.
+     */
     fun loginWithOIDC()
 
+    /**
+     * Registers the user.
+     */
     fun register()
+
+    /**
+     * Registers the user with OIDC.
+     */
     fun registerWithOIDC()
 }
 
+/**
+ * View model for the [LoginView].
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) :
     ViewModel(),
     ILoginViewModel {

@@ -44,6 +44,11 @@ import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
 
+/**
+ * View for creating a new module or editing an existing one.
+ * Different user input fields filled with either default values (when creating) or existing values (when editing).
+ * @param viewModel the [ICreateModuleViewModel] for this view.
+ */
 @Composable
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
     var confirmDelete by remember { mutableStateOf(false) }
@@ -99,6 +104,11 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
     }
 }
 
+/**
+ * Chips for selecting a priority.
+ * @param current the current [Priority] to be displayed.
+ * @param onSelect the function to be called when a priority is selected.
+ */
 @Composable
 private fun PriorityChips(current: Priority, onSelect: (Priority) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
@@ -126,6 +136,14 @@ private fun PriorityChips(current: Priority, onSelect: (Priority) -> Unit) {
     }
 }
 
+/**
+ * Chip for selecting a priority.
+ * @param priority the [Priority] to be displayed.
+ * @param current the current [Priority] to be displayed.
+ * @param icon the icon to be displayed next to the label.
+ * @param label the label to be displayed.
+ * @param onSelect the function to be called when the chip is selected.
+ */
 @Composable
 private fun PriorityChip(
     priority: Priority,
@@ -157,6 +175,9 @@ private fun PriorityChip(
     )
 }
 
+/**
+ * Interface for the view model of [CreateModuleView].
+ */
 interface ICreateModuleViewModel {
     val showDelete: Boolean
 
@@ -165,10 +186,23 @@ interface ICreateModuleViewModel {
     var priority: Priority
     var color: Color
 
+    /**
+     * Submits the form data to the server and navigates to the main screen.
+     */
     fun submit()
+
+    /**
+     * Deletes the module from the server and navigates to the main screen.
+     */
     fun delete()
 }
 
+/**
+ * Base view model for [CreateModuleView] with default values.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ * @param module the [ModuleData] to be used instead of default values.
+ */
 abstract class BaseCreateModuleViewModel(
     private val model: ModelFacade,
     private val navController: NavController,
@@ -179,6 +213,10 @@ abstract class BaseCreateModuleViewModel(
     override var priority by mutableStateOf(module?.priority ?: Priority.NEUTRAL)
     override var color by mutableStateOf(module?.color ?: Color.Unspecified)
 
+    /**
+     * Registers a new module in the [ModelFacade].
+     * @param module the [Module] to be registered.
+     */
     protected fun registerNewModule(module: Module) {
         val modules = model.modules.orEmpty().toMutableMap()
         model.modules = modules
@@ -188,6 +226,12 @@ abstract class BaseCreateModuleViewModel(
     }
 }
 
+/**
+ * View model for creating a new module.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class CreateModuleViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,
@@ -205,6 +249,13 @@ class CreateModuleViewModel(
     }
 }
 
+/**
+ * View model for editing an existing module.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param target the existing [Module] to be edited.
+ * @param navController the [NavController] for navigation.
+ */
 class EditModuleViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,

@@ -43,6 +43,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 
+/**
+ * View for the menu screen with buttons to navigate to different views.
+ * @param viewModel the [IMenuViewModel] for this view.
+ */
 @Composable
 fun MenuView(viewModel: IMenuViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -113,6 +117,9 @@ fun MenuView(viewModel: IMenuViewModel) {
     }
 }
 
+/**
+ * Converts a [Darkmode] to a string.
+ */
 @Composable
 private fun Darkmode.label(): String = when (this) {
     Darkmode.DISABLED -> stringResource(R.string.darkmode_disabled)
@@ -120,19 +127,56 @@ private fun Darkmode.label(): String = when (this) {
     Darkmode.SYSTEM -> stringResource(R.string.darkmode_system)
 }
 
+/**
+ * Interface for the view model of the [MenuView].
+ * @property darkmode the [StateFlow] of the current [Darkmode].
+ */
 interface IMenuViewModel {
     val darkmode: StateFlow<Darkmode>
+
+    /**
+     * Sets the darkmode to the given value.
+     * @param darkmode the [Darkmode] to be set.
+     */
     fun setDarkmode(darkmode: Darkmode)
 
+    /**
+     * Navigate to the ModulesView.
+     */
     fun navigateToModules()
+
+    /**
+     * Navigate to the TasksView.
+     */
     fun navigateToTasks()
+
+    /**
+     * Navigate to the FreeTimesView.
+     */
     fun navigateToFreeTimes()
+
+    /**
+     * Navigate to the EditQuestionnaireView.
+     */
     fun navigateToEditQuestionnaire()
+
+    /**
+     * Navigate to the AccountSettingsView.
+     */
     fun navigateToAccountSettings()
 
+    /**
+     * Updates the plan of the user.
+     */
     fun updatePlan()
 }
 
+/**
+ * View model for the [MenuView].
+ * @param properties the [Properties] for this view.
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class MenuViewModel(
     private val properties: Properties,
     private val api: RemoteAPI,
