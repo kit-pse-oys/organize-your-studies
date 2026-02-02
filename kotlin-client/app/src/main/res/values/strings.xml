@@ -123,6 +123,8 @@
     <string name="delete_element_confirm_body">Deleting will be permanent and cannot be undone!</string>
     <string name="open_menu_button">Open Menu</string>
     <string name="open_additions_button">Open Additions</string>
+    <string name="register_with_google">Register with Google</string>
+    <string name="login_with_google">Login with Google</string>
     <string name="save_module">Save Module</string>
     <string name="save_task">Save Task</string>
     <string name="save_freetime">Save Freetime</string>

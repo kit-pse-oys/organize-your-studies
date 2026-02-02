@@ -65,12 +65,13 @@ fun EntryPoint(
     model: ModelFacade,
     api: RemoteAPI,
     properties: Properties,
-    startWithLogin: Boolean
+    startWithLogin: Boolean,
+    onGoogleLogin: () -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = if (startWithLogin) Login else Main) {
         composable<Main> { MainView(viewModel { MainViewModel(api, model, navController) }) }
-        composable<Login> { LoginView(viewModel { LoginViewModel(api, navController) }) }
+        composable<Login> { LoginView(viewModel { LoginViewModel(api, navController) }, onGoogleLogin = onGoogleLogin) }
         composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, navController) }) }
         composable<AccountSettings> {
             AccountSettingsView(viewModel { AccountSettingsViewModel(api, navController) })

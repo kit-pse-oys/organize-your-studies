@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -40,7 +41,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.Credentials
+import de.pse.oys.data.api.OIDCType
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.RemoteClient
 import de.pse.oys.ui.navigation.Login
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.navigation.questionnaire
@@ -53,7 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun LoginView(viewModel: ILoginViewModel) {
+fun LoginView(viewModel: ILoginViewModel, onGoogleLogin: () -> Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         var confirmPassword by remember { mutableStateOf("") }
         var registering by remember { mutableStateOf(false) }
@@ -100,7 +103,11 @@ fun LoginView(viewModel: ILoginViewModel) {
                 })
             Spacer(Modifier.weight(1f))
 
-            // TODO: OIDC button
+            GoogleButton(
+                registering,
+                enabled = true,
+                onClick = onGoogleLogin
+            )
         }
     }
 }
@@ -211,6 +218,27 @@ private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> U
 }
 
 @Composable
+private fun GoogleButton(registering: Boolean, enabled: Boolean, onClick: () -> Unit) { //TODO onlogin evtl?
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.White
+        ),
+        modifier = Modifier.fillMaxWidth(0.7f).padding(vertical = 8.dp)
+    ) {
+        //TODO: GOOGLE LOGO
+        Text(
+            if (registering) stringResource(R.string.register_with_google)
+            else stringResource(R.string.login_with_google),
+            style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = Color.White
+        )
+    }
+}
+
+@Composable
 private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     Row {
         Text((if (registering) stringResource(R.string.login_account_yes) else stringResource(R.string.login_account_no)) + " ")
@@ -228,10 +256,10 @@ interface ILoginViewModel {
     var password: String
 
     fun login()
-    fun loginWithOIDC()
+    fun loginWithGoogle(oidcToken: String)
 
     fun register()
-    fun registerWithOIDC()
+    fun registerWithGoogle(oidcToken: String)
 }
 
 class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) :
@@ -250,8 +278,24 @@ class LoginViewModel(private val api: RemoteAPI, private val navController: NavC
         }
     }
 
-    override fun loginWithOIDC() {
-        TODO("Not yet implemented")
+    override fun loginWithGoogle(oidcToken: String) {
+        viewModelScope.launch {
+            val credentials = Credentials.OIDC(externalToken = oidcToken, provider = OIDCType.GOOGLE)
+            api.login(credentials)
+            withContext(Dispatchers.Main.immediate) {
+                navController.main(dontGoBack = Login)
+            }
+        }
+    }
+
+    override fun registerWithGoogle(oidcToken: String) {
+        viewModelScope.launch {
+            val credentials = Credentials.OIDC(externalToken = oidcToken, provider = OIDCType.GOOGLE)
+            api.login(credentials) // Just-in-time Provisioning fuer OIDC
+            withContext(Dispatchers.Main.immediate) {
+                navController.main(dontGoBack = Login)
+            }
+        }
     }
 
     override fun register() {
@@ -262,9 +306,5 @@ class LoginViewModel(private val api: RemoteAPI, private val navController: NavC
                 navController.questionnaire(dontGoBack = Login)
             }
         }
-    }
-
-    override fun registerWithOIDC() {
-        TODO("Not yet implemented")
     }
 }

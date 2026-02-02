@@ -126,4 +126,6 @@
     <string name="save_task">Aufgabe speichern</string>
     <string name="save_freetime">Freizeit speichern</string>
     <string name="open_menu_button">Menü öffnen</string>
+    <string name="register_with_google">Mit Google registrieren</string>
+    <string name="login_with_google">Mit Google anmelden</string>
 </resources>
