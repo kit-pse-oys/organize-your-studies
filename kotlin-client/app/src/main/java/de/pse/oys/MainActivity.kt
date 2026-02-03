@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
 
             OrganizeYourStudiesTheme(darkTheme = darkTheme) {
                 EntryPoint(
+                    context = this,
                     model = model,
                     api = api,
                     properties = properties,
