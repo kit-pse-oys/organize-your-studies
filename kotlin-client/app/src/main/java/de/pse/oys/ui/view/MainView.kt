@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,10 +54,12 @@ import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atDate
 import kotlinx.datetime.atTime
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -333,8 +334,10 @@ class MainViewModel(
 
     override fun marksAsFinished(unit: PlannedUnit) {
         val uuid = _units[unit] ?: return
+        val actualDuration =
+            Clock.System.now() - unit.start.atDate(today).toInstant(TimeZone.currentSystemDefault())
         viewModelScope.launch {
-            api.markUnitFinished(uuid)
+            api.markUnitFinished(uuid, actualDuration)
         }
     }
 

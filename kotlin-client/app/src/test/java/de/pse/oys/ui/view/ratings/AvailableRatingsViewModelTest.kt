@@ -25,6 +25,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.DayOfWeek
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -49,7 +50,6 @@ class AvailableRatingsViewModelTest {
                 every { data.color } returns TEST_COLOR
             },
             weeklyTimeLoad = 2,
-            sendNotification = false,
             start = TEST_DATE,
             end = TEST_DATE
         )
@@ -62,7 +62,7 @@ class AvailableRatingsViewModelTest {
             start = TEST_TIME,
             end = TEST_TIME
         )
-        every { model.steps } returns mapOf(testUuid to testStepData)
+        every { model.steps } returns mapOf(TEST_DATE.dayOfWeek to mapOf(testUuid to testStepData))
 
         coEvery { api.queryRateable() } returns Response(
             status = HttpStatusCode.OK.value,

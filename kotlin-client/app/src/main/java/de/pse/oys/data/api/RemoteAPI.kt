@@ -39,6 +39,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlin.time.Duration
 import kotlin.uuid.Uuid
 
 data class Response<T>(val response: T?, val status: Int)
@@ -49,7 +50,7 @@ interface RemoteAPI {
 
     suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit>
 
-    suspend fun markUnitFinished(unit: Uuid): Response<Unit>
+    suspend fun markUnitFinished(unit: Uuid, actualDuration: Duration): Response<Unit>
     suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep>
     suspend fun moveUnit(unit: Uuid, newTime: LocalDateTime): Response<Unit>
 
@@ -212,15 +213,15 @@ internal constructor(
             }.statusResponse()
         }
 
-    override suspend fun markUnitFinished(unit: Uuid): Response<Unit> =
+    override suspend fun markUnitFinished(unit: Uuid, actualDuration: Duration): Response<Unit> =
         withContext(Dispatchers.IO) {
             client.post(serverUrl) {
                 url {
-                    apiPath("plan/units")
+                    apiPath("plan/units/finished")
                 }
 
                 contentType(ContentType.Application.Json)
-                setBody(Routes.Unit(unit, finished = true))
+                setBody(Routes.Unit(unit, actualDuration = actualDuration.inWholeMinutes.toInt()))
             }.statusResponse()
         }
 
@@ -228,11 +229,11 @@ internal constructor(
         withContext(Dispatchers.IO) {
             client.post(serverUrl) {
                 url {
-                    apiPath("plan/units")
+                    apiPath("plan/units/moveAuto")
                 }
 
                 contentType(ContentType.Application.Json)
-                setBody(Routes.Unit(unit, automaticNewTime = true))
+                setBody(Routes.Unit(unit))
             }.responseAs()
         }
 
@@ -242,7 +243,7 @@ internal constructor(
     ): Response<Unit> = withContext(Dispatchers.IO) {
         client.post(serverUrl) {
             url {
-                apiPath("plan/units")
+                apiPath("plan/units/move")
             }
 
             contentType(ContentType.Application.Json)
