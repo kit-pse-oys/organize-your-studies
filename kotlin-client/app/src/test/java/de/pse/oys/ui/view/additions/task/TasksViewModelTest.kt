@@ -33,7 +33,6 @@ class TasksViewModelTest {
         title = TEST_TITLE,
         module = testModule,
         weeklyTimeLoad = 120,
-        sendNotification = true,
         start = TEST_DATE,
         end = TEST_DATE
     )
@@ -59,7 +58,6 @@ class TasksViewModelTest {
             title = TEST_TITLE,
             module = testModule,
             weeklyTimeLoad = 0,
-            sendNotification = true,
             examDate = TEST_DATE
         )
         val testSubId = Uuid.random()
@@ -67,7 +65,6 @@ class TasksViewModelTest {
             title = TEST_TITLE,
             module = testModule,
             weeklyTimeLoad = 100,
-            sendNotification = true,
             firstDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
             cycle = 1
         )

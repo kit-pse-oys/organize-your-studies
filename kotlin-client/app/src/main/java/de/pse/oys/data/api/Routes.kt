@@ -3,6 +3,7 @@ package de.pse.oys.data.api
 import de.pse.oys.data.facade.UnitRatings
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 import kotlin.uuid.Uuid
 
 object Routes {
@@ -17,8 +18,7 @@ object Routes {
     @Serializable
     data class Unit(
         val id: Uuid,
-        val finished: Boolean? = null,
-        val automaticNewTime: Boolean? = null,
+        val actualDuration: Int? = null,
         val newTime: LocalDateTime? = null,
         val ratings: UnitRatings? = null
     )
