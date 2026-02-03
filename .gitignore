@@ -53,3 +53,4 @@ Thumbs.db
 ## KEYS & Secrets
 ###########################################
 .keys/
+*.keystore

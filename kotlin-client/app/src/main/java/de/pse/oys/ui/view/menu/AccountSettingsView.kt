@@ -1,5 +1,6 @@
 package de.pse.oys.ui.view.menu
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -102,12 +105,16 @@ interface IAccountSettingsViewModel {
  */
 class AccountSettingsViewModel(
     private val api: RemoteAPI,
+    context: Context,
     private val navController: NavController
 ) : ViewModel(),
     IAccountSettingsViewModel {
+    private val credentialManager = CredentialManager.create(context)
+
     override fun logout() {
         viewModelScope.launch {
             api.logout()
+            credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
@@ -118,6 +125,7 @@ class AccountSettingsViewModel(
     override fun deleteAccount() {
         viewModelScope.launch {
             api.deleteAccount()
+            credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)

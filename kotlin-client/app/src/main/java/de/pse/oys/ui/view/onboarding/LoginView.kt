@@ -1,12 +1,8 @@
 package de.pse.oys.ui.view.onboarding
 
-import android.app.Activity
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -45,10 +41,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import de.pse.oys.R
 import de.pse.oys.data.api.Credentials
 import de.pse.oys.data.api.OIDCType
@@ -61,15 +63,9 @@ import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.theme.MediumBlue
 import de.pse.oys.ui.util.ViewHeader
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationRequest
-import net.openid.appauth.AuthorizationResponse
-import net.openid.appauth.AuthorizationService
-import net.openid.appauth.AuthorizationServiceConfiguration
 
 /**
  * View for the login screen.
@@ -80,14 +76,6 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 @Composable
 fun LoginView(viewModel: ILoginViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val authLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                viewModel.handleOIDCResult(result.data)
-            } else {
-                viewModel.handleOIDCResult(null)
-            }
-        }
 
     LaunchedEffect(viewModel.error) {
         if (viewModel.error) {
@@ -145,8 +133,8 @@ fun LoginView(viewModel: ILoginViewModel) {
             Spacer(Modifier.weight(1f))
 
             GoogleLoginButton(registering) {
-                if (registering) viewModel.registerWithOIDC(OIDCType.GOOGLE, authLauncher)
-                else viewModel.loginWithOIDC(OIDCType.GOOGLE, authLauncher)
+                if (registering) viewModel.registerWithOIDC(OIDCType.GOOGLE)
+                else viewModel.loginWithOIDC(OIDCType.GOOGLE)
             }
         }
     }
@@ -334,7 +322,7 @@ interface ILoginViewModel {
     /**
      * Logs in the user with OIDC.
      */
-    fun loginWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>)
+    fun loginWithOIDC(type: OIDCType)
 
     /**
      * Registers the user.
@@ -344,12 +332,7 @@ interface ILoginViewModel {
     /**
      * Registers the user with OIDC.
      */
-    fun registerWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>)
-
-    /**
-     * Handles the result of the OIDC login.
-     */
-    fun handleOIDCResult(intent: Intent?)
+    fun registerWithOIDC(type: OIDCType)
 }
 
 /**
@@ -359,82 +342,48 @@ interface ILoginViewModel {
  */
 class LoginViewModel(
     private val api: RemoteAPI,
-    context: Context,
+    @field:SuppressLint("StaticFieldLeak") private val context: Context,
     private val navController: NavController
-) :
-    ViewModel(),
+) : ViewModel(),
     ILoginViewModel {
     companion object {
-        private val GOOGLE_AUTH_CONFIG = AuthorizationServiceConfiguration(
-            "https://accounts.google.com/o/oauth2/v2/auth".toUri(),
-            "https://www.googleapis.com/oauth2/v4/token".toUri(),
-        )
-        private const val CLIENT_ID = "549888352558-jpn57b44j23ulud1vpmcqn7sbr8rvcd7"
-        private val REDIRECT_URI =
-            "com.googleusercontent.apps.$CLIENT_ID:/oauth2redirect".toUri()
+        private const val CLIENT_ID = "549888352558-dciih12ljddu3e7dmksntslk57vevmer"
+        private val GOOGLE_CREDENTIAL_OPTION = GetSignInWithGoogleOption.Builder(CLIENT_ID).build()
     }
 
-    private val authService = AuthorizationService(context)
-    private var pendingAuthRequest: CompletableDeferred<String?>? = null
+    private val credentialManager = CredentialManager.create(context)
 
-    override fun onCleared() {
-        super.onCleared()
-        authService.dispose()
-    }
-
-    private suspend fun getOIDCToken(
-        oidcType: OIDCType,
-        launcher: ActivityResultLauncher<Intent>
-    ): String? {
-        val deferred = CompletableDeferred<String?>()
-        pendingAuthRequest = deferred
-
-        val authRequest = when (oidcType) {
-            OIDCType.GOOGLE -> AuthorizationRequest.Builder(
-                GOOGLE_AUTH_CONFIG,
-                CLIENT_ID,
-                "id_token",
-                REDIRECT_URI
-            ).setScopes("openid", "profile", "email").build()
+    private suspend fun getOIDCToken(oidcType: OIDCType): String? {
+        val credentialRequest = when (oidcType) {
+            OIDCType.GOOGLE -> GetCredentialRequest.Builder()
+                .addCredentialOption(GOOGLE_CREDENTIAL_OPTION).build()
         }
 
-        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-        launcher.launch(authIntent)
+        val result = try {
+            credentialManager.getCredential(context, credentialRequest)
+        } catch (e: GetCredentialException) {
+            Log.e("LoginViewModel", "Error getting credential", e)
+            return null
+        }
 
-        return deferred.await()
-    }
-
-    override fun handleOIDCResult(intent: Intent?) {
-        val deferred = pendingAuthRequest ?: return
-        pendingAuthRequest = null
-
-        if (intent != null) {
-            val response = AuthorizationResponse.fromIntent(intent)
-            AuthorizationException.fromIntent(intent)?.let {
-                Log.e("LoginViewModel", "Error during OIDC login", it)
-            }
-
-            if (response != null) {
-                authService.performTokenRequest(response.createTokenExchangeRequest()) { tokenResponse, exception ->
-                    exception?.let {
-                        Log.e("LoginViewModel", "Error during OIDC token request", it)
-                    }
-
-                    if (tokenResponse != null) {
-                        val token = tokenResponse.idToken
-                        deferred.complete(token)
-                    } else {
-                        deferred.complete(null)
-                        error = true
-                    }
+        when (val credential = result.credential) {
+            is CustomCredential if oidcType == OIDCType.GOOGLE
+                    && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                try {
+                    return GoogleIdTokenCredential.createFrom(credential.data).idToken
+                } catch (e: GoogleIdTokenParsingException) {
+                    Log.e("LoginViewModel", "Error parsing Google ID token", e)
                 }
 
-                return
+                error = true
+                return null
+            }
+
+            else -> {
+                error = true
+                return null
             }
         }
-
-        deferred.complete(null)
-        error = true
     }
 
     override var username by mutableStateOf("")
@@ -454,9 +403,9 @@ class LoginViewModel(
         }
     }
 
-    override fun loginWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>) {
+    override fun loginWithOIDC(type: OIDCType) {
         viewModelScope.launch {
-            val token = getOIDCToken(type, launcher)
+            val token = getOIDCToken(type)
             if (token != null && api.login(Credentials.OIDC(token, type))
                     .defaultHandleError(navController) { error = true } != null
             ) {
@@ -479,9 +428,9 @@ class LoginViewModel(
         }
     }
 
-    override fun registerWithOIDC(type: OIDCType, launcher: ActivityResultLauncher<Intent>) {
+    override fun registerWithOIDC(type: OIDCType) {
         viewModelScope.launch {
-            val token = getOIDCToken(type, launcher)
+            val token = getOIDCToken(type)
             if (token != null && api.register(Credentials.OIDC(token, type))
                     .defaultHandleError(navController) { error = true } != null
             ) {
