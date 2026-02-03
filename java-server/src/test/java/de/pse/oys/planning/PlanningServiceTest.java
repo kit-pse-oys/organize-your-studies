@@ -124,7 +124,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class)))
+        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
                 .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -170,7 +170,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class)))
+        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
                 .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());

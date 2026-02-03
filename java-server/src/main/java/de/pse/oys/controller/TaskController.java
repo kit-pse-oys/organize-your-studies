@@ -1,5 +1,6 @@
 package de.pse.oys.controller;
 
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.TaskDTO;
 import de.pse.oys.service.TaskService;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class TaskController extends BaseController {
      * @return Liste der Aufgaben als DTOs.
      */
     @GetMapping
-    public ResponseEntity<List<TaskDTO>> getTasks() {
+    public ResponseEntity<List<WrapperDTO<TaskDTO>>> getTasks() {
         try {
             UUID userId = getAuthenticatedUserId();
-            List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
+            List<WrapperDTO<TaskDTO>> tasks = taskService.getTasksByUserId(userId);
             return ResponseEntity.ok(tasks);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

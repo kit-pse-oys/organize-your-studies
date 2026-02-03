@@ -8,6 +8,7 @@ import de.pse.oys.domain.Task;
 import de.pse.oys.domain.enums.ModulePriority;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.dto.ExamTaskDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.OtherTaskDTO;
 import de.pse.oys.dto.SubmissionTaskDTO;
 import de.pse.oys.dto.TaskDTO;
@@ -82,11 +83,11 @@ class TaskServiceTest {
             assertThatThrownBy(() -> sut.getTasksByUserId(USER_ID))
                     .isInstanceOf(ResourceNotFoundException.class);
 
-            verify(taskRepository, never()).findAllByUserId(any());
+            verify(taskRepository, never()).findAllByModuleUserUserId(any());
         }
 
         @Test
-        @DisplayName("liefert gemappte DTOs für alle Tasks des Users")
+        @DisplayName("liefert gemappte DTOs für alle Tasks des Users als WrapperDTO-Liste")
         void returnsMappedDtos() {
             when(userRepository.existsById(USER_ID)).thenReturn(true);
 
@@ -94,19 +95,21 @@ class TaskServiceTest {
             ExamTask examTask = new ExamTask("Exam", WEEKLY_LOAD, EXAM_DATE);
             module.addTask(examTask);
 
-            when(taskRepository.findAllByUserId(USER_ID)).thenReturn(List.of(examTask));
+            when(taskRepository.findAllByModuleUserUserId(USER_ID)).thenReturn(List.of(examTask));
 
-            List<TaskDTO> result = sut.getTasksByUserId(USER_ID);
+            List<WrapperDTO<TaskDTO>> result = sut.getTasksByUserId(USER_ID);
 
             assertThat(result).hasSize(1);
-            TaskDTO dto = result.get(0);
+
+            WrapperDTO<TaskDTO> wrapper = result.get(0);
+            TaskDTO dto = wrapper.getData();
 
             assertThat(dto.getTitle()).isEqualTo("Exam");
             assertThat(dto.getModuleTitle()).isEqualTo(OLD_MODULE_TITLE);
             assertThat(dto.getCategory()).isEqualTo(TaskCategory.EXAM);
             assertThat(dto.getWeeklyTimeLoad()).isEqualTo(WEEKLY_LOAD);
 
-            verify(taskRepository).findAllByUserId(USER_ID);
+            verify(taskRepository).findAllByModuleUserUserId(USER_ID);
         }
     }
 
@@ -134,7 +137,7 @@ class TaskServiceTest {
             when(userRepository.existsById(USER_ID)).thenReturn(true);
 
             Module module = new Module(NEW_MODULE_TITLE, anyPriority());
-            when(moduleRepository.findByUserIdAndTitle(USER_ID, NEW_MODULE_TITLE))
+            when(moduleRepository.findByUser_UserIdAndTitle(USER_ID, NEW_MODULE_TITLE))
                     .thenReturn(Optional.of(module));
 
             UUID generatedId = UUID.randomUUID();
@@ -180,7 +183,7 @@ class TaskServiceTest {
             // bestehende OTHER-Task (Category = OTHER)
             OtherTask existing = new OtherTask("Old", WEEKLY_LOAD, OTHER_START, OTHER_END);
 
-            when(taskRepository.findByIdAndUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
+            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
 
             // DTO hat Category EXAM -> soll failen
             ExamTaskDTO dto = validExamDto(OLD_MODULE_TITLE);
@@ -208,8 +211,8 @@ class TaskServiceTest {
             );
             oldModule.addTask(existing);
 
-            when(taskRepository.findByIdAndUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
-            when(moduleRepository.findByUserIdAndTitle(USER_ID, NEW_MODULE_TITLE)).thenReturn(Optional.of(newModule));
+            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
+            when(moduleRepository.findByUser_UserIdAndTitle(USER_ID, NEW_MODULE_TITLE)).thenReturn(Optional.of(newModule));
             when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
             SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_TITLE);
@@ -234,7 +237,8 @@ class TaskServiceTest {
         void throwsWhenTaskNotOwned() {
             when(userRepository.existsById(USER_ID)).thenReturn(true);
 
-            when(taskRepository.findByIdAndUserId(TASK_ID, USER_ID)).thenReturn(Optional.empty());
+            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.empty());
+
             when(taskRepository.existsById(TASK_ID)).thenReturn(true);
 
             OtherTaskDTO dto = validOtherDto(OLD_MODULE_TITLE);
@@ -262,7 +266,7 @@ class TaskServiceTest {
             OtherTask existing = new OtherTask("ToDelete", WEEKLY_LOAD, OTHER_START, OTHER_END);
             module.addTask(existing);
 
-            when(taskRepository.findByIdAndUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
+            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
 
             assertThat(module.getTasks()).contains(existing);
 

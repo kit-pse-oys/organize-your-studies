@@ -63,11 +63,6 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
         """, nativeQuery = true)
     Optional<LearningPlan> findByIdAndUserId(@Param("planId") UUID planId,
                                              @Param("userId") UUID userId);
-
-
-
-
-
 }
 
 

@@ -5,6 +5,7 @@ import de.pse.oys.domain.Module;
 import de.pse.oys.domain.OtherTask;
 import de.pse.oys.domain.SubmissionTask;
 import de.pse.oys.domain.Task;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.ExamTaskDTO;
 import de.pse.oys.dto.OtherTaskDTO;
 import de.pse.oys.dto.SubmissionTaskDTO;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -60,24 +62,6 @@ public class TaskService {
         this.userRepository = userRepository;
         this.moduleRepository = moduleRepository;
         this.taskRepository = taskRepository;
-    }
-
-    /**
-     * Liefert alle Tasks eines Users als DTOs.
-     *
-     * @param userId ID des Nutzers (darf nicht {@code null} sein)
-     * @return Liste aller Tasks des Nutzers als {@link TaskDTO}
-     * @throws NullPointerException      wenn {@code userId} {@code null} ist
-     * @throws ResourceNotFoundException wenn der Nutzer nicht existiert
-     */
-    @Transactional(readOnly = true)
-    public List<TaskDTO> getTasksByUserId(UUID userId) {
-        Objects.requireNonNull(userId, "userId");
-        requireUserExists(userId);
-
-        return taskRepository.findAllByUserId(userId).stream()
-                .map(this::mapToDto)
-                .toList();
     }
 
     /**
@@ -180,6 +164,25 @@ public class TaskService {
     }
 
     /**
+     * Liefert alle Aufgaben eines Nutzers als Liste von Wrapper-Objekten.
+     * Jeder Eintrag enthält die ID der Aufgabe sowie das zugehörige {@link TaskDTO}
+     * im Format {@code { "id": "...", "data": { ... } }}.
+     *
+     * @param userId ID des Nutzers, dessen Aufgaben abgefragt werden.
+     * @return Liste aller Aufgaben des Nutzers (leer, wenn keine vorhanden sind).
+     * @throws NullPointerException      wenn {@code userId} {@code null} ist.
+     * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
+     */
+    public List<WrapperDTO<TaskDTO>> getTasksByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        requireUserExists(userId);
+
+        return taskRepository.findAllByModuleUserUserId(userId).stream()
+                .map(task -> new WrapperDTO<>(task.getTaskId(), mapToDto(task)))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Validiert das DTO auf Pflichtfelder + fachliche Regeln pro Kategorie.
      */
     private void validateData(TaskDTO dto) {
@@ -279,8 +282,9 @@ public class TaskService {
      * wenn es nicht existiert/ dem User nicht gehört.
      */
     private Module requireOwnedModule(UUID userId, String moduleTitle) {
-        return moduleRepository.findByUserIdAndTitle(userId, moduleTitle)
+        return moduleRepository.findByUser_UserIdAndTitle(userId, moduleTitle)
                 .orElseThrow(() -> new ResourceNotFoundException(MSG_MODULE_NOT_FOUND));
+
     }
 
     /**
@@ -289,7 +293,7 @@ public class TaskService {
      * Wenn taskId nicht existiert -> NotFound.
      */
     private Task requireOwnedTask(UUID userId, UUID taskId) {
-        return taskRepository.findByIdAndUserId(taskId, userId)
+        return taskRepository.findByTaskIdAndModuleUserUserId(taskId, userId)
                 .orElseThrow(() -> taskRepository.existsById(taskId)
                         ? new AccessDeniedException(MSG_TASK_NOT_OWNED)
                         : new ResourceNotFoundException(MSG_TASK_NOT_FOUND));

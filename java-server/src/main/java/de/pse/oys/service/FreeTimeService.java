@@ -1,10 +1,10 @@
 package de.pse.oys.service;
-import de.pse.oys.controller.Wrapper;
 
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
 import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
@@ -124,12 +124,12 @@ public class FreeTimeService {
      * @throws NullPointerException     wenn {@code userId} {@code null} ist.
      * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
      */
-    public List<Wrapper<FreeTimeDTO>> getFreeTimesByUserId(UUID userId) throws ResourceNotFoundException {
+    public List<WrapperDTO<FreeTimeDTO>> getFreeTimesByUserId(UUID userId) throws ResourceNotFoundException {
         Objects.requireNonNull(userId, "userId");
         requireUserExists(userId);
 
         return freeTimeRepository.findByUserId(userId).stream()
-                .map(freeTime -> new Wrapper<>(getId(freeTime), toDto(freeTime)))
+                .map(freeTime -> new WrapperDTO<>(getId(freeTime), toDto(freeTime)))
                 .toList();
     }
 
