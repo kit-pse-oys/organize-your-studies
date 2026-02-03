@@ -326,11 +326,10 @@ public class PlanningService {
      * @return Liste der TaskDTOs für offene Aufgaben.
      */
     private List<PlanningTaskDTO> fetchOpenTasksAsDTOs(User user, LocalDateTime now, LocalDate weekStart) {
-        List<Task> openTasks = taskRepository.findAllByUserAndStatus(user.getId(), TaskStatus.OPEN);
+        List<Task> openTasks = taskRepository.findAllByModuleUserUserIdAndStatus(user.getId(), TaskStatus.OPEN);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
-
 
         for (Task task : openTasks) {
             int durationExistingUnits = 0;

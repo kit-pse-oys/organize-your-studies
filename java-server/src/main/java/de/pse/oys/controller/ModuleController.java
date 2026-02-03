@@ -33,17 +33,18 @@ public class ModuleController extends BaseController {
      * @return Eine ResponseEntity mit dem erstellten Modul (Status 201).
      */
     @PostMapping("/create")
-    public ResponseEntity<ModuleDTO> createModule(@RequestBody ModuleDTO dto) {
+    public ResponseEntity<UUID> createModule(@RequestBody ModuleDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            ModuleDTO created = moduleService.createModule(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            UUID moduleId = moduleService.createModule(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(moduleId);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     /**
      * Aktualisiert ein bestehendes Modul.

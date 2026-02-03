@@ -6,10 +6,12 @@ import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
@@ -40,6 +42,7 @@ public class LearningUnitService {
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
 
+    private final LearningUnitRepository learningUnitRepository;
     private final LearningPlanRepository learningPlanRepository;
 
     /**
@@ -47,8 +50,9 @@ public class LearningUnitService {
      *
      * @param learningPlanRepository Repository für LearningPlans (inkl. Ownership-Query)
      */
-    public LearningUnitService(LearningPlanRepository learningPlanRepository) {
-        this.learningPlanRepository = Objects.requireNonNull(learningPlanRepository);
+    public LearningUnitService(LearningUnitRepository learningUnitRepository, LearningPlanRepository learningPlanRepository) {
+        this.learningPlanRepository = learningPlanRepository;
+        this.learningUnitRepository = learningUnitRepository;
     }
 
     /**
@@ -131,6 +135,13 @@ public class LearningUnitService {
 
         learningPlanRepository.save(plan);
         return toDto(plan);
+    }
+
+    public List<WrapperDTO<UnitDTO>> getLearningUnitsByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        //requireUserExists(userId);
+        return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
+                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), toUnitDto(unit))).toList();
     }
 
     // -------------------------------------------------------------------------
@@ -249,4 +260,29 @@ public class LearningUnitService {
                 weekly
         );
     }
+
+    private UnitDTO toUnitDto(LearningUnit unit) {
+        UnitDTO dto = new UnitDTO();
+
+        if (unit.getTask() != null) {
+            dto.setTitle(unit.getTask().getTitle());
+
+            // dto.setDescription(unit.getTask().getDescription()); //TODO lässt sich nicht clean transformieren
+            // dto.setColor(unit.getTask().getColor());
+        }
+        if (unit.getStartTime() != null) {
+            dto.setDate(unit.getStartTime().toLocalDate());
+            dto.setStart(unit.getStartTime().toLocalTime());
+        }
+        if (unit.getEndTime() != null) {
+            if (dto.getDate() == null) {
+                dto.setDate(unit.getEndTime().toLocalDate());
+            }
+            dto.setEnd(unit.getEndTime().toLocalTime());
+        }
+
+        return dto;
+    }
+
+
 }

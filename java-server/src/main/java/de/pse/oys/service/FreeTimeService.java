@@ -4,6 +4,7 @@ import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
 import de.pse.oys.domain.enums.RecurrenceType;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
@@ -13,6 +14,7 @@ import de.pse.oys.service.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -56,12 +58,12 @@ public class FreeTimeService {
      * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
      * @return angelegte Freizeit als DTO
      */
-    public FreeTimeDTO createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
+    public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
         validate(dto);
         ensureNoOverlap(userId, dto, null);
         FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
-        return toDto(saved);
+        return saved.getFreeTimeId();
     }
 
     /**
@@ -110,6 +112,25 @@ public class FreeTimeService {
         assertOwner(existing, userId);
 
         freeTimeRepository.delete(existing);
+    }
+
+    /**
+     * Liefert alle Freizeiten eines Nutzers als Liste von Wrapper-Objekten.
+     * Jeder Eintrag enthält die ID der Freizeit sowie das zugehörige {@link FreeTimeDTO}
+     * im Format {@code { "id": "...", "data": { ... } }}.
+     *
+     * @param userId ID des Nutzers, dessen Freizeiten abgefragt werden.
+     * @return Liste aller Freizeiten des Nutzers (leer, wenn keine vorhanden sind).
+     * @throws NullPointerException     wenn {@code userId} {@code null} ist.
+     * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
+     */
+    public List<WrapperDTO<FreeTimeDTO>> getFreeTimesByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        requireUserExists(userId);
+
+        return freeTimeRepository.findAllByUserId(userId).stream()
+                .map(freeTime -> new WrapperDTO<>(getId(freeTime), toDto(freeTime)))
+                .toList();
     }
 
     /**
@@ -162,14 +183,12 @@ public class FreeTimeService {
     // Helpers
     // -------------------------
 
-    /** DB-seitiger Overlap-Check. */
+    /** Overlap-Check. */
     private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
-        String weekday = dto.getDate().getDayOfWeek().name();
 
-        boolean overlap = freeTimeRepository.existsOverlap(
+        boolean overlap = hasOverlap(
                 userId,
                 dto.getDate(),
-                weekday,
                 dto.getStartTime(),
                 dto.getEndTime(),
                 ignoreId
@@ -178,6 +197,37 @@ public class FreeTimeService {
         if (overlap) {
             throw new ValidationException(MSG_OVERLAP);
         }
+    }
+
+    /** Overlap-Check Subroutine. */
+    private boolean hasOverlap(UUID userId,
+                               java.time.LocalDate date,
+                               java.time.LocalTime startTime,
+                               java.time.LocalTime endTime,
+                               UUID ignoreId) {
+
+        List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
+
+        for (FreeTime ft : candidates) {
+            if (ft == null) continue;
+
+            UUID ftId = ft.getFreeTimeId();
+            if (ignoreId != null && ignoreId.equals(ftId)) {
+                continue;
+            }
+
+            // gilt am Datum? (Single: Datum, Weekly: Wochentag)
+            if (!ft.occursOn(date)) {
+                continue;
+            }
+
+            // Overlap: [start, end)
+            if (ft.getStartTime().isBefore(endTime) && startTime.isBefore(ft.getEndTime())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Validiert, dass die ID gesetzt ist. */
@@ -223,6 +273,13 @@ public class FreeTimeService {
         dto.setWeekly(entity.getRecurrenceType() == RecurrenceType.WEEKLY);
         dto.setDate(entity.getRepresentativeDate());
         return dto;
+    }
+
+    /**
+     * Extrahiert die ID aus einer {@link FreeTime}-Entität.
+     */
+    private UUID getId(FreeTime freeTime) {
+        return freeTime.getFreeTimeId();
     }
 }
 
