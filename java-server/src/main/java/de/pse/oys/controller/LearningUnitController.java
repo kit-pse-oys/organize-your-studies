@@ -2,17 +2,16 @@ package de.pse.oys.controller;
 
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.controller.UnitControlDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.LearningUnitService;
-import de.pse.oys.service.exception.AccessDeniedException;
-import de.pse.oys.service.exception.ResourceNotFoundException;
-import de.pse.oys.service.exception.ValidationException;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -21,7 +20,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/v1/plan/units")
-public class LearningUnitController extends BaseController { //TODO: richtiges mapping abgleichen
+public class LearningUnitController extends BaseController {
 
     private final LearningUnitService learningUnitService;
 
@@ -35,46 +34,28 @@ public class LearningUnitController extends BaseController { //TODO: richtiges m
 
     /**
      * Aktualisiert eine spezifische Lerneinheit (z.B. Zeitraum).
-     * @param planId Die ID des zugehörigen Lernplans.
-     * @param unitId Die ID der zu ändernden Einheit.
+     * @param control Die Steuerungsinformationen zur Einheit.
      * @return Der aktualisierte Gesamtplan als DTO.
      */
-    @PatchMapping("/{planId}/{unitId}")
-    public ResponseEntity<LearningPlanDTO> moveLearningUnitAutomatically(
-            @PathVariable UUID planId,
-            @PathVariable UUID unitId) {
-
+    @PatchMapping("/moveAuto")
+    public ResponseEntity<WrapperDTO<UnitDTO>> moveUnitAutomatically(@RequestBody UnitControlDTO control) {
         UUID userId = getAuthenticatedUserId();
-        LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitAutomatically(userId, planId, unitId);
-        return ResponseEntity.ok(updatedPlan);
+        UUID unitId = control.getId();
+        UnitDTO updatedUnit = learningUnitService.moveLearningUnitAutomatically(userId, unitId);
 
+        return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
     }
 
     /**
      * Verschiebt eine Lerneinheit manuell auf einen neuen Zeitraum.
-     * @param planId Die ID des Lernplans.
-     * @param unitId Die ID der Einheit.
-     * @param start Der neue Startzeitpunkt.
-     * @param end Der neue Endzeitpunkt.
+     * @param control Die Steuerungsinformationen zur Einheit.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PatchMapping("/{planId}/{unitId}/move")
-    public ResponseEntity<LearningPlanDTO> moveLearningUnitManually(
-            @PathVariable UUID planId,
-            @PathVariable UUID unitId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitManually(userId, planId, unitId, start, end);
-            return ResponseEntity.ok(updatedPlan);
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (ValidationException | ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PatchMapping("/move")
+    public ResponseEntity<Void> moveLearningUnitManually(@RequestBody UnitControlDTO control) {
+        UUID userId = getAuthenticatedUserId();
+        learningUnitService.moveLearningUnitManually(userId, control.getId(), control.getNewTime());
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -82,10 +63,10 @@ public class LearningUnitController extends BaseController { //TODO: richtiges m
      * @param control Die Steuerungsinformationen zur Einheit.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PostMapping(params = "finished")
-    public ResponseEntity<LearningPlanDTO> finishUnitEarly(@RequestBody UnitControlDTO control) {//TODO: mit richtiger zeitlänge verbessern
+    @PostMapping("/finished")
+    public ResponseEntity<LearningPlanDTO> finishUnitEarly(@RequestBody UnitControlDTO control) {
         UUID userId = getAuthenticatedUserId();
-        learningUnitService.finishUnitEarly(userId, control.getId());
+        learningUnitService.finishUnitEarly(userId, control.getId(), control.getActualDuration());
         return ResponseEntity.ok().build();
     }
 }
