@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import de.pse.oys.domain.LearningPlan;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * LearningPlanRepository – Repository-Schnittstelle für LearningPlan-Entitäten.
@@ -65,6 +66,13 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
                                              @Param("userId") UUID userId);
 
 
+    /**
+     * Löscht alle Lernpläne eines Nutzers, deren Wochenstart vor einem bestimmten Datum liegt.
+     * @param userId Die ID des Nutzers.
+     * @param date Der zeitliche Stichtag.
+     */
+    @Transactional
+    void deleteByUserIdAndWeekStartBefore(UUID userId, LocalDate date);
 
 
 

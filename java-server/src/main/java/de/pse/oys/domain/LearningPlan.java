@@ -48,6 +48,11 @@ public class LearningPlan {
     @Transient // Im Diagramm S. 44 vorhanden, aber oft dynamisch zur Laufzeit berechnet
     private List<FreeTime> freeTimes = new ArrayList<>();
 
+    /** Der Benutzer, dem dieser Lernplan zugeordnet ist. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userid", nullable = false)
+    private User user;
+
     /**
      * Standardkonstruktor für JPA.
      */
@@ -94,4 +99,14 @@ public class LearningPlan {
 
     /** @param units Die Liste der Lerneinheiten, die diesem Plan zugeordnet werden sollen. */
     public void setUnits(List<LearningUnit> units) { this.units = units; }
+
+    /** @return Der Benutzer, dem dieser Lernplan zugeordnet ist. */
+    public User getUser() {
+        return user;
+    }
+
+    /** @param user Der Benutzer, dem dieser Lernplan zugeordnet werden soll. */
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

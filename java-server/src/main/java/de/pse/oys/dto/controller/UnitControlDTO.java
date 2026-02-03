@@ -9,9 +9,8 @@ import java.util.UUID;
  */
 public class UnitControlDTO {
     private UUID id;
-    private Boolean finished;
-    private Boolean automaticNewTime;
     private LocalDateTime newTime;
+    private Integer actualDuration;
 
 
     // Getter und Setter
@@ -31,34 +30,6 @@ public class UnitControlDTO {
     }
 
     /**
-     * Gibt zurück, ob der Vorgang abgeschlossen ist.
-     */
-    public Boolean getFinished() {
-        return finished;
-    }
-
-    /**
-     * Setzt den Abschlussstatus des Vorgangs.
-     */
-    public void setFinished(Boolean finished) {
-        this.finished = finished;
-    }
-
-    /**
-     * Gibt zurück, ob die neue Zeit automatisch gesetzt wird.
-     */
-    public Boolean getAutomaticNewTime() {
-        return automaticNewTime;
-    }
-
-    /**
-     * Setzt, ob die neue Zeit automatisch gesetzt wird.
-     */
-    public void setAutomaticNewTime(Boolean automaticNewTime) {
-        this.automaticNewTime = automaticNewTime;
-    }
-
-    /**
      * Gibt den neu gesetzten Zeitpunkt zurück.
      */
     public LocalDateTime getNewTime() {
@@ -71,4 +42,10 @@ public class UnitControlDTO {
     public void setNewTime(LocalDateTime newTime) {
         this.newTime = newTime;
     }
+
+    /** Gibt die tatsächliche Dauer zurück. */
+    public Integer getActualDuration() { return actualDuration; }
+
+    /** Setzt die tatsächliche Dauer. */
+    public void setActualDuration(Integer actualDuration) { this.actualDuration = actualDuration; }
 }

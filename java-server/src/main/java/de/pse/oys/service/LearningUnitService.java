@@ -1,14 +1,10 @@
 package de.pse.oys.service;
 
-import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.LearningPlan;
 import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.Task;
-import de.pse.oys.domain.enums.RecurrenceType;
-import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.UnitDTO;
-import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
@@ -19,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -39,6 +34,7 @@ public class LearningUnitService {
     private static final String MSG_ACCESS_DENIED = "Kein Zugriff auf die angefragte Ressource.";
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
+    private static final String MSG_PLAN_NOT_FOUND_FOR_UNIT = "Kein passender Lernplan für diese Einheit gefunden.";
 
     private final LearningPlanRepository learningPlanRepository;
 
@@ -55,18 +51,16 @@ public class LearningUnitService {
      * Aktualisiert das Zeitfenster einer Unit anhand des UnitDTO.
      *
      * @param userId User-Id
-     * @param planId Plan-Id
      * @param unitId Unit-Id
      * @return aktualisierter Plan als DTO
      */
-    public LearningPlanDTO moveLearningUnitAutomatically(UUID userId, UUID planId, UUID unitId) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
-        if (userId == null || planId == null || unitId == null ) {
+    public UnitDTO moveLearningUnitAutomatically(UUID userId, UUID unitId) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
+        if (userId == null || unitId == null ) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
-        LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
+        LearningPlan plan = findPlanByUnitAndUser(userId, unitId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
-
 
         LocalDateTime unitStartTime = unit.getStartTime();
         LocalDateTime unitEndTime = unit.getEndTime();
@@ -78,61 +72,56 @@ public class LearningUnitService {
         if (date == null || start == null || end == null) {
             throw new ValidationException(MSG_TIME_FIELDS_REQUIRED);
         }
-        moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end), true);
+        moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end));
 
         learningPlanRepository.save(plan);
-        return toDto(plan);
+        return mapUnit(unit);
     }
 
     /**
      * Verschiebt eine Unit auf einen neuen Zeitraum (z.B. Drag-and-Drop).
      *
      * @param userId User-Id
-     * @param planId Plan-Id
      * @param unitId Unit-Id
      * @param start  neuer Start
-     * @param end    neues Ende
-     * @return aktualisierter Plan als DTO
      */
-    public LearningPlanDTO moveLearningUnitManually(UUID userId, UUID planId, UUID unitId,
-                                                    LocalDateTime start, LocalDateTime end) {
-        if (userId == null || planId == null || unitId == null || start == null || end == null) {
+    public void moveLearningUnitManually(UUID userId, UUID unitId, LocalDateTime start) {
+        if (userId == null || unitId == null || start == null) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
 
-        LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
+        LearningPlan plan = findPlanByUnitAndUser(userId, unitId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
 
-        moveUnitInternal(plan, unit, start, end, true);
+        long durationMinutes = java.time.Duration.between(unit.getStartTime(), unit.getEndTime()).toMinutes();
+        LocalDateTime end = start.plusMinutes(durationMinutes);
+        moveUnitInternal(plan, unit, start, end);
 
         learningPlanRepository.save(plan);
-        return toDto(plan);
     }
 
     /**
      * Markiert eine Unit als vorzeitig abgeschlossen und speichert die tatsächliche Dauer.
      *
      * @param userId         User-Id
-     * @param planId         Plan-Id
      * @param unitId         Unit-Id
      * @param actualDuration tatsächliche Minuten (>= 0)
      * @return aktualisierter Plan als DTO
      */
-    public LearningPlanDTO finishUnitEarly(UUID userId, UUID planId, UUID unitId, Integer actualDuration) {
-        if (userId == null || planId == null || unitId == null || actualDuration == null) {
+    public void finishUnitEarly(UUID userId, UUID unitId, Integer actualDuration) {
+        if (userId == null || unitId == null || actualDuration == null) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
         if (actualDuration < 0) {
             throw new ValidationException(MSG_ACTUAL_DURATION_INVALID);
         }
 
-        LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
+        LearningPlan plan = findPlanByUnitAndUser(userId, unitId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
 
         unit.markAsCompletedEarly(actualDuration);
 
         learningPlanRepository.save(plan);
-        return toDto(plan);
     }
 
     // -------------------------------------------------------------------------
@@ -155,14 +144,11 @@ public class LearningUnitService {
 
     /** Setzt neue Zeiten und prüft optional Überschneidungen. */
     private void moveUnitInternal(LearningPlan plan, LearningUnit unit,
-                                  LocalDateTime start, LocalDateTime end,
-                                  boolean checkOverlap) {
+                                  LocalDateTime start, LocalDateTime end) {
         if (!start.isBefore(end)) {
             throw new ValidationException(MSG_INVALID_RANGE);
         }
-        if (checkOverlap) {
-            assertNoOverlap(plan, unit, start, end);
-        }
+        assertNoOverlap(plan, unit, start, end);
         unit.setStartTime(start);
         unit.setEndTime(end);
     }
@@ -185,16 +171,6 @@ public class LearningUnitService {
         }
     }
 
-    /** Wandelt einen Plan in das Response-DTO um. */
-    private LearningPlanDTO toDto(LearningPlan plan) {
-        LearningPlanDTO dto = new LearningPlanDTO();
-        dto.setId(plan.getPlanId());
-        dto.setValidFrom(plan.getWeekStart());
-        dto.setValidUntil(plan.getWeekEnd());
-        dto.setUnits(plan.getUnits().stream().filter(Objects::nonNull).map(this::mapUnit).toList());
-        dto.setAvailableSlots(mapFreeTimes(plan.getFreeTimes()));
-        return dto;
-    }
 
     /** Erstellt ein UnitDTO aus einer LearningUnit. */
     private UnitDTO mapUnit(LearningUnit unit) {
@@ -203,6 +179,7 @@ public class LearningUnitService {
         Task task = unit.getTask();
         if (task != null) {
             dto.setTitle(task.getTitle());
+            dto.setTask(task);
 
             Module module = task.getModule();
             if (module != null) {
@@ -228,27 +205,17 @@ public class LearningUnitService {
         return dto;
     }
 
-    /** Erstellt FreeTimeDTOs aus den FreeTimes eines Plans. */
-    private List<FreeTimeDTO> mapFreeTimes(List<FreeTime> freeTimes) {
-        if (freeTimes == null || freeTimes.isEmpty()) {
-            return List.of();
-        }
-
-        return freeTimes.stream()
-                .filter(Objects::nonNull)
-                .map(this::mapFreeTime)
-                .toList();
+    /**
+     * Hilfsmethode: Findet den Plan, der eine bestimmte Unit enthält und dem User gehört.
+     * Verhindert, dass User Units fremder Pläne manipulieren.
+     */
+    private LearningPlan findPlanByUnitAndUser(UUID userId, UUID unitId) {
+        // Wir suchen in allen Plänen des Users nach der entsprechenden Unit
+        return learningPlanRepository.findAll().stream()
+                .filter(p -> p.getUser().getId().equals(userId))
+                .filter(p -> p.getUnits().stream().anyMatch(u -> u.getUnitId().equals(unitId)))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(MSG_PLAN_NOT_FOUND_FOR_UNIT));
     }
 
-    private FreeTimeDTO mapFreeTime(FreeTime ft) {
-        boolean weekly = ft.getRecurrenceType() == RecurrenceType.WEEKLY;
-
-        return new FreeTimeDTO(
-                ft.getTitle(),
-                ft.getRepresentativeDate(),
-                ft.getStartTime(),
-                ft.getEndTime(),
-                weekly
-        );
-    }
 }
