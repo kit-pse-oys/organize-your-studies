@@ -39,8 +39,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param userType der Benutzertyp, referenziert den Authentifizierungsanbieter des Benutzers
      * @return
      */
-    @Query("SELECT u FROM ExternalUser u WHERE u.externalSubjectId = :externalSubjectId AND u.userType = :userType")
-    Optional<ExternalUser> findByExternalSubjectIdAndType(@Param("externalSubjectId") String externalSubjectId,
-                                                          @Param("userType") UserType userType);
-
+    Optional<ExternalUser> findByExternalSubjectIdAndUserType(String externalSubjectId, UserType userType);
 }

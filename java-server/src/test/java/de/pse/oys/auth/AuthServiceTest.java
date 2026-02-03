@@ -97,7 +97,7 @@ class AuthServiceTest {
         when(payload.get("name")).thenReturn(name);
 
         when(googleOAuthVerifier.verifyToken(token)).thenReturn(payload);
-        when(userRepository.findByExternalSubjectIdAndType(googleSub, UserType.GOOGLE))
+        when(userRepository.findByExternalSubjectIdAndUserType(googleSub, UserType.GOOGLE))
                 .thenReturn(Optional.empty());
 
         // Captor für neuen User
