@@ -15,12 +15,4 @@ import de.pse.oys.domain.UnitRating;
  */
 @Repository
 public interface RatingRepository extends JpaRepository<UnitRating, UUID> {
-
-    /**
-     * Findet eine UnitRating anhand der zugehörigen Unit-ID.
-     * @param unitId Die ID der Lerneinheit.
-     * @return Optional mit der gefundenen UnitRating oder leer, wenn keine gefunden wurde.
-     */
-    @Query(value = "SELECT * FROM ratings WHERE unitid = :unitId", nativeQuery = true)
-    Optional<UnitRating> findByUnitId(@Param("unitId") UUID unitId);
 }

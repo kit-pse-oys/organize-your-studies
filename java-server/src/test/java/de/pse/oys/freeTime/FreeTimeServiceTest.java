@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -240,7 +241,7 @@ class FreeTimeServiceTest {
                     LocalDate.of(2026, 2, 1), LocalTime.of(12, 0), LocalTime.of(13, 0), false)))
                     .isInstanceOf(AccessDeniedException.class);
 
-            verify(freeTimeRepository, never()).existsOverlap(any(), any(), any(), any(), any(), any());
+            verify(freeTimeRepository, never()).findAllByUserId(any());
             verify(freeTimeRepository, never()).save(any());
         }
 
@@ -265,7 +266,7 @@ class FreeTimeServiceTest {
             assertThatThrownBy(() -> sut.updateFreeTime(userId, freeTimeId, input))
                     .isInstanceOf(ValidationException.class);
 
-            verify(freeTimeRepository, never()).existsOverlap(any(), any(), any(), any(), any(), any());
+            verify(freeTimeRepository, never()).findAllByUserId(any());
             verify(freeTimeRepository, never()).save(any());
         }
 
@@ -359,25 +360,21 @@ class FreeTimeServiceTest {
     }
 
     private void givenNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
-        when(freeTimeRepository.existsOverlap(
-                eq(userId),
-                eq(dto.getDate()),
-                eq(dto.getDate().getDayOfWeek().name()),
-                eq(dto.getStartTime()),
-                eq(dto.getEndTime()),
-                ignoreId == null ? isNull() : eq(ignoreId)
-        )).thenReturn(false);
+        when(freeTimeRepository.findAllByUserId(eq(userId)))
+                .thenReturn(List.of());
     }
 
     private void givenOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
-        when(freeTimeRepository.existsOverlap(
-                eq(userId),
-                eq(dto.getDate()),
-                eq(dto.getDate().getDayOfWeek().name()),
-                eq(dto.getStartTime()),
-                eq(dto.getEndTime()),
-                ignoreId == null ? isNull() : eq(ignoreId)
-        )).thenReturn(true);
+        // Ein Eintrag, der am dto.date gilt und zeitlich überlappt.
+        FreeTime overlapping = mock(FreeTime.class);
+
+        when(overlapping.getFreeTimeId()).thenReturn(UUID.randomUUID());
+        when(overlapping.occursOn(eq(dto.getDate()))).thenReturn(true);
+        when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
+        when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
+
+        when(freeTimeRepository.findAllByUserId(eq(userId)))
+                .thenReturn(List.of(overlapping));
     }
 
     private static FreeTimeDTO dto(String title, LocalDate date, LocalTime start, LocalTime end, boolean weekly) {

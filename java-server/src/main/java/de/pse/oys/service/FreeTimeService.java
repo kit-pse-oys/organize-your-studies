@@ -128,7 +128,7 @@ public class FreeTimeService {
         Objects.requireNonNull(userId, "userId");
         requireUserExists(userId);
 
-        return freeTimeRepository.findByUserId(userId).stream()
+        return freeTimeRepository.findAllByUserId(userId).stream()
                 .map(freeTime -> new WrapperDTO<>(getId(freeTime), toDto(freeTime)))
                 .toList();
     }
@@ -183,14 +183,12 @@ public class FreeTimeService {
     // Helpers
     // -------------------------
 
-    /** DB-seitiger Overlap-Check. */
+    /** Overlap-Check. */
     private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
-        String weekday = dto.getDate().getDayOfWeek().name();
 
-        boolean overlap = freeTimeRepository.existsOverlap(
+        boolean overlap = hasOverlap(
                 userId,
                 dto.getDate(),
-                weekday,
                 dto.getStartTime(),
                 dto.getEndTime(),
                 ignoreId
@@ -199,6 +197,37 @@ public class FreeTimeService {
         if (overlap) {
             throw new ValidationException(MSG_OVERLAP);
         }
+    }
+
+    /** Overlap-Check Subroutine. */
+    private boolean hasOverlap(UUID userId,
+                               java.time.LocalDate date,
+                               java.time.LocalTime startTime,
+                               java.time.LocalTime endTime,
+                               UUID ignoreId) {
+
+        List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
+
+        for (FreeTime ft : candidates) {
+            if (ft == null) continue;
+
+            UUID ftId = ft.getFreeTimeId();
+            if (ignoreId != null && ignoreId.equals(ftId)) {
+                continue;
+            }
+
+            // gilt am Datum? (Single: Datum, Weekly: Wochentag)
+            if (!ft.occursOn(date)) {
+                continue;
+            }
+
+            // Overlap: [start, end)
+            if (ft.getStartTime().isBefore(endTime) && startTime.isBefore(ft.getEndTime())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Validiert, dass die ID gesetzt ist. */
