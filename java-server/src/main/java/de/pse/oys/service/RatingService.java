@@ -71,8 +71,9 @@ public class RatingService {
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,
         // wird die zugehörige Kostenmatrix als veraltet markiert.
         Task task = learningUnit.getTask();
-        CostMatrix costMatrix = costMatrixRepository.findByTaskId(task.getTaskId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format(ERR_MATRIX_NOT_FOUND, task.getTaskId())));
+        CostMatrix costMatrix = costMatrixRepository.findByTask_TaskId(task.getTaskId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format(ERR_MATRIX_NOT_FOUND, task.getTaskId())));
         costMatrix.markAsOutdated();
         costMatrixRepository.save(costMatrix);
 

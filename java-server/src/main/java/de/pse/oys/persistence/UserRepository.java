@@ -24,9 +24,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param type der Benutzertyp welcher gesucht wird (lokaler oder externer Benutzer)
      * @return Optional des gefundenen Benutzers
      */
-    @Query("SELECT u FROM User u WHERE u.username = :username AND u.userType = :type")
-    Optional<User> findByNameAndType(@Param("username") String username,
-                                     @Param("type") UserType type);
+    Optional<User> findByUsernameAndUserType(String username, UserType type);
 
     /**
      * Prüft, ob ein Benutzer mit dem angegebenen Benutzernamen existiert.
