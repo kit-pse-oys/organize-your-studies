@@ -359,7 +359,7 @@ class RemoteClientTest {
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
-                    put("id", step1.toHexDashString())
+                    put("id", step1.toHexDashString()) //todo: lernplanid benötigt
                     put("automaticNewTime", true)
                 }, json)
 
