@@ -59,12 +59,7 @@ class LearningUnitServiceTest {
 
         when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
 
-        UnitDTO dto = new UnitDTO();
-        dto.setDate(LocalDate.of(2026, 2, 3));
-        dto.setStart(LocalTime.of(14, 0));
-        dto.setEnd(LocalTime.of(15, 30));
-
-        LearningPlanDTO result = sut.updateLearningUnit(USER_ID, PLAN_ID, UNIT_ID, dto);
+        LearningPlanDTO result = sut.moveLearningUnitAutomatically(USER_ID, PLAN_ID, UNIT_ID);
 
         assertThat(unit.getStartTime()).isEqualTo(LocalDateTime.of(2026, 2, 3, 14, 0));
         assertThat(unit.getEndTime()).isEqualTo(LocalDateTime.of(2026, 2, 3, 15, 30));
@@ -89,14 +84,23 @@ class LearningUnitServiceTest {
 
     @Test
     void updateLearningUnit_missingTimeFields_throwsValidation_andDoesNotHitRepository() {
-        UnitDTO dto = new UnitDTO();
-        dto.setDate(LocalDate.of(2026, 2, 3));
-        dto.setStart(LocalTime.of(14, 0));
-        // end missing
+        // 1. Arrange: Plan erstellen
+        LearningPlan plan = new LearningPlan(LocalDate.of(2026, 2, 2), LocalDate.of(2026, 2, 8));
+        setField(plan, "planId", PLAN_ID);
 
-        assertThatThrownBy(() -> sut.updateLearningUnit(USER_ID, PLAN_ID, UNIT_ID, dto))
+        // Eine Unit erstellen, bei der die Endzeit fehlt (simuliert korrupte Daten)
+        LearningUnit unit = unitWithTaskAndModule("Task", null, null,
+                LocalDateTime.of(2026, 2, 2, 10, 0),
+                null); // Endzeit ist null
+        setField(unit, "unitId", UNIT_ID);
+        plan.getUnits().add(unit);
+
+        // Mocking: Repository liefert den Plan mit der "kaputten" Unit
+        when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
+
+        // 2. Act & Assert: Prüfung auf die ValidationException
+        assertThatThrownBy(() -> sut.moveLearningUnitAutomatically(USER_ID, PLAN_ID, UNIT_ID))
                 .isInstanceOf(ValidationException.class);
-
         verifyNoInteractions(learningPlanRepository);
     }
 
@@ -145,14 +149,12 @@ class LearningUnitServiceTest {
 
     @Test
     void loadPlan_userScopeMiss_throwsAccessDenied() {
+        // 1. Arrange: Wir simulieren, dass der Plan für diesen User nicht existiert
+        // Schau in deinem Service nach, ob loadPlanForUserOrThrow intern findByIdAndUserId nutzt
         when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.empty());
 
-        UnitDTO dto = new UnitDTO();
-        dto.setDate(LocalDate.of(2026, 2, 3));
-        dto.setStart(LocalTime.of(14, 0));
-        dto.setEnd(LocalTime.of(15, 0));
-
-        assertThatThrownBy(() -> sut.updateLearningUnit(USER_ID, PLAN_ID, UNIT_ID, dto))
+        // 2. Act & Assert: Aufruf ohne DTO und Prüfung auf AccessDeniedException
+        assertThatThrownBy(() -> sut.moveLearningUnitAutomatically(USER_ID, PLAN_ID, UNIT_ID))
                 .isInstanceOf(AccessDeniedException.class);
 
         verify(learningPlanRepository).findByIdAndUserId(PLAN_ID, USER_ID);

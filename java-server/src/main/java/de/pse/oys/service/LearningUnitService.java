@@ -61,25 +61,27 @@ public class LearningUnitService {
      * @param userId User-Id
      * @param planId Plan-Id
      * @param unitId Unit-Id
-     * @param dto    neue Werte
      * @return aktualisierter Plan als DTO
      */
-    public LearningPlanDTO updateLearningUnit(UUID userId, UUID planId, UUID unitId, UnitDTO dto) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
-        if (userId == null || planId == null || unitId == null || dto == null) {
+    public LearningPlanDTO moveLearningUnitAutomatically(UUID userId, UUID planId, UUID unitId) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
+        if (userId == null || planId == null || unitId == null ) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
-        }
-
-        LocalDate date = dto.getDate();
-        LocalTime start = dto.getStart();
-        LocalTime end = dto.getEnd();
-
-        if (date == null || start == null || end == null) {
-            throw new ValidationException(MSG_TIME_FIELDS_REQUIRED);
         }
 
         LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
 
+
+        LocalDateTime unitStartTime = unit.getStartTime();
+        LocalDateTime unitEndTime = unit.getEndTime();
+
+        LocalDate date = unitStartTime.toLocalDate();
+        LocalTime start = unitStartTime.toLocalTime();
+        LocalTime end = unitEndTime.toLocalTime();
+
+        if (date == null || start == null || end == null) {
+            throw new ValidationException(MSG_TIME_FIELDS_REQUIRED);
+        }
         moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end), true);
 
         learningPlanRepository.save(plan);
