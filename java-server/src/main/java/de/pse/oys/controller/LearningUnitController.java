@@ -1,6 +1,7 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.UnitDTO;
+import de.pse.oys.dto.controller.UnitControlDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.LearningUnitService;
 import de.pse.oys.service.exception.AccessDeniedException;
@@ -19,8 +20,8 @@ import java.util.UUID;
  * Ermöglicht manuelle Anpassungen, Verschiebungen und das vorzeitige Beenden von Einheiten.
  */
 @RestController
-@RequestMapping("/plan/units")
-public class LearningUnitController extends BaseController {
+@RequestMapping("/api/v1/plan/units")
+public class LearningUnitController extends BaseController { //TODO: richtiges mapping abgleichen
 
     private final LearningUnitService learningUnitService;
 
@@ -33,28 +34,20 @@ public class LearningUnitController extends BaseController {
     }
 
     /**
-     * Aktualisiert eine spezifische Lerneinheit (z.B. Titel oder Beschreibung).
+     * Aktualisiert eine spezifische Lerneinheit (z.B. Zeitraum).
      * @param planId Die ID des zugehörigen Lernplans.
      * @param unitId Die ID der zu ändernden Einheit.
-     * @param dto Die neuen Daten der Einheit.
      * @return Der aktualisierte Gesamtplan als DTO.
      */
     @PatchMapping("/{planId}/{unitId}")
-    public ResponseEntity<LearningPlanDTO> updateLearningUnit(
+    public ResponseEntity<LearningPlanDTO> moveLearningUnitAutomatically(
             @PathVariable UUID planId,
-            @PathVariable UUID unitId,
-            @RequestBody UnitDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            LearningPlanDTO updatedPlan = learningUnitService.updateLearningUnit(userId, planId, unitId, dto);
-            return ResponseEntity.ok(updatedPlan);
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (ValidationException | ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+            @PathVariable UUID unitId) {
+
+        UUID userId = getAuthenticatedUserId();
+        LearningPlanDTO updatedPlan = learningUnitService.moveLearningUnitAutomatically(userId, planId, unitId);
+        return ResponseEntity.ok(updatedPlan);
+
     }
 
     /**
@@ -86,26 +79,13 @@ public class LearningUnitController extends BaseController {
 
     /**
      * Markiert eine Einheit als vorzeitig beendet und erfasst die tatsächliche Dauer.
-     * @param planId Die ID des Lernplans.
-     * @param unitId Die ID der Einheit.
-     * @param actualDuration Die tatsächlich benötigte Zeit in Minuten.
+     * @param control Die Steuerungsinformationen zur Einheit.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PatchMapping("/{planId}/{unitId}/finish")
-    public ResponseEntity<LearningPlanDTO> finishUnitEarly(
-            @PathVariable UUID planId,
-            @PathVariable UUID unitId,
-            @RequestParam Integer actualDuration) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            LearningPlanDTO updatedPlan = learningUnitService.finishUnitEarly(userId, planId, unitId, actualDuration);
-            return ResponseEntity.ok(updatedPlan);
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (ValidationException | ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PostMapping(params = "finished")
+    public ResponseEntity<LearningPlanDTO> finishUnitEarly(@RequestBody UnitControlDTO control) {//TODO: mit richtiger zeitlänge verbessern
+        UUID userId = getAuthenticatedUserId();
+        learningUnitService.finishUnitEarly(userId, control.getId());
+        return ResponseEntity.ok().build();
     }
 }
