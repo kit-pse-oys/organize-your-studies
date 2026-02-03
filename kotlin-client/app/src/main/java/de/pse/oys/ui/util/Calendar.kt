@@ -23,10 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.pse.oys.R
 import de.pse.oys.ui.theme.OrganizeYourStudiesTheme
 import de.pse.oys.ui.theme.Typography
 import kotlinx.datetime.DayOfWeek
@@ -53,7 +55,7 @@ fun CalendarWeek(
 
     Column(modifier = modifier) {
         Text(
-            text = "This Week",
+            text = stringResource(R.string.week_plan_header),
             style = Typography.headlineSmall,
             modifier = Modifier.padding(16.dp)
         )
@@ -130,7 +132,7 @@ fun CalendarDay(
 
     Column(modifier = modifier) {
         Text(
-            text = "Today",
+            text = stringResource(R.string.day_plan_header),
             style = Typography.headlineSmall,
             modifier = Modifier.padding(16.dp)
         )

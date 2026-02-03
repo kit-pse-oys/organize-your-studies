@@ -126,4 +126,9 @@
     <string name="save_task">Aufgabe speichern</string>
     <string name="save_freetime">Freizeit speichern</string>
     <string name="open_menu_button">Menü öffnen</string>
+    <string name="register_with_google_button">Mit Google registrieren</string>
+    <string name="sign_in_with_google_button">Mit Google anmelden</string>
+    <string name="day_plan_header">Dein Plan für Heute:</string>
+    <string name="week_plan_header">Dein Plan für diese Woche:</string>
+    <string name="upcoming_units_header">Deine Einheiten für morgen:</string>
 </resources>
