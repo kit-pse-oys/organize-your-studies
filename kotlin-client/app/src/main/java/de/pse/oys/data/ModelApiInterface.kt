@@ -1,5 +1,7 @@
 package de.pse.oys.data
 
+import android.util.Log
+import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.RemoteExamTaskData
 import de.pse.oys.data.api.RemoteOtherTaskData
@@ -15,7 +17,11 @@ import de.pse.oys.data.facade.StepData
 import de.pse.oys.data.facade.SubmissionTaskData
 import de.pse.oys.data.facade.Task
 import de.pse.oys.data.facade.TaskData
+import de.pse.oys.ui.navigation.Main
+import de.pse.oys.ui.navigation.login
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
 import kotlin.uuid.Uuid
 
@@ -111,4 +117,21 @@ suspend fun ModelFacade.ensureUnits(api: RemoteAPI): Response<Map<DayOfWeek, Map
     }
 
     return Response(steps, HttpStatusCode.OK.value)
+}
+
+suspend fun <T> Response<T>.defaultHandleError(navController: NavController, error: () -> Unit): T? {
+    if (status != HttpStatusCode.OK.value) {
+        if (status == HttpStatusCode.Unauthorized.value) {
+            withContext(Dispatchers.Main.immediate) {
+                navController.login(dontGoBack = Main)
+            }
+        } else {
+            Log.e("RemoteAPI", "Error with Status $status")
+            error()
+        }
+
+        return null
+    } else {
+        return response ?: error("No response with Status 200")
+    }
 }

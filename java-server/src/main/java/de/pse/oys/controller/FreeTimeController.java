@@ -45,17 +45,18 @@ public class FreeTimeController extends BaseController {
      * @return Das erstellte DTO oder 400 bei Validierungsfehlern.
      */
     @PostMapping
-    public ResponseEntity<FreeTimeDTO> createFreeTime(@RequestBody FreeTimeDTO dto) {
+    public ResponseEntity<UUID> createFreeTime(@RequestBody FreeTimeDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            FreeTimeDTO created = freeTimeService.createFreeTime(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            UUID freeTimeId = freeTimeService.createFreeTime(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(freeTimeId);
         } catch (ResourceNotFoundException | ValidationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     /**
      * Aktualisiert einen bestehenden Zeitraum.

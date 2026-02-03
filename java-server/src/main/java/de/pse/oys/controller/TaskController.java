@@ -1,5 +1,6 @@
 package de.pse.oys.controller;
 
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.TaskDTO;
 import de.pse.oys.service.TaskService;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,10 @@ public class TaskController extends BaseController {
      * @return Liste der Aufgaben als DTOs.
      */
     @GetMapping
-    public ResponseEntity<List<TaskDTO>> getTasks() {
+    public ResponseEntity<List<WrapperDTO<TaskDTO>>> getTasks() {
         try {
             UUID userId = getAuthenticatedUserId();
-            List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
+            List<WrapperDTO<TaskDTO>> tasks = taskService.getTasksByUserId(userId);
             return ResponseEntity.ok(tasks);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -52,11 +53,11 @@ public class TaskController extends BaseController {
      * @return Das erstellte TaskDTO.
      */
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO dto) {
+    public ResponseEntity<UUID> createTask(@RequestBody TaskDTO dto) {
         try {
             UUID userId = getAuthenticatedUserId();
-            TaskDTO createdTask = taskService.createTask(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+            UUID taskId = taskService.createTask(userId, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(taskId);
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (IllegalArgumentException e) {

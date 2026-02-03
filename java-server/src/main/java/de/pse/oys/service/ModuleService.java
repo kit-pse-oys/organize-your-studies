@@ -4,11 +4,17 @@ import de.pse.oys.domain.Module;
 import de.pse.oys.domain.User;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.ModuleDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import de.pse.oys.service.exception.ResourceNotFoundException;
 
 /**
  * Service-Klasse für die Verwaltung von Modulen.
@@ -25,6 +31,7 @@ public class ModuleService {
     private static final String MSG_MODULE_NOT_OWNED = "Das Modul mit ID %s gehört nicht zum Nutzer oder existiert nicht.";
     private static final String MSG_UPDATE_REQUIRES_ID = "Für ein Update muss die Modul-ID im DTO gesetzt sein.";
     private static final String MSG_TITLE_EMPTY = "Der Modultitel darf nicht leer sein.";
+
 
     private final UserRepository userRepository;
     private final ModuleRepository moduleRepository;
@@ -48,7 +55,7 @@ public class ModuleService {
      * @return Das erstellte Modul als {@link ModuleDTO} mit generierter ID[cite: 5].
      * @throws IllegalArgumentException wenn der Nutzer nicht existiert oder Validierungsfehler auftreten.
      */
-    public ModuleDTO createModule(UUID userId, ModuleDTO dto) {
+    public UUID createModule(UUID userId, ModuleDTO dto) {
         validateData(dto);
 
         User user = userRepository.findById(userId)
@@ -60,7 +67,7 @@ public class ModuleService {
         Module saved = moduleRepository.save(entity);
         userRepository.save(user);
 
-        return mapToDto(saved);
+        return saved.getModuleId();
     }
 
     /**
@@ -118,6 +125,25 @@ public class ModuleService {
     }
 
     /**
+     * Liefert alle Module eines Nutzers als Liste von Wrapper-Objekten.
+     * Jeder Eintrag enthält die ID des Moduls sowie das zugehörige {@link ModuleDTO}
+     * im Format {@code { "id": "...", "data": { ... } }}.
+     *
+     * @param userId ID des Nutzers, dessen Module abgefragt werden.
+     * @return Liste aller Module des Nutzers (leer, wenn keine vorhanden sind).
+     * @throws NullPointerException      wenn {@code userId} {@code null} ist.
+     * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
+     */
+    public List<WrapperDTO<ModuleDTO>> getModulesByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        requireUserExists(userId);
+
+        return moduleRepository.findAllByUser_UserId(userId).stream()
+                .map(module -> new WrapperDTO<ModuleDTO>(module.getModuleId(), toDto(module)))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Validiert die übergebenen Moduldaten auf fachliche Korrektheit[cite: 5].
      *
      * @param dto Das zu validierende DTO[cite: 5].
@@ -154,6 +180,28 @@ public class ModuleService {
         dto.setDescription(entity.getDescription());
         dto.setPriority(entity.getPriority());
         dto.setColor(entity.getColorHexCode());
+        return dto;
+    }
+
+    /**
+     * Prüft die Existenz eine Users.
+     */
+    private void requireUserExists(UUID userId) throws ResourceNotFoundException {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException(String.format(MSG_USER_NOT_FOUND, userId));
+        }
+    }
+
+    /**
+     * Wandelt ein {@link Module} in ein {@link ModuleDTO} um.
+     */
+    private ModuleDTO toDto(Module module) {
+        ModuleDTO dto = new ModuleDTO();
+        dto.setId(module.getModuleId());
+        dto.setTitle(module.getTitle());
+        dto.setDescription(module.getDescription());
+        dto.setPriority(module.getPriority());
+        dto.setColor(module.getColorHexCode());
         return dto;
     }
 }

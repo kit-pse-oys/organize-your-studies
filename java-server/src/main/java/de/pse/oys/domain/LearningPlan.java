@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 @Table(name = "learning_plans")
 public class LearningPlan {
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "userid", nullable = false)
+    private User user;
+
     /** Eindeutige Kennung des Plans (planid). */
     @Id
     @GeneratedValue
@@ -94,4 +98,12 @@ public class LearningPlan {
 
     /** @param units Die Liste der Lerneinheiten, die diesem Plan zugeordnet werden sollen. */
     public void setUnits(List<LearningUnit> units) { this.units = units; }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
