@@ -31,7 +31,6 @@ public class LearningUnitService {
     private static final String MSG_TIME_FIELDS_REQUIRED = "Datum, Start und Ende müssen gesetzt sein.";
     private static final String MSG_INVALID_RANGE = "Die Startzeit muss vor der Endzeit liegen.";
     private static final String MSG_UNIT_NOT_FOUND = "LearningUnit existiert nicht.";
-    private static final String MSG_ACCESS_DENIED = "Kein Zugriff auf die angefragte Ressource.";
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
     private static final String MSG_PLAN_NOT_FOUND_FOR_UNIT = "Kein passender Lernplan für diese Einheit gefunden.";
@@ -106,7 +105,6 @@ public class LearningUnitService {
      * @param userId         User-Id
      * @param unitId         Unit-Id
      * @param actualDuration tatsächliche Minuten (>= 0)
-     * @return aktualisierter Plan als DTO
      */
     public void finishUnitEarly(UUID userId, UUID unitId, Integer actualDuration) {
         if (userId == null || unitId == null || actualDuration == null) {
@@ -128,11 +126,6 @@ public class LearningUnitService {
     // intern
     // -------------------------------------------------------------------------
 
-    /** Lädt den Plan im User-Scope (planId + userId). */
-    private LearningPlan loadPlanForUserOrThrow(UUID userId, UUID planId) {
-        return learningPlanRepository.findByIdAndUserId(planId, userId)
-                .orElseThrow(() -> new AccessDeniedException(MSG_ACCESS_DENIED));
-    }
 
     /** Sucht die Unit innerhalb des Plans. */
     private LearningUnit findUnitOrThrow(LearningPlan plan, UUID unitId) {
