@@ -202,7 +202,7 @@ class RemoteClientTest {
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
-                    put("type", "OIDC")
+                    put("authType", "OIDC")
                     put("externalToken", "TOKEN")
                     put("provider", "GOOGLE")
                 }, json)
@@ -350,7 +350,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/moveAuto", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
@@ -403,7 +403,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/move", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
