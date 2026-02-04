@@ -16,9 +16,8 @@ import java.util.stream.Collectors;
 @Table(name = "learning_plans")
 public class LearningPlan {
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "userid", nullable = false)
-    private User user;
+    @Column(name = "userid", nullable = false, updatable = false)
+    private UUID userId;
 
     /** Eindeutige Kennung des Plans (planid). */
     @Id
@@ -99,11 +98,12 @@ public class LearningPlan {
     /** @param units Die Liste der Lerneinheiten, die diesem Plan zugeordnet werden sollen. */
     public void setUnits(List<LearningUnit> units) { this.units = units; }
 
-    public User getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
+
 }

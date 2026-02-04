@@ -5,39 +5,43 @@ import java.util.UUID;
 
 import de.pse.oys.domain.ExternalUser;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.UserType;
 
 /**
- * UserRepository – Repository-Schnittstelle für User-Entitäten.
+ * Repository für {@link User}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     /**
-     * Findet einen Benutzer anhand des Benutzernamens und Typs.
-     * @param username der Benutzername welcher gesucht wird
-     * @param type der Benutzertyp welcher gesucht wird (lokaler oder externer Benutzer)
-     * @return Optional des gefundenen Benutzers
+     * Findet einen Benutzer anhand von Username und Benutzertyp.
+     *
+     * @param username der gesuchte Username
+     * @param type     der Benutzertyp
+     * @return Optional mit dem gefundenen Benutzer, sonst leer
      */
     Optional<User> findByUsernameAndUserType(String username, UserType type);
 
     /**
-     * Prüft, ob ein Benutzer mit dem angegebenen Benutzernamen existiert.
-     * @param username der Benutzername
-     * @return true, wenn der Benutzer existiert, sonst false
+     * Prüft, ob ein Benutzer mit dem angegebenen Username existiert.
+     *
+     * @param username der Username
+     * @return {@code true}, wenn der Benutzer existiert, sonst {@code false}
      */
     boolean existsByUsername(String username);
 
     /**
-     * Findet einen externen Benutzer anhand der externen Subjekt-ID und des Benutzertyps.
-     * @param externalSubjectId die externe Subjekt-ID
-     * @param userType der Benutzertyp, referenziert den Authentifizierungsanbieter des Benutzers
-     * @return
+     * Findet einen externen Benutzer anhand der externen Subject-ID und des Benutzertyps.
+     *
+     * @param externalSubjectId die externe Subject-ID des Identity Providers
+     * @param userType          der Benutzertyp (passend zum Authentifizierungsanbieter)
+     * @return Optional mit dem gefundenen externen Benutzer, sonst leer
      */
     Optional<ExternalUser> findByExternalSubjectIdAndUserType(String externalSubjectId, UserType userType);
 }

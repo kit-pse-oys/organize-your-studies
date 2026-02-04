@@ -8,13 +8,19 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * LearningUnitRepository – Repository-Schnittstelle für Lerneinheiten.
+ * Repository für {@link LearningUnit}-Entitäten.
  *
- * @author uhupo
+ * @author uqvfm
  * @version 1.0
  */
 @Repository
 public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID> {
 
+    /**
+     * Lädt alle Lerneinheiten, die zu Aufgaben gehören, deren Modul dem angegebenen User zugeordnet ist.
+     *
+     * @param userId ID des Users
+     * @return Liste der Lerneinheiten des Users
+     */
     List<LearningUnit> findAllByTask_Module_User_UserId(UUID userId);
 }

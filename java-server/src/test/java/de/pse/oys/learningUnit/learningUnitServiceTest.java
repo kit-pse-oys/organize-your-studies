@@ -57,7 +57,7 @@ class LearningUnitServiceTest {
         setField(unit, "unitId", UNIT_ID);
         plan.getUnits().add(unit);
 
-        when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
+        when(learningPlanRepository.findByPlanIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
 
         UnitDTO dto = new UnitDTO();
         dto.setDate(LocalDate.of(2026, 2, 3));
@@ -82,7 +82,7 @@ class LearningUnitServiceTest {
         assertThat(mapped.getStart()).isEqualTo(LocalTime.of(14, 0));
         assertThat(mapped.getEnd()).isEqualTo(LocalTime.of(15, 30));
 
-        verify(learningPlanRepository).findByIdAndUserId(PLAN_ID, USER_ID);
+        verify(learningPlanRepository).findByPlanIdAndUserId(PLAN_ID, USER_ID);
         verify(learningPlanRepository).save(plan);
         verifyNoMoreInteractions(learningPlanRepository);
     }
@@ -122,7 +122,7 @@ class LearningUnitServiceTest {
         plan.getUnits().add(target);
         plan.getUnits().add(other);
 
-        when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
+        when(learningPlanRepository.findByPlanIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.of(plan));
 
         LocalDateTime newStart = LocalDateTime.of(2026, 2, 2, 12, 30);
         LocalDateTime newEnd = LocalDateTime.of(2026, 2, 2, 13, 30);
@@ -130,7 +130,7 @@ class LearningUnitServiceTest {
         assertThatThrownBy(() -> sut.moveLearningUnitManually(USER_ID, PLAN_ID, UNIT_ID, newStart, newEnd))
                 .isInstanceOf(ValidationException.class);
 
-        verify(learningPlanRepository).findByIdAndUserId(PLAN_ID, USER_ID);
+        verify(learningPlanRepository).findByPlanIdAndUserId(PLAN_ID, USER_ID);
         verify(learningPlanRepository, never()).save(any());
         verifyNoMoreInteractions(learningPlanRepository);
     }
@@ -145,7 +145,7 @@ class LearningUnitServiceTest {
 
     @Test
     void loadPlan_userScopeMiss_throwsAccessDenied() {
-        when(learningPlanRepository.findByIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.empty());
+        when(learningPlanRepository.findByPlanIdAndUserId(PLAN_ID, USER_ID)).thenReturn(Optional.empty());
 
         UnitDTO dto = new UnitDTO();
         dto.setDate(LocalDate.of(2026, 2, 3));
@@ -155,7 +155,7 @@ class LearningUnitServiceTest {
         assertThatThrownBy(() -> sut.updateLearningUnit(USER_ID, PLAN_ID, UNIT_ID, dto))
                 .isInstanceOf(AccessDeniedException.class);
 
-        verify(learningPlanRepository).findByIdAndUserId(PLAN_ID, USER_ID);
+        verify(learningPlanRepository).findByPlanIdAndUserId(PLAN_ID, USER_ID);
         verifyNoMoreInteractions(learningPlanRepository);
     }
 
