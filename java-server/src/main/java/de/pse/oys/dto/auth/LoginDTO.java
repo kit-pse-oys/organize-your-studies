@@ -1,5 +1,6 @@
 package de.pse.oys.dto.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.pse.oys.domain.enums.UserType;
 
 /**
@@ -17,6 +18,7 @@ public class LoginDTO {
     private String password; // nur für lokale Authentifizierung relevant
 
     /** AuthType: Unterscheidung zwischen lokal und extern */
+    @JsonProperty("authType")
     private AuthType type; // gibt an ob lokale oder externe Authentifizierung genutzt wird
 
     /** Externer Authentifizierungsprovider */

@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerIntegrationTest {
 
     // Endpunkt-Pfade, die vom AuthController verwendet werden
-    private static final String AUTH_BASE = "/auth";
+    private static final String AUTH_BASE = "/api/v1/auth";
     private static final String LOGIN = AUTH_BASE + "/login";
     private static final String REFRESH = AUTH_BASE + "/refresh";
 
