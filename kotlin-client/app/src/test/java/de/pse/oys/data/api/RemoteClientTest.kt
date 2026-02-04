@@ -130,7 +130,7 @@ class RemoteClientTest {
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
-                    put("authType", "OIDC")
+                    put("type", "OIDC")
                     put("externalToken", "TOKEN")
                     put("provider", "GOOGLE")
                 }, json)
