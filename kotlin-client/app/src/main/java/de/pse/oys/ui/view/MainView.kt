@@ -1,20 +1,29 @@
 package de.pse.oys.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -25,10 +34,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,10 +57,14 @@ import de.pse.oys.data.facade.StepData
 import de.pse.oys.ui.navigation.additions
 import de.pse.oys.ui.navigation.availableRatings
 import de.pse.oys.ui.navigation.menu
+import de.pse.oys.ui.theme.Blue
+import de.pse.oys.ui.theme.LightBlue
+import de.pse.oys.ui.theme.MediumBlue
 import de.pse.oys.ui.theme.Typography
 import de.pse.oys.ui.util.CalendarDay
 import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
+import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DateTimePeriod
@@ -85,17 +102,33 @@ fun MainView(viewModel: IMainViewModel) {
                 .fillMaxSize()
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                IconButton(onClick = viewModel::navigateToMenu) {
+                OutlinedIconButton(
+                    onClick = viewModel::navigateToMenu,
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .size(48.dp),
+                    shape = CircleShape,
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = Blue)
+                ) {
                     Icon(
                         painterResource(R.drawable.outline_menu_24),
-                        stringResource(R.string.open_menu_button)
+                        stringResource(R.string.open_menu_button),
+                        tint = Color.White
                     )
                 }
-                Text(stringResource(R.string.welcome_name))
-                IconButton(onClick = viewModel::navigateToAdditions) {
+                ViewHeader(stringResource(R.string.welcome_name))
+                OutlinedIconButton(
+                    onClick = viewModel::navigateToAdditions,
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .size(48.dp),
+                    shape = CircleShape,
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = Blue)
+                ) {
                     Icon(
                         painterResource(R.drawable.outline_add_24),
-                        stringResource(R.string.open_additions_button)
+                        stringResource(R.string.open_additions_button),
+                        tint = Color.White
                     )
                 }
             }
@@ -110,39 +143,132 @@ fun MainView(viewModel: IMainViewModel) {
                         PlannedEvent(it.title, null, Color.Black, it.start, it.end)
                     }
                 }
-                CalendarWeek(Modifier.weight(1f), events = events)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .weight(1.7f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(LightBlue)
+                        .border(2.dp, Blue, RoundedCornerShape(16.dp))
+                ) {
+                    CalendarWeek(Modifier, events = events)
+                }
             } else {
                 val events = viewModel.unitsToday.map {
                     PlannedEvent(it.title, it.description, it.color, it.start, it.end)
                 } + viewModel.freeTimesToday.map {
                     PlannedEvent(it.title, null, Color.Black, it.start, it.end)
                 }
-                CalendarDay(Modifier.weight(1f), events = events)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .weight(1.7f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(LightBlue)
+                        .border(2.dp, Blue, RoundedCornerShape(16.dp))
+                ) {
+                    CalendarDay(Modifier, events = events)
+                }
             }
 
-            // TODO: Rate units button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                RateUnitsButton(onClick = { viewModel.navigateToUnitRating() })
+            }
 
-            LazyColumn(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.upcoming_units_header),
+                modifier = Modifier
+                    .padding(start = 30.dp)
+                    .padding(top = 10.dp, bottom = 6.dp),
+                style = typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            LazyColumn(
+                Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 items(viewModel.unitsTomorrow) {
-                    Row(
-                        modifier = Modifier
-                            .padding(4.dp)
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .width(4.dp)
-                                .fillMaxHeight()
-                        )
-                        Column(Modifier.padding(start = 4.dp)) {
-                            Text(
-                                text = it.title,
-                                style = Typography.bodySmall,
-                                color = Color.Black
-                            )
-                            // TODO: Start time / end time
-                        }
+                        UpcomingUnitField(it.title, it.start.toString(), it.end.toString())
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RateUnitsButton(onClick: () -> Unit) {
+    val gradientColors = listOf(Blue, MediumBlue)
+    val gradient = Brush.linearGradient(colors = gradientColors)
+    val shape = RoundedCornerShape(24.dp)
+    Box(
+        modifier = Modifier
+            .padding(vertical = 20.dp)
+            .background(gradient, shape = shape)
+            .clip(shape)
+            .fillMaxWidth(0.6f),
+        contentAlignment = Alignment.Center,
+    ) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+            shape = shape,
+            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.rate_units_header),
+                style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun UpcomingUnitField(title: String, start: String, end: String) {
+    Box(
+        modifier = Modifier
+            .padding(bottom = 10.dp)
+            .background(Blue, shape = RoundedCornerShape(12.dp))
+            .fillMaxWidth(0.85f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+        ) {
+            Icon(
+                painterResource(R.drawable.outline_calendar_clock_24),
+                stringResource(R.string.open_menu_button),
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(end = 20.dp)
+                    .size(36.dp)
+            )
+            Column {
+                Text(
+                    title,
+                    style = typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    "$start - $end",
+                    style = typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = LightBlue
+                )
             }
         }
     }
