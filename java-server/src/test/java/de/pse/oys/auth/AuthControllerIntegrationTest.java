@@ -174,6 +174,7 @@ class AuthControllerIntegrationTest {
         String loginResponse = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
