@@ -597,7 +597,7 @@ files = [
 [[package]]
 name = "pydantic"
 version = "2.12.5"
-description = "Data validation using Python type hints"
+description = "Data validation using Python authType hints"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
