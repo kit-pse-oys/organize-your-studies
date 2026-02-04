@@ -1,6 +1,7 @@
 package de.pse.oys.ui.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -140,14 +141,34 @@ fun MainView(viewModel: IMainViewModel) {
                         PlannedEvent(it.title, null, Color.Black, it.start, it.end)
                     }
                 }
-                CalendarWeek(Modifier.weight(1.7f), events = events)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .weight(1.7f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(LightBlue)
+                        .border(2.dp, Blue, RoundedCornerShape(16.dp))
+                ) {
+                    CalendarWeek(Modifier, events = events)
+                }
             } else {
                 val events = viewModel.unitsToday.map {
                     PlannedEvent(it.title, it.description, it.color, it.start, it.end)
                 } + viewModel.freeTimesToday.map {
                     PlannedEvent(it.title, null, Color.Black, it.start, it.end)
                 }
-                CalendarDay(Modifier.weight(1.7f), events = events)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .weight(1.7f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(LightBlue)
+                        .border(2.dp, Blue, RoundedCornerShape(16.dp))
+                ) {
+                    CalendarDay(Modifier, events = events)
+                }
             }
 
             Row(
@@ -160,7 +181,7 @@ fun MainView(viewModel: IMainViewModel) {
             Text(
                 stringResource(R.string.upcoming_units_header),
                 modifier = Modifier
-                    .padding(start = 20.dp)
+                    .padding(start = 30.dp)
                     .padding(top = 10.dp, bottom = 6.dp),
                 style = typography.titleMedium,
                 fontWeight = FontWeight.Bold

@@ -17,13 +17,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -53,67 +56,76 @@ fun CalendarWeek(
     val topPadding = 12.dp
     val totalHeight = hourHeight * (hourEnd - hourStart) + topPadding
 
-    Column(modifier = modifier) {
-        Text(
-            text = stringResource(R.string.week_plan_header),
-            style = Typography.headlineSmall,
-            modifier = Modifier.padding(16.dp)
-        )
-        Row(
-            Modifier
-                .fillMaxWidth()
-        ) {
-            Spacer(Modifier.width(hourColumnWidth))
-            Row(Modifier.weight(1f).horizontalScroll(horizontalScroll)) {
-                for (day in DayOfWeek.entries) {
-                    Text(
-                        modifier = Modifier.width(dayWidth),
-                        text = day.toJavaDayOfWeek()
-                            .getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()),
-                        style = Typography.labelSmall,
-                        textAlign = TextAlign.Center
-                    )
+    CompositionLocalProvider(LocalContentColor provides Color.Black) {
+        Column(modifier = modifier) {
+            Text(
+                text = stringResource(R.string.week_plan_header),
+                style = Typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(16.dp)
+            )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+            ) {
+                Spacer(Modifier.width(hourColumnWidth))
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .horizontalScroll(horizontalScroll)
+                ) {
+                    for (day in DayOfWeek.entries) {
+                        Text(
+                            modifier = Modifier.width(dayWidth),
+                            text = day.toJavaDayOfWeek()
+                                .getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()),
+                            style = Typography.labelSmall,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(verticalScroll)
-                .padding(top = topPadding)
-        ) {
-            HourColumn(
+            Row(
                 modifier = Modifier
-                    .width(hourColumnWidth)
-                    .height(totalHeight),
-                hourStart = hourStart,
-                hourEnd = hourEnd,
-                hourHeight = hourHeight
-            )
-            Box(Modifier.weight(1f).height(totalHeight)) {
-                HourLines(
-                    modifier = Modifier.matchParentSize(),
+                    .fillMaxWidth()
+                    .verticalScroll(verticalScroll)
+                    .padding(top = topPadding)
+            ) {
+                HourColumn(
+                    modifier = Modifier
+                        .width(hourColumnWidth)
+                        .height(totalHeight),
                     hourStart = hourStart,
                     hourEnd = hourEnd,
                     hourHeight = hourHeight
                 )
-                Row(
+                Box(
                     Modifier
-                        .matchParentSize()
-                        .horizontalScroll(horizontalScroll)
+                        .weight(1f)
+                        .height(totalHeight)
                 ) {
-                    for (day in DayOfWeek.entries) {
-                        val dayEvents = events[day] ?: listOf()
-                        DayColumn(
-                            modifier = Modifier.width(dayWidth),
-                            events = dayEvents,
-                            hourStart = hourStart,
-                            hourHeight = hourHeight
-                        )
+                    HourLines(
+                        modifier = Modifier.matchParentSize(),
+                        hourStart = hourStart,
+                        hourEnd = hourEnd,
+                        hourHeight = hourHeight
+                    )
+                    Row(
+                        Modifier
+                            .matchParentSize()
+                            .horizontalScroll(horizontalScroll)
+                    ) {
+                        for (day in DayOfWeek.entries) {
+                            val dayEvents = events[day] ?: listOf()
+                            DayColumn(
+                                modifier = Modifier.width(dayWidth),
+                                events = dayEvents,
+                                hourStart = hourStart,
+                                hourHeight = hourHeight
+                            )
+                        }
                     }
                 }
-
             }
         }
     }
@@ -129,44 +141,46 @@ fun CalendarDay(
 ) {
     val scroll = rememberScrollState()
     val totalHeight = hourHeight * (hourEnd - hourStart)
-
-    Column(modifier = modifier) {
-        Text(
-            text = stringResource(R.string.day_plan_header),
-            style = Typography.headlineSmall,
-            modifier = Modifier.padding(16.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(scroll)
-        ) {
-            HourColumn(
-                modifier = Modifier
-                    .width(48.dp)
-                    .height(totalHeight),
-                hourStart = hourStart,
-                hourEnd = hourEnd,
-                hourHeight = hourHeight
+    CompositionLocalProvider(LocalContentColor provides Color.Black) {
+        Column(modifier = modifier) {
+            Text(
+                text = stringResource(R.string.day_plan_header),
+                style = Typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(16.dp)
             )
-            Box(
+            Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .weight(1f)
-                    .height(totalHeight)
+                    .verticalScroll(scroll)
             ) {
-                HourLines(
-                    modifier = Modifier.matchParentSize(),
+                HourColumn(
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(totalHeight),
                     hourStart = hourStart,
                     hourEnd = hourEnd,
                     hourHeight = hourHeight
                 )
-                DayColumn(
-                    modifier = Modifier.matchParentSize(),
-                    events = events,
-                    hourStart = hourStart,
-                    hourHeight = hourHeight
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(totalHeight)
+                ) {
+                    HourLines(
+                        modifier = Modifier.matchParentSize(),
+                        hourStart = hourStart,
+                        hourEnd = hourEnd,
+                        hourHeight = hourHeight
+                    )
+                    DayColumn(
+                        modifier = Modifier.matchParentSize(),
+                        events = events,
+                        hourStart = hourStart,
+                        hourHeight = hourHeight
+                    )
+                }
             }
         }
     }
