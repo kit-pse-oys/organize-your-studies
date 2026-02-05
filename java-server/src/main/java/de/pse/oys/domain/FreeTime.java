@@ -11,6 +11,7 @@ import java.util.UUID;
 /**
  * Repräsentiert einen Zeitraum, in dem der Nutzer keine Lerneinheiten einplanen möchte.
  * Diese Freizeitblöcke werden vom Planungsalgorithmus als harte Restriktionen behandelt.
+ *
  * @author utgid
  * @version 1.0
  */

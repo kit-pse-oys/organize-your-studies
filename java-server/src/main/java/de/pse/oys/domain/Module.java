@@ -11,6 +11,7 @@ import java.util.UUID;
  * Repräsentiert ein Studienmodul (z. B. eine Vorlesung), das vom Nutzer verwaltet wird.
  * Ein Modul dient als Container für verschiedene Aufgaben (Tasks) und definiert
  * grundlegende Eigenschaften wie Farbe und Priorität.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -157,11 +158,7 @@ public class Module {
         this.priority = priority;
     }
 
-    /**
-     * Setzt den Besitzer des Moduls.
-     *
-     * WHY: wird von User.addModule/deleteModule genutzt, um die Beziehung konsistent zu halten.
-     */
+    /** Setzt den Besitzer des Moduls. */
     public void setUser(User user) {
         this.user = user;
     }

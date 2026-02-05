@@ -25,6 +25,7 @@ import java.util.UUID;
  * Abstrakte Basisklasse für alle Nutzer im System.
  * Implementiert die zentralen Identitätsmerkmale und die Verwaltung von
  * Beziehungen zu Modulen, Freizeiten und Lernplänen.
+ *
  * @author utgid
  * @version 1.0
  */

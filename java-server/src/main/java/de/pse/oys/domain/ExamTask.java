@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 /**
  * Repräsentiert die Vorbereitung auf eine Modulprüfung.
  * Die harte Deadline entspricht hierbei dem Zeitpunkt des Prüfungsantritts.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -59,6 +60,12 @@ public class ExamTask extends Task {
         return examDate.atStartOfDay();
     }
 
+    /**
+     * Prüft, ob die Aufgabe aktuell aktiv ist.
+     * Eine {@link ExamTask} ist aktiv, solange der aktuelle Zeitpunkt vor der harten Deadline liegt.
+     *
+     * @return {@code true}, wenn die Prüfung noch nicht erreicht ist, sonst {@code false}.
+     */
     @Override
     protected boolean isActive() {
         LocalDateTime examDateTime = getHardDeadline();

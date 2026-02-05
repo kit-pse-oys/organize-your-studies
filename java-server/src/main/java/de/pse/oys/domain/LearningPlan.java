@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 /**
  * Repräsentiert einen berechneten Lernplan für eine spezifische Woche.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -16,6 +17,10 @@ import java.util.stream.Collectors;
 @Table(name = "learning_plans")
 public class LearningPlan {
 
+    /**
+     * ID des Nutzers, dem dieser Lernplan zugeordnet ist.
+     * Wird nach der Erstellung nicht mehr geändert (readOnly).
+     */
     @Column(name = "userid", nullable = false, updatable = false)
     private UUID userId;
 
@@ -48,7 +53,7 @@ public class LearningPlan {
     /**
      * Liste der berücksichtigten Freizeitblöcke für diesen Zeitraum.
      */
-    @Transient // Im Diagramm S. 44 vorhanden, aber oft dynamisch zur Laufzeit berechnet
+    @Transient
     private List<FreeTime> freeTimes = new ArrayList<>();
 
     /**
@@ -98,12 +103,8 @@ public class LearningPlan {
     /** @param units Die Liste der Lerneinheiten, die diesem Plan zugeordnet werden sollen. */
     public void setUnits(List<LearningUnit> units) { this.units = units; }
 
+    /** @return Nutzer-ID. */
     public UUID getUserId() {
         return userId;
     }
-
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-
 }

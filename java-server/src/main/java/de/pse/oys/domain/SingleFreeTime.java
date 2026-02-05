@@ -10,6 +10,7 @@ import java.util.UUID;
 
 /**
  * Repräsentiert eine einmalige Freizeitbeschränkung an einem spezifischen Datum.
+ *
  * @author utgid
  * @version 1.0
  */
