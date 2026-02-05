@@ -70,7 +70,7 @@ class AuthServiceTest {
         when(jwtProvider.createRefreshToken(user)).thenReturn("refresh-token");
 
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setType(AuthType.BASIC);
+        loginDTO.setAuthType(AuthType.BASIC);
         loginDTO.setUsername(username);
         loginDTO.setPassword(password);
 
@@ -106,7 +106,7 @@ class AuthServiceTest {
         when(jwtProvider.createRefreshToken(any())).thenReturn("refresh-token");
 
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setType(AuthType.OIDC);
+        loginDTO.setAuthType(AuthType.OIDC);
         loginDTO.setProvider(UserType.GOOGLE);
         loginDTO.setExternalToken(token);
 

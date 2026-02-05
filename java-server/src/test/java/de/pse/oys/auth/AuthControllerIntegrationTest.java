@@ -94,7 +94,7 @@ class AuthControllerIntegrationTest {
     void testLocalLoginRequest() throws Exception {
         // LOGIN Request mit gültigen Anmeldedaten
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setType(de.pse.oys.dto.auth.AuthType.BASIC);
+        loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
         loginDTO.setUsername(testUser.getUsername());
         loginDTO.setPassword(rawPassword);
 
@@ -131,7 +131,7 @@ class AuthControllerIntegrationTest {
         // Assertions
         assertEquals("integrationTestUser", mappedDto.getUsername());
         assertEquals("TestPass123!", mappedDto.getPassword());
-        assertEquals(de.pse.oys.dto.auth.AuthType.BASIC, mappedDto.getType());
+        assertEquals(de.pse.oys.dto.auth.AuthType.BASIC, mappedDto.getAuthType());
 
         // Felder, die nicht im JSON sind, sollten null sein
         assertNull(mappedDto.getExternalToken());
@@ -153,7 +153,7 @@ class AuthControllerIntegrationTest {
         LoginDTO mappedDto = objectMapper.readValue(jsonExternal, LoginDTO.class);
 
         // Assertions
-        assertEquals(de.pse.oys.dto.auth.AuthType.OIDC, mappedDto.getType());
+        assertEquals(de.pse.oys.dto.auth.AuthType.OIDC, mappedDto.getAuthType());
         assertEquals("xxx", mappedDto.getExternalToken());
         assertEquals(UserType.GOOGLE, mappedDto.getProvider());
 
@@ -168,7 +168,7 @@ class AuthControllerIntegrationTest {
     void testRefreshRequest() throws Exception {
         // LOGIN als Setup für REFRESH (Login wird im eigenen Test bereits getestet)
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setType(de.pse.oys.dto.auth.AuthType.BASIC);
+        loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
         loginDTO.setUsername(testUser.getUsername());
         loginDTO.setPassword(rawPassword);
 
