@@ -7,6 +7,7 @@ import de.pse.oys.domain.Task;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -129,7 +131,7 @@ public class LearningUnitService {
         Objects.requireNonNull(userId, "userId");
         //requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
-                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), toUnitDto(unit))).toList();
+                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), mapUnit(unit))).toList();
     }
 
     // -------------------------------------------------------------------------
