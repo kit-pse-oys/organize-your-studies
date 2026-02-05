@@ -7,7 +7,6 @@ import de.pse.oys.domain.Task;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
-import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,7 +32,6 @@ public class LearningUnitService {
     private static final String MSG_TIME_FIELDS_REQUIRED = "Datum, Start und Ende müssen gesetzt sein.";
     private static final String MSG_INVALID_RANGE = "Die Startzeit muss vor der Endzeit liegen.";
     private static final String MSG_UNIT_NOT_FOUND = "LearningUnit existiert nicht.";
-    private static final String MSG_ACCESS_DENIED = "Kein Zugriff auf die angefragte Ressource.";
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
     private static final String MSG_PLAN_NOT_FOUND_FOR_UNIT = "Kein passender Lernplan für diese Einheit gefunden.";
@@ -139,11 +136,6 @@ public class LearningUnitService {
     // intern
     // -------------------------------------------------------------------------
 
-    /** Lädt den Plan im User-Scope (planId + userId). */
-    private LearningPlan loadPlanForUserOrThrow(UUID userId, UUID planId) {
-        return learningPlanRepository.findByIdAndUserId(planId, userId)
-                .orElseThrow(() -> new AccessDeniedException(MSG_ACCESS_DENIED));
-    }
 
     /** Sucht die Unit innerhalb des Plans. */
     private LearningUnit findUnitOrThrow(LearningPlan plan, UUID unitId) {
@@ -227,30 +219,6 @@ public class LearningUnitService {
                 .filter(p -> p.getUnits().stream().anyMatch(u -> u.getUnitId().equals(unitId)))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(MSG_PLAN_NOT_FOUND_FOR_UNIT));
-    }
-
-
-    private UnitDTO toUnitDto(LearningUnit unit) {
-        UnitDTO dto = new UnitDTO();
-
-        if (unit.getTask() != null) {
-            dto.setTitle(unit.getTask().getTitle());
-
-            // dto.setDescription(unit.getTask().getDescription()); //TODO lässt sich nicht clean transformieren
-            // dto.setColor(unit.getTask().getColor());
-        }
-        if (unit.getStartTime() != null) {
-            dto.setDate(unit.getStartTime().toLocalDate());
-            dto.setStart(unit.getStartTime().toLocalTime());
-        }
-        if (unit.getEndTime() != null) {
-            if (dto.getDate() == null) {
-                dto.setDate(unit.getEndTime().toLocalDate());
-            }
-            dto.setEnd(unit.getEndTime().toLocalTime());
-        }
-
-        return dto;
     }
 
 }

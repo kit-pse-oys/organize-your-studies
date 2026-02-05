@@ -17,7 +17,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/questionnaire")
+@RequestMapping("/api/v1/questionnaire")
 public class QuestionnaireController extends BaseController {
 
     private final QuestionnaireService questionnaireService;

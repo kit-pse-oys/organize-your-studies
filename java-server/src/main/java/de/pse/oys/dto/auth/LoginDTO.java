@@ -17,7 +17,7 @@ public class LoginDTO {
     private String password; // nur für lokale Authentifizierung relevant
 
     /** AuthType: Unterscheidung zwischen lokal und extern */
-    private AuthType type; // gibt an ob lokale oder externe Authentifizierung genutzt wird
+    private AuthType authType; // gibt an ob lokale oder externe Authentifizierung genutzt wird
 
     /** Externer Authentifizierungsprovider */
     private UserType provider; // nur für externe Authentifizierung relevant
@@ -62,15 +62,15 @@ public class LoginDTO {
     /**
      * @return den AuthType
      */
-    public AuthType getType() {
-        return type;
+    public AuthType getAuthType() {
+        return authType;
     }
 
     /**
-     * @param type den AuthType
+     * @param authType den AuthType
      */
-    public void setType(AuthType type) {
-        this.type = type;
+    public void setAuthType(AuthType authType) {
+        this.authType = authType;
     }
 
     /**

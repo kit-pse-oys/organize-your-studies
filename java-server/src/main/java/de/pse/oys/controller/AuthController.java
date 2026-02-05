@@ -4,9 +4,11 @@ import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
 import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.service.auth.AuthService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST-Controller für die Identitäts- und Zugriffskontrolle (JWT).
@@ -35,15 +37,8 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO dto) {
-
-        try {
-            AuthResponseDTO response = authService.login(dto);
-            return ResponseEntity.ok(response);
-        } catch (IllegalStateException | IllegalArgumentException e){
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        AuthResponseDTO response = authService.login(dto);
+        return ResponseEntity.ok(response);
     }
 
     //logout wird nicht verwendet, deshalb nicht implementiert
@@ -55,13 +50,7 @@ public class AuthController {
      */
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshTokenDTO dto) {
-        try{
-            AuthResponseDTO response = authService.refreshToken(dto);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e){
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        AuthResponseDTO response = authService.refreshToken(dto);
+        return ResponseEntity.ok(response);
     }
 }
