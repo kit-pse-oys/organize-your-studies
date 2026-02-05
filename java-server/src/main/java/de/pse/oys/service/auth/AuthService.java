@@ -136,7 +136,7 @@ public class AuthService {
 
         // 1. Überprüfen, ob der Benutzer existiert und entsprechend den User abrufen.
 
-        Optional<User> optionalUser = userRepository.findByNameAndType(username, de.pse.oys.domain.enums.UserType.LOCAL);
+        Optional<User> optionalUser = userRepository.findByUsernameAndUserType(username, de.pse.oys.domain.enums.UserType.LOCAL);
 
 
         LocalUser user = (LocalUser) optionalUser.orElseThrow(() // Stellt Konsistenz zwischen DTO und DB sicher

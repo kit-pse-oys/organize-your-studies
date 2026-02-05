@@ -1,64 +1,67 @@
 package de.pse.oys.persistence;
 
-import de.pse.oys.domain.ExamTask;
-import de.pse.oys.domain.OtherTask;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Repository für {@link Task}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     /**
-     * Findet alle Tasks eines Users (Ownership über Task -> Module -> User).
+     * Liefert alle Aufgaben eines Nutzers.
+     * <p>
+     * Die Zuordnung erfolgt indirekt über das zugehörige Modul:
+     * {@code Task -> Module -> User}. Es werden alle Tasks zurückgegeben,
+     * deren Modul dem Nutzer mit der angegebenen {@code userId} gehört.
+     * </p>
      *
-     * @param userId ID des Users
-     * @return alle Tasks dieses Users
+     * @param userId ID des Nutzers, dessen Aufgaben abgefragt werden.
+     * @return Liste aller Aufgaben des Nutzers (leer, wenn keine vorhanden sind).
      */
-    @Query("SELECT t FROM Task t WHERE t.module.user.userId = :userId")
-    List<Task> findAllByUserId(@Param("userId") UUID userId);
+    List<Task> findAllByModuleUserUserId(UUID userId);
 
     /**
-     * Findet eine Task anhand (taskId, userId).
+     * Findet eine Task anhand (taskId, userId) im User-Scope.
+     * <p>
+     * Die Task wird nur zurückgegeben, wenn sie existiert und ihr Modul dem Nutzer gehört.
+     * </p>
      *
-     * @param taskId ID der Task
-     * @param userId ID des Users
-     * @return Task, falls existent und dem User zugehörig
+     * @param taskId ID der Task.
+     * @param userId ID des Users.
+     * @return Task, falls existent und dem User zugehörig.
      */
-    @Query("SELECT t FROM Task t WHERE t.taskId = :taskId AND t.module.user.userId = :userId")
-    Optional<Task> findByIdAndUserId(@Param("taskId") UUID taskId,
-                                     @Param("userId") UUID userId);
+    Optional<Task> findByTaskIdAndModuleUserUserId(UUID taskId, UUID userId);
 
     /**
      * Findet alle Tasks, die zu einem bestimmten Modul gehören (Ownership abgesichert).
+     * <p>
+     * Es werden nur Tasks zurückgegeben, deren Modul die angegebene {@code moduleId} hat
+     * und gleichzeitig dem Nutzer mit {@code userId} gehört.
+     * </p>
      *
-     * @param userId   ID des Users
-     * @param moduleId ID des Moduls
-     * @return Liste der Tasks des Moduls innerhalb des User-Scopes
+     * @param userId   ID des Users.
+     * @param moduleId ID des Moduls.
+     * @return Liste der Tasks des Moduls innerhalb des User-Scopes.
      */
-    @Query("SELECT t FROM Task t WHERE t.module.moduleId = :moduleId AND t.module.user.userId = :userId")
-    List<Task> findByModuleId(@Param("userId") UUID userId,
-                              @Param("moduleId") UUID moduleId);
+    List<Task> findAllByModuleModuleIdAndModuleUserUserId(UUID moduleId, UUID userId);
 
     /**
      * Findet alle Tasks eines Users mit einem bestimmten Status.
      *
-     * @param userId ID des Users
-     * @param status Status (Enum)
-     * @return Liste der Tasks des Users mit dem angegebenen Status
+     * @param userId ID des Users.
+     * @param status Status (Enum).
+     * @return Liste der Tasks des Users mit dem angegebenen Status.
      */
-    @Query("SELECT t FROM Task t WHERE t.module.user.userId = :userId AND t.status = :status")
-    List<Task> findAllByUserAndStatus(@Param("userId") UUID userId,
-                                      @Param("status") TaskStatus status);
+    List<Task> findAllByModuleUserUserIdAndStatus(UUID userId, TaskStatus status);
 }

@@ -46,6 +46,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
+/**
+ * View for the rating of a unit.
+ * Allows the user to rate a unit in different aspects and submit it.
+ * @param viewModel the [IRatingViewModel] for this view.
+ */
 @Composable
 fun RatingView(viewModel: IRatingViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -88,7 +93,7 @@ fun RatingView(viewModel: IRatingViewModel) {
                         RatingQuestion(
                             questionNumber = index + 1,
                             question = stringResource(id = aspect.textRes),
-                            aspect = viewModel.getRating(aspect),
+                            currentRating = viewModel.getRating(aspect),
                             labels = aspect.labelsRes.map { stringResource(id = it) },
                             selectedMissed = selectedMissed,
                             onRatingChange = { newRating ->
@@ -103,12 +108,20 @@ fun RatingView(viewModel: IRatingViewModel) {
     }
 }
 
-
+/**
+ * Presents a rating question that can be answered by a slider.
+ * @param questionNumber the number of the question.
+ * @param question the question itself.
+ * @param currentRating the current rating of the question.
+ * @param labels the labels on each step of the slider.
+ * @param selectedMissed whether the user has selected that the unit was missed.
+ * @param onRatingChange the function to be called when the rating is changed.
+ */
 @Composable
 private fun RatingQuestion(
     questionNumber: Int,
     question: String,
-    aspect: Rating,
+    currentRating: Rating,
     labels: List<String>,
     selectedMissed: Boolean,
     onRatingChange: (Rating) -> Unit
@@ -143,7 +156,7 @@ private fun RatingQuestion(
             )
         }
         RatingSlider(
-            currentRating = aspect,
+            currentRating = currentRating,
             labels = labels,
             enabled = !selectedMissed,
             onRatingChange = onRatingChange
@@ -151,13 +164,40 @@ private fun RatingQuestion(
     }
 }
 
+
+/**
+ * Interface for the view model of the [RatingView].
+ */
 interface IRatingViewModel {
+    /**
+     * Gets the rating for a specific aspect.
+     * @param aspect the [RatingAspect] to get the rating for.
+     */
     fun getRating(aspect: RatingAspect): Rating
+
+    /**
+     * Updates the rating for a specific aspect.
+     * @param aspect the [RatingAspect] to update the rating for.
+     */
     fun updateRating(aspect: RatingAspect, rating: Rating)
+
+    /**
+     * Submits the rating.
+     */
     fun submitRating()
+
+    /**
+     * Submits that the unit was missed.
+     */
     fun submitMissed()
 }
 
+/**
+ * View model for the [RatingView].
+ * @param api the [RemoteAPI] for this view.
+ * @param target the [Uuid] of the unit to be rated.
+ * @param navController the [NavController] for this view.
+ */
 class RatingViewModel(
     private val api: RemoteAPI,
     private val target: Uuid,

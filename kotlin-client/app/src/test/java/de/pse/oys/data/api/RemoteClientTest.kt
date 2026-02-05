@@ -35,6 +35,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlin.uuid.Uuid
 
 class RemoteClientTest {
@@ -311,12 +314,13 @@ class RemoteClientTest {
     @Test
     fun markUnitFinished() {
         val step1 = Uuid.random()
+        val duration = 100.toDuration(DurationUnit.MINUTES)
 
         runBlocking {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/finished", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
@@ -327,12 +331,12 @@ class RemoteClientTest {
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
                     put("id", step1.toHexDashString())
-                    put("finished", true)
+                    put("actualDuration", duration.inWholeMinutes)
                 }, json)
 
                 respondOk()
             }
-            val response = client.markUnitFinished(step1)
+            val response = client.markUnitFinished(step1, duration)
             assertEquals(200, response.status)
         }
     }
@@ -346,7 +350,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/moveAuto", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
@@ -357,7 +361,6 @@ class RemoteClientTest {
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
                     put("id", step1.toHexDashString())
-                    put("automaticNewTime", true)
                 }, json)
 
                 respond(
@@ -399,7 +402,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan/units", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units/move", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",

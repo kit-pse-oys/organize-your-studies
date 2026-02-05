@@ -1,5 +1,6 @@
 package de.pse.oys.ui.view
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -62,6 +63,7 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun EntryPoint(
+    context: Context,
     model: ModelFacade,
     api: RemoteAPI,
     properties: Properties,
@@ -70,10 +72,10 @@ fun EntryPoint(
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = if (startWithLogin) Login else Main) {
         composable<Main> { MainView(viewModel { MainViewModel(api, model, navController) }) }
-        composable<Login> { LoginView(viewModel { LoginViewModel(api, navController) }) }
+        composable<Login> { LoginView(viewModel { LoginViewModel(api, context, navController) }) }
         composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, navController) }) }
         composable<AccountSettings> {
-            AccountSettingsView(viewModel { AccountSettingsViewModel(api, navController) })
+            AccountSettingsView(viewModel { AccountSettingsViewModel(api, context, navController) })
         }
         composable<Questionnaire> { backEntry ->
             val firstTime = backEntry.toRoute<Questionnaire>().firstTime

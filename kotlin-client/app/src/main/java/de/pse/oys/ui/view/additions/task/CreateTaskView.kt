@@ -69,7 +69,11 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-
+/**
+ * View for creating a new task or editing an existing one.
+ * Different user input fields filled with either default values (when creating) or existing values (when editing).
+ * @param viewModel the [ICreateTaskViewModel] for this view.
+ */
 @Composable
 fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var showExamDatePicker by remember { mutableStateOf(false) }
@@ -199,6 +203,11 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     }
 }
 
+/**
+ * Button for selecting a module.
+ * Opens a dialog that lets the user choose between their existing modules.
+ * @param viewModel the [ICreateTaskViewModel] for this view.
+ */
 @Composable
 private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
     var showDialog by remember { mutableStateOf(false) }
@@ -251,6 +260,11 @@ private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
     }
 }
 
+/**
+ * Button for selecting the weekly time load.
+ * Opens a dialog that lets the user choose a time.
+ * @param viewModel the [ICreateTaskViewModel] for this view.
+ */
 @Composable
 private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
     var showTimeLoadPicker by remember { mutableStateOf(false) }
@@ -290,6 +304,11 @@ private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
     }
 }
 
+/**
+ * Button for selecting the submission date.
+ * Opens a dialog that lets the user choose a date, then another for the time.
+ * @param viewModel the [ICreateTaskViewModel] for this view.
+ */
 @Composable
 private fun SubmissionDateSelection(viewModel: ICreateTaskViewModel) {
     var showSubmissionDatePicker by remember { mutableStateOf(false) }
@@ -337,6 +356,10 @@ private fun SubmissionDateSelection(viewModel: ICreateTaskViewModel) {
     }
 }
 
+/**
+ * Field that lets the user put in the submission cycle.
+ * @param viewModel the [ICreateTaskViewModel] for this view.
+ */
 @Composable
 private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
     Row(
@@ -371,6 +394,11 @@ private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
     }
 }
 
+/**
+ * Chips for selecting the task type.
+ * @param current the current task type.
+ * @param onSelect the function to be called when a task type is selected.
+ */
 @Composable
 private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {
     Row(
@@ -398,6 +426,13 @@ private fun TaskTypeChips(current: TaskType, onSelect: (TaskType) -> Unit) {
     }
 }
 
+/**
+ * Chip for selecting a task type.
+ * @param taskType the [TaskType] to be displayed.
+ * @param current the current [TaskType].
+ * @param label the label to be displayed on the chip.
+ * @param onSelect the function to be called when the chip is clicked.
+ */
 @Composable
 private fun TaskTypeChip(
     taskType: TaskType,
@@ -426,12 +461,18 @@ private fun TaskTypeChip(
     )
 }
 
+/**
+ * Type of task.
+ */
 enum class TaskType {
     EXAM,
     SUBMISSION,
     OTHER,
 }
 
+/**
+ * Interface for the view model of [CreateTaskView].
+ */
 interface ICreateTaskViewModel {
     val availableModules: List<String>
     val showDelete: Boolean
@@ -449,10 +490,23 @@ interface ICreateTaskViewModel {
     var start: LocalDate
     var end: LocalDate
 
+    /**
+     * Submits the form data to the server and navigates to the main screen.
+     */
     fun submit()
+
+    /**
+     * Deletes the task from the server and navigates to the main screen.
+     */
     fun delete()
 }
 
+/**
+ * Base view model for [CreateTaskView] with default values.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ * @param task the [TaskData] to be used instead of default values.
+ */
 abstract class BaseCreateTaskViewModel(
     private val model: ModelFacade,
     private val navController: NavController,
@@ -495,6 +549,10 @@ abstract class BaseCreateTaskViewModel(
             .toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
 
+    /**
+     * Registers a new task in the [ModelFacade].
+     * @param task the [Task] to be registered.
+     */
     protected fun registerNewTask(task: Task) {
         val tasks = model.tasks.orEmpty().toMutableMap()
         model.tasks = tasks
@@ -504,6 +562,12 @@ abstract class BaseCreateTaskViewModel(
     }
 }
 
+/**
+ * View model for creating a new task.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class CreateTaskViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,
@@ -520,6 +584,13 @@ class CreateTaskViewModel(
     }
 }
 
+/**
+ * View model for editing an existing task.
+ * @param api the [RemoteAPI] for the app.
+ * @param model the [ModelFacade] for the app.
+ * @param target the [Task] to be edited.
+ * @param navController the [NavController] for navigation.
+ */
 class EditTaskViewModel(
     private val api: RemoteAPI,
     model: ModelFacade,

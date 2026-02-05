@@ -126,4 +126,9 @@
     <string name="save_module">Save Module</string>
     <string name="save_task">Save Task</string>
     <string name="save_freetime">Save Freetime</string>
+    <string name="register_with_google_button">Register with Google</string>
+    <string name="sign_in_with_google_button">Sign in with Google</string>
+    <string name="day_plan_header">Your Plan for Today:</string>
+    <string name="week_plan_header">Your Plan for this Week:</string>
+    <string name="upcoming_units_header">Your Units for tomorrow:</string>
 </resources>

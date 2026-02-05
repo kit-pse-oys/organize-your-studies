@@ -63,7 +63,7 @@ class AuthServiceTest {
         LocalUser user = mock(LocalUser.class);
         when(user.getHashedPassword()).thenReturn(hashedPassword);
         when(user.getId()).thenReturn(UUID.randomUUID());
-        when(userRepository.findByNameAndType(username, UserType.LOCAL))
+        when(userRepository.findByUsernameAndUserType(username, UserType.LOCAL))
                 .thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, hashedPassword)).thenReturn(true);
         when(jwtProvider.createAccessToken(user)).thenReturn("access-token");

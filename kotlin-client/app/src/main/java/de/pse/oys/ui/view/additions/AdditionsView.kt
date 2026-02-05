@@ -17,6 +17,10 @@ import de.pse.oys.ui.navigation.createTask
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
 import de.pse.oys.ui.util.ViewHeader
 
+/**
+ * View for the additions menu with buttons to add a new module, task or freetime.
+ * @param viewModel the [IAdditionsViewModel] used to handle navigation logic.
+ */
 @Composable
 fun AdditionsView(viewModel: IAdditionsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -43,12 +47,30 @@ fun AdditionsView(viewModel: IAdditionsViewModel) {
     }
 }
 
+/**
+ * Interface for the view model of the [AdditionsView].
+ */
 interface IAdditionsViewModel {
+    /**
+     * Navigate to the CreateModuleView.
+     */
     fun navigateToCreateModule()
+
+    /**
+     * Navigate to the CreateTaskView.
+     */
     fun navigateToCreateTask()
+
+    /**
+     * Navigate to the CreateFreeTimeView.
+     */
     fun navigateToCreateFreeTime()
 }
 
+/**
+ * View model for the [AdditionsView] that implements the navigation.
+ * @param navController the [NavController] for this view.
+ */
 class AdditionsViewModel(private val navController: NavController) : ViewModel(),
     IAdditionsViewModel {
 

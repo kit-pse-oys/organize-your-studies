@@ -44,7 +44,6 @@ class CreateTaskViewModelTest {
 
         assertEquals("", viewModel.title)
         assertEquals(0, viewModel.weeklyTimeLoad)
-        assertFalse(viewModel.sendNotification)
         assertEquals(TaskType.EXAM, viewModel.type)
 
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -62,11 +61,9 @@ class CreateTaskViewModelTest {
         viewModel.title = TEST_TITLE
         viewModel.module = TEST_TITLE
         viewModel.weeklyTimeLoad = 90
-        viewModel.sendNotification = true
         assertEquals(TEST_TITLE, viewModel.title)
         assertEquals(TEST_TITLE, viewModel.module)
         assertEquals(90, viewModel.weeklyTimeLoad)
-        assertEquals(true, viewModel.sendNotification)
 
         viewModel.type = TaskType.EXAM
         viewModel.examDate = TEST_DATE_FUTURE

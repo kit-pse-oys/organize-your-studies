@@ -1,5 +1,8 @@
 package de.pse.oys.ui.view.onboarding
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,10 +20,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,12 +41,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import de.pse.oys.R
 import de.pse.oys.data.api.Credentials
+import de.pse.oys.data.api.OIDCType
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.ui.navigation.Login
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.navigation.questionnaire
@@ -52,9 +67,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * View for the login screen.
+ * Allows the user to login or register and switches between the two.
+ * Login/ Register Button only enabled when username and password are not empty and passwords match.
+ * @param viewModel the [ILoginViewModel] for this view.
+ */
 @Composable
 fun LoginView(viewModel: ILoginViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         var confirmPassword by remember { mutableStateOf("") }
         var registering by remember { mutableStateOf(false) }
 
@@ -100,12 +132,19 @@ fun LoginView(viewModel: ILoginViewModel) {
                 })
             Spacer(Modifier.weight(1f))
 
-            // TODO: OIDC button
+            GoogleLoginButton(registering) {
+                if (registering) viewModel.registerWithOIDC(OIDCType.GOOGLE)
+                else viewModel.loginWithOIDC(OIDCType.GOOGLE)
+            }
         }
     }
 }
 
-
+/**
+ * Text field for the username, character limit is 20.
+ * @param username the current username.
+ * @param onUsernameChanged the function to be called when the username is changed.
+ */
 @Composable
 private fun UsernameTextField(
     username: String,
@@ -134,7 +173,13 @@ private fun UsernameTextField(
         label = { Text(stringResource(R.string.username_field)) })
 }
 
-
+/**
+ * Text field for the password, character limit is 20.
+ * @param password the current password.
+ * @param confirm whether the passwordTextField is for confirmation.
+ * @param isError whether the password is too long.
+ * @param onPasswordChanged the function to be called when the password is changed.
+ */
 @Composable
 private fun PasswordTextField(
     password: String,
@@ -173,6 +218,10 @@ private fun PasswordTextField(
     )
 }
 
+/**
+ * Button for logging in or registering.
+ * @param registering whether the user is registering or logging in.
+ */
 @Composable
 private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> Unit) {
     val gradientColors = if (enabled) {
@@ -210,6 +259,38 @@ private fun LoginButton(registering: Boolean, enabled: Boolean, onLogin: () -> U
     }
 }
 
+/**
+ * Button for logging in or registering with Google.
+ * @param registering whether the user is registering or logging in.
+ * @param onClick the function to be called when the button is clicked.
+ */
+@Composable
+fun GoogleLoginButton(registering: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth(0.7f)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color.Black
+        ),
+        shape = RoundedCornerShape(24.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+    ) {
+        Text(
+            if (registering) stringResource(R.string.register_with_google_button)
+            else stringResource(R.string.sign_in_with_google_button),
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+/**
+ * Button for switching between login and register.
+ * @param registering whether the user is registering or logging in.
+ * @param onSwitchMode the function to be called when the button is clicked.
+ */
 @Composable
 private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     Row {
@@ -222,49 +303,141 @@ private fun SwitchModeButton(registering: Boolean, onSwitchMode: () -> Unit) {
     }
 }
 
-
+/**
+ * Interface for the view model of the [LoginView].
+ * @property username the current username.
+ * @property password the current password.
+ */
 interface ILoginViewModel {
+    var error: Boolean
+
     var username: String
     var password: String
 
+    /**
+     * Logs in the user.
+     */
     fun login()
-    fun loginWithOIDC()
 
+    /**
+     * Logs in the user with OIDC.
+     */
+    fun loginWithOIDC(type: OIDCType)
+
+    /**
+     * Registers the user.
+     */
     fun register()
-    fun registerWithOIDC()
+
+    /**
+     * Registers the user with OIDC.
+     */
+    fun registerWithOIDC(type: OIDCType)
 }
 
-class LoginViewModel(private val api: RemoteAPI, private val navController: NavController) :
-    ViewModel(),
+/**
+ * View model for the [LoginView].
+ * @param api the [RemoteAPI] for this view.
+ * @param navController the [NavController] for this view.
+ */
+class LoginViewModel(
+    private val api: RemoteAPI,
+    @field:SuppressLint("StaticFieldLeak") private val context: Context,
+    private val navController: NavController
+) : ViewModel(),
     ILoginViewModel {
-    override var username by mutableStateOf("")
-    override var password by mutableStateOf("")
+    companion object {
+        private const val CLIENT_ID = "549888352558-dciih12ljddu3e7dmksntslk57vevmer"
+        private val GOOGLE_CREDENTIAL_OPTION = GetSignInWithGoogleOption.Builder(CLIENT_ID).build()
+    }
 
-    override fun login() {
-        viewModelScope.launch {
-            api.login(Credentials.UsernamePassword(username, password))
+    private val credentialManager = CredentialManager.create(context)
 
-            withContext(Dispatchers.Main.immediate) {
-                navController.main(dontGoBack = Login)
+    private suspend fun getOIDCToken(oidcType: OIDCType): String? {
+        val credentialRequest = when (oidcType) {
+            OIDCType.GOOGLE -> GetCredentialRequest.Builder()
+                .addCredentialOption(GOOGLE_CREDENTIAL_OPTION).build()
+        }
+
+        val result = try {
+            credentialManager.getCredential(context, credentialRequest)
+        } catch (e: GetCredentialException) {
+            Log.e("LoginViewModel", "Error getting credential", e)
+            return null
+        }
+
+        when (val credential = result.credential) {
+            is CustomCredential if oidcType == OIDCType.GOOGLE
+                    && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                try {
+                    return GoogleIdTokenCredential.createFrom(credential.data).idToken
+                } catch (e: GoogleIdTokenParsingException) {
+                    Log.e("LoginViewModel", "Error parsing Google ID token", e)
+                }
+
+                error = true
+                return null
+            }
+
+            else -> {
+                error = true
+                return null
             }
         }
     }
 
-    override fun loginWithOIDC() {
-        TODO("Not yet implemented")
+    override var username by mutableStateOf("")
+    override var password by mutableStateOf("")
+
+    override var error: Boolean by mutableStateOf(false)
+
+    override fun login() {
+        viewModelScope.launch {
+            if (api.login(Credentials.UsernamePassword(username, password))
+                    .defaultHandleError(navController) { error = true } != null
+            ) {
+                withContext(Dispatchers.Main.immediate) {
+                    navController.main(dontGoBack = Login)
+                }
+            }
+        }
+    }
+
+    override fun loginWithOIDC(type: OIDCType) {
+        viewModelScope.launch {
+            val token = getOIDCToken(type)
+            if (token != null && api.login(Credentials.OIDC(token, type))
+                    .defaultHandleError(navController) { error = true } != null
+            ) {
+                withContext(Dispatchers.Main.immediate) {
+                    navController.main(dontGoBack = Login)
+                }
+            }
+        }
     }
 
     override fun register() {
         viewModelScope.launch {
-            api.register(Credentials.UsernamePassword(username, password))
-
-            withContext(Dispatchers.Main.immediate) {
-                navController.questionnaire(dontGoBack = Login)
+            if (api.register(Credentials.UsernamePassword(username, password))
+                    .defaultHandleError(navController) { error = true } != null
+            ) {
+                withContext(Dispatchers.Main.immediate) {
+                    navController.questionnaire(dontGoBack = Login)
+                }
             }
         }
     }
 
-    override fun registerWithOIDC() {
-        TODO("Not yet implemented")
+    override fun registerWithOIDC(type: OIDCType) {
+        viewModelScope.launch {
+            val token = getOIDCToken(type)
+            if (token != null && api.register(Credentials.OIDC(token, type))
+                    .defaultHandleError(navController) { error = true } != null
+            ) {
+                withContext(Dispatchers.Main.immediate) {
+                    navController.questionnaire(dontGoBack = Login)
+                }
+            }
+        }
     }
 }

@@ -38,6 +38,10 @@ import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
 
+/**
+ * View for displaying a list of existing modules.
+ * @param viewModel the [IModulesViewModel] for this view.
+ */
 @Composable
 fun ModulesView(viewModel: IModulesViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -72,6 +76,12 @@ fun ModulesView(viewModel: IModulesViewModel) {
     }
 }
 
+/**
+ * Button for selecting a module.
+ * Displays its title and description.
+ * @param module the [Module] to be displayed.
+ * @param viewModel the [IModulesViewModel] for this view.
+ */
 @Composable
 private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
     OutlinedButton(
@@ -104,12 +114,24 @@ private fun ModuleButton(module: Module, viewModel: IModulesViewModel) {
     }
 }
 
+/**
+ * Interface for the view model of [ModulesView].
+ */
 interface IModulesViewModel {
     val modules: List<Module>
 
+    /**
+     * Selects a module and navigates to its edit view.
+     * @param module the [Module] to be selected.
+     */
     fun select(module: Module)
 }
 
+/**
+ * View model for [ModulesView].
+ * @param model the [ModelFacade] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class ModulesViewModel(
     model: ModelFacade,
     private val navController: NavController

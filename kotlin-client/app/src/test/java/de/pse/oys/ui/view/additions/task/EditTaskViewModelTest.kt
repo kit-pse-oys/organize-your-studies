@@ -31,8 +31,7 @@ class EditTaskViewModelTest {
             title = TEST_TITLE,
             module = Identified(createMockModuleData(), randomUuid()),
             weeklyTimeLoad = 10,
-            examDate = TEST_DATE,
-            sendNotification = true
+            examDate = TEST_DATE
         )
         val targetTask = Identified(existingTaskData, testTaskId)
 
@@ -46,7 +45,6 @@ class EditTaskViewModelTest {
         assertEquals(TaskType.EXAM, viewModel.type)
         assertEquals(10, viewModel.weeklyTimeLoad)
         assertEquals(TEST_DATE, viewModel.examDate)
-        assertTrue(viewModel.sendNotification)
         assertTrue(viewModel.showDelete)
     }
 

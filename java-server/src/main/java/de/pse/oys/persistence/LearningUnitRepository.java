@@ -4,6 +4,7 @@ import de.pse.oys.domain.LearningUnit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,4 +15,6 @@ import java.util.UUID;
  */
 @Repository
 public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID> {
+
+    List<LearningUnit> findAllByTask_Module_User_UserId(UUID userId);
 }

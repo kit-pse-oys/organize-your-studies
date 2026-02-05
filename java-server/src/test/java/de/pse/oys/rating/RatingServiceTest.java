@@ -71,7 +71,7 @@ class RatingServiceTest {
         RatingDTO ratingDTO = new RatingDTO(AchievementLevel.GOOD, PerceivedDuration.IDEAL, ConcentrationLevel.VERY_HIGH);
 
         when(learningUnitRepository.findById(learningUnitId)).thenReturn(Optional.of(unit));
-        when(costMatrixRepository.findByTaskId(taskId)).thenReturn(Optional.of(costMatrix));
+        when(costMatrixRepository.findByTask_TaskId(taskId)).thenReturn(Optional.of(costMatrix));
 
         // Act
         ratingService.submitRating(learningUnitId, ratingDTO);
@@ -119,7 +119,7 @@ class RatingServiceTest {
         LearningUnit unit = new LearningUnit(task, start, end);
 
         when(learningUnitRepository.findById(learningUnitId)).thenReturn(Optional.of(unit));
-        when(costMatrixRepository.findByTaskId(taskId)).thenReturn(Optional.empty());
+        when(costMatrixRepository.findByTask_TaskId(taskId)).thenReturn(Optional.empty());
 
         RatingDTO ratingDTO = new RatingDTO(AchievementLevel.GOOD, PerceivedDuration.IDEAL, ConcentrationLevel.VERY_HIGH);
 

@@ -1,5 +1,6 @@
 package de.pse.oys.ui.view.menu
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -28,6 +31,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * View for the account settings.
+ * Allows the user to logout and delete their account.
+ * @param viewModel the [IAccountSettingsViewModel] for this view.
+ */
 @Composable
 fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -55,6 +63,11 @@ fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
     }
 }
 
+/**
+ * Dialog for confirming the deletion of an account.
+ * @param onDismiss the function to be called when the dialog is dismissed.
+ * @param onConfirm the function to be called when the user confirms the deletion.
+ */
 @Composable
 private fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
@@ -70,19 +83,38 @@ private fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         })
 }
 
+/**
+ * Interface for the view model of [AccountSettingsView].
+ */
 interface IAccountSettingsViewModel {
+    /**
+     * Logs out the user and navigates to the login screen.
+     */
     fun logout()
+
+    /**
+     * Deletes the user's account and navigates to the login screen.
+     */
     fun deleteAccount()
 }
 
+/**
+ * View model for [AccountSettingsView].
+ * @param api the [RemoteAPI] for the app.
+ * @param navController the [NavController] for navigation.
+ */
 class AccountSettingsViewModel(
     private val api: RemoteAPI,
+    context: Context,
     private val navController: NavController
 ) : ViewModel(),
     IAccountSettingsViewModel {
+    private val credentialManager = CredentialManager.create(context)
+
     override fun logout() {
         viewModelScope.launch {
             api.logout()
+            credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
@@ -93,6 +125,7 @@ class AccountSettingsViewModel(
     override fun deleteAccount() {
         viewModelScope.launch {
             api.deleteAccount()
+            credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
