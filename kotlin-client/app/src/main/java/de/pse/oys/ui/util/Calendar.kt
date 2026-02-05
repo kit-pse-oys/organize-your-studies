@@ -140,7 +140,10 @@ fun CalendarDay(
     hourHeight: Dp = 48.dp
 ) {
     val scroll = rememberScrollState()
-    val totalHeight = hourHeight * (hourEnd - hourStart)
+
+    val topPadding = 12.dp
+    val totalHeight = hourHeight * (hourEnd - hourStart) + topPadding
+
     CompositionLocalProvider(LocalContentColor provides Color.Black) {
         Column(modifier = modifier) {
             Text(
@@ -154,6 +157,7 @@ fun CalendarDay(
                     .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(scroll)
+                    .padding(top = topPadding)
             ) {
                 HourColumn(
                     modifier = Modifier

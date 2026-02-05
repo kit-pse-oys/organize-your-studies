@@ -12,6 +12,7 @@ kotlin {
         jvmTarget = JvmTarget.fromTarget("11")
 
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
     }
 }
 
