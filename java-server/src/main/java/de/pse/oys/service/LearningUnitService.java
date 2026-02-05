@@ -4,10 +4,8 @@ import de.pse.oys.domain.LearningPlan;
 import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.Task;
-import de.pse.oys.domain.enums.RecurrenceType;
-import de.pse.oys.dto.controller.WrapperDTO;
-import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.UnitDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
@@ -19,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -112,7 +111,6 @@ public class LearningUnitService {
      * @param userId         User-Id
      * @param unitId         Unit-Id
      * @param actualDuration tatsächliche Minuten (>= 0)
-     * @return aktualisierter Plan als DTO
      */
     public void finishUnitEarly(UUID userId, UUID unitId, Integer actualDuration) {
         if (userId == null || unitId == null || actualDuration == null) {
@@ -231,17 +229,6 @@ public class LearningUnitService {
                 .orElseThrow(() -> new ResourceNotFoundException(MSG_PLAN_NOT_FOUND_FOR_UNIT));
     }
 
-    private FreeTimeDTO mapFreeTime(FreeTime ft) {
-        boolean weekly = ft.getRecurrenceType() == RecurrenceType.WEEKLY;
-
-        return new FreeTimeDTO(
-                ft.getTitle(),
-                ft.getRepresentativeDate(),
-                ft.getStartTime(),
-                ft.getEndTime(),
-                weekly
-        );
-    }
 
     private UnitDTO toUnitDto(LearningUnit unit) {
         UnitDTO dto = new UnitDTO();
@@ -265,6 +252,5 @@ public class LearningUnitService {
 
         return dto;
     }
-
 
 }
