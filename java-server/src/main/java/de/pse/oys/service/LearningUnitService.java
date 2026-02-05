@@ -5,7 +5,9 @@ import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.Task;
 import de.pse.oys.dto.UnitDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -35,6 +38,7 @@ public class LearningUnitService {
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
     private static final String MSG_PLAN_NOT_FOUND_FOR_UNIT = "Kein passender Lernplan für diese Einheit gefunden.";
 
+    private final LearningUnitRepository learningUnitRepository;
     private final LearningPlanRepository learningPlanRepository;
 
     /**
@@ -42,8 +46,9 @@ public class LearningUnitService {
      *
      * @param learningPlanRepository Repository für LearningPlans (inkl. Ownership-Query)
      */
-    public LearningUnitService(LearningPlanRepository learningPlanRepository) {
-        this.learningPlanRepository = Objects.requireNonNull(learningPlanRepository);
+    public LearningUnitService(LearningUnitRepository learningUnitRepository, LearningPlanRepository learningPlanRepository) {
+        this.learningPlanRepository = learningPlanRepository;
+        this.learningUnitRepository = learningUnitRepository;
     }
 
     /**
@@ -122,6 +127,12 @@ public class LearningUnitService {
         learningPlanRepository.save(plan);
     }
 
+    public List<WrapperDTO<UnitDTO>> getLearningUnitsByUserId(UUID userId) throws ResourceNotFoundException {
+        Objects.requireNonNull(userId, "userId");
+        //requireUserExists(userId);
+        return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
+                .map(unit -> new WrapperDTO<>(unit.getUnitId(), mapUnit(unit))).toList();
+    }
     // -------------------------------------------------------------------------
     // intern
     // -------------------------------------------------------------------------

@@ -552,7 +552,7 @@ class RemoteClientTest {
             val (engine, client) = createClient()
 
             engine += { request ->
-                assertEquals("/api/v1/plan", request.url.encodedPath)
+                assertEquals("/api/v1/plan/units", request.url.encodedPath)
                 assertEquals(HttpMethod.Get, request.method)
                 assertEquals(
                     "Bearer ${MockSessionStore.session.accessToken}",
