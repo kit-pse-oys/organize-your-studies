@@ -85,7 +85,7 @@ public class AuthService {
     public AuthResponseDTO login(LoginDTO loginDTO) throws IllegalStateException, IllegalArgumentException {
         // Externe Authentifizierung ist flexibler (Just-in-Time Provisioning),
         // daher muss der Authentifizierungstyp zuerst geprüft werden.
-        AuthType authType = loginDTO.getType();
+        AuthType authType = loginDTO.getAuthType();
 
         if (authType == AuthType.BASIC) {
             return authLocalUser(loginDTO);
