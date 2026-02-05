@@ -131,9 +131,8 @@ public class LearningUnitService {
         Objects.requireNonNull(userId, "userId");
         //requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
-                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), mapUnit(unit))).toList();
+                .map(unit -> new WrapperDTO<>(unit.getUnitId(), mapUnit(unit))).toList();
     }
-
     // -------------------------------------------------------------------------
     // intern
     // -------------------------------------------------------------------------
