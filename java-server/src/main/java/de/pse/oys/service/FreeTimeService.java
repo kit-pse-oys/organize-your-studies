@@ -85,7 +85,7 @@ public class FreeTimeService {
 
         assertOwner(existing, userId);
 
-        if (dto.isWeekly() != isWeekly(existing)) {
+        if (dto.isWeekly() != existing.isWeekly()) {
             throw new ValidationException(MSG_TYPE_CHANGE_NOT_SUPPORTED);
         }
 
@@ -249,11 +249,6 @@ public class FreeTimeService {
         if (!Objects.equals(ft.getUserId(), userId)) {
             throw new AccessDeniedException(MSG_FORBIDDEN);
         }
-    }
-
-    /** Prüft, ob die Freizeit wöchentlich wiederkehrend ist. */
-    private boolean isWeekly(FreeTime ft) {
-        return ft.getRecurrenceType() == RecurrenceType.WEEKLY;
     }
 
     /** Überträgt die DTO-Werte auf die bestehende Freizeit-Entität. */

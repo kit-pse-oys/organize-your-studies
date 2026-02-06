@@ -1,17 +1,18 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.TaskCategory;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.UnitStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Abstrakte Basisklasse für alle Aufgabentypen im System.
- * Hält die gemeinsamen Merkmale wie Titel, Aufwand und Status.
+ * Hält die gemeinsamen Merkmale wie Titel und Aufwand.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -21,11 +22,13 @@ import java.util.UUID;
 @DiscriminatorColumn(name = "taskcategory")
 public abstract class Task {
 
+    /** Eindeutige Kennung der Aufgabe (readOnly). */
     @Id
     @GeneratedValue
     @Column(name = "taskid", updatable = false)
     private UUID taskId;
 
+    /** Titel/Bezeichnung der Aufgabe. */
     @Column(name = "title", nullable = false)
     private String title;
 
@@ -55,15 +58,14 @@ public abstract class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LearningUnit> learningUnits = new ArrayList<>();
 
+    /**
+     * Zugehöriges {@link Module} der Aufgabe.
+     * Wird lazy geladen; bei JSON-Serialisierung ignoriert, um Zyklen zu vermeiden.
+     */
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "moduleid", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Module module;
-
-    /** Der aktuelle Status der Ausführung (offen, in arbeit, abgeschlossen). */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private TaskStatus status;
 
     /**
      * Standardkonstruktor für JPA/Hibernate.
@@ -109,6 +111,9 @@ public abstract class Task {
         return (soft != null) && LocalDateTime.now().isAfter(soft);
     }
 
+    /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */
+    public abstract boolean isActive();
+
     // Getter & Setter
 
     /** @return Die eindeutige ID der Aufgabe. */
@@ -128,14 +133,21 @@ public abstract class Task {
         return costMatrix;
     }
 
+    /**
+     * Liefert das zugehörige Modul der Aufgabe.
+     * @return Zugehöriges {@link Module}.
+     */
     public Module getModule() {
         return module;
     }
 
+    /**
+     * Setzt das zugehörige Modul der Aufgabe.
+     * @param module Modul, dem diese Aufgabe zugeordnet wird.
+     */
     public void setModule(Module module) {
         this.module = module;
     }
-
 
     /** @param costMatrix Die neu zugeordnete Kostenmatrix. */
     public void setCostMatrix(CostMatrix costMatrix) {
@@ -148,27 +160,7 @@ public abstract class Task {
     /** @param durationMinutes Der neue wöchentliche Aufwand. */
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
-    /**
-     * Liefert den aktuellen Ausführungsstatus der Aufgabe.
-     *
-     * @return Der aktuelle {@link TaskStatus} der Aufgabe.
-     */
-    public TaskStatus getStatus() {
-        updateTaskStatus();
-        return status;
-    }
-
-    /**
-     * Setzt den Ausführungsstatus der Aufgabe.
-     *
-     * @param status Neuer {@link TaskStatus} (darf nicht null sein).
-     */
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-
-    // Hilfsmethoden für learningUnits
+    // helpers
 
     /**
      * Fügt der Aufgabe eine neue Lerneinheit hinzu.
@@ -180,7 +172,6 @@ public abstract class Task {
             this.learningUnits.add(unit);
         }
     }
-
 
     /**
      * @return Eine nicht veränderbare Liste aller zugehörigen Lerneinheiten.
@@ -196,15 +187,4 @@ public abstract class Task {
     public void setLearningUnits(List<LearningUnit> learningUnits) {
         this.learningUnits = learningUnits;
     }
-
-    private void updateTaskStatus() {
-        if (isActive()) {
-            this.status = TaskStatus.OPEN;
-        } else {
-            this.status = TaskStatus.CLOSED;
-        }
-    }
-
-    /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */
-    protected abstract boolean isActive();
 }

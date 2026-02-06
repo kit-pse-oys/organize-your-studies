@@ -11,6 +11,7 @@ import java.util.UUID;
 /**
  * Repräsentiert einen Zeitraum, in dem der Nutzer keine Lerneinheiten einplanen möchte.
  * Diese Freizeitblöcke werden vom Planungsalgorithmus als harte Restriktionen behandelt.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -119,6 +120,18 @@ public abstract class FreeTime {
      */
     public boolean isValidTimeRange() {
         return startTime != null && endTime != null && startTime.isBefore(endTime);
+    }
+
+
+    /**
+     * Prüft, ob dieser Freizeitblock wöchentlich wiederkehrend ist.
+     *
+     * @return {@code true}, wenn {@link #getRecurrenceType()} {@link RecurrenceType#WEEKLY} liefert,
+     *         sonst {@code false}
+     */
+    @Transient
+    public boolean isWeekly() {
+        return getRecurrenceType() == RecurrenceType.WEEKLY;
     }
 
     // Getter

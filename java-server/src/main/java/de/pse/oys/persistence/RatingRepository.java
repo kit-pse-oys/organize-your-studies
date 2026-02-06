@@ -1,17 +1,16 @@
 package de.pse.oys.persistence;
 
-import java.util.Optional;
-import java.util.UUID;
-
+import de.pse.oys.domain.UnitRating;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import de.pse.oys.domain.UnitRating;
+import java.util.UUID;
 
 /**
- * RatingRepository – Repository-Schnittstelle für UnitRating-Entitäten.
+ * Repository für {@link UnitRating}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface RatingRepository extends JpaRepository<UnitRating, UUID> {

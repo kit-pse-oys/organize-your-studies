@@ -9,15 +9,41 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * FreeTimeRepository – Repository-Schnittstelle für FreeTime-Entitäten.
+ * Repository für {@link FreeTime}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
 
+    /**
+     * Lädt alle Freizeitblöcke, die dem angegebenen User zugeordnet sind.
+     *
+     * @param userId ID des Users
+     * @return Liste der Freizeitblöcke des Users
+     */
     List<FreeTime> findAllByUserId(UUID userId);
 
+    /**
+     * Prüft, ob der angegebene User mindestens einen Freizeitblock besitzt.
+     *
+     * @param userId ID des Users
+     * @return {@code true}, wenn mindestens ein Freizeitblock existiert, sonst {@code false}
+     */
     boolean existsByUserId(UUID userId);
 
+    /**
+     * Prüft, ob es für einen User bereits einen Freizeitblock gibt, der sich mit einem
+     * angegebenen Zeitraum überschneidet – wobei ein bestimmter Block (z.B. beim Update)
+     * ignoriert wird.
+     *
+     * @param userId    ID des Users
+     * @param ignoreId  ID des Freizeitblocks, der bei der Prüfung ausgeschlossen wird
+     * @param endTime   Ende des zu prüfenden Zeitraums
+     * @param startTime Start des zu prüfenden Zeitraums
+     * @return {@code true}, wenn eine Überschneidung existiert, sonst {@code false}
+     */
     boolean existsByUserIdAndFreeTimeIdNotAndStartTimeLessThanAndEndTimeGreaterThan(
             UUID userId,
             UUID ignoreId,

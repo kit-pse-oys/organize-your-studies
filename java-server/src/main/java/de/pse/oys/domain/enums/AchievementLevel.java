@@ -3,6 +3,7 @@ package de.pse.oys.domain.enums;
 /**
  * Definiert den Grad der Zielerreichung nach Abschluss einer Lerneinheit.
  * Gibt an, inwieweit die für diese Einheit gesetzten Lernziele erreicht wurden.
+ *
  * @author utgid
  * @version 1.0
  */

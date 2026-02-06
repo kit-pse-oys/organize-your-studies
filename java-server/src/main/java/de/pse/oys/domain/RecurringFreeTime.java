@@ -11,6 +11,7 @@ import java.util.UUID;
 
 /**
  * Repräsentiert eine regelmäßig wiederkehrende Freizeitbeschränkung.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -26,6 +27,9 @@ public class RecurringFreeTime extends FreeTime {
     @Column(name = "weekday")
     private DayOfWeek dayOfWeek;
 
+    /**
+     * Standardkonstruktor für JPA/Hibernate.
+     */
     protected RecurringFreeTime() {
         super();
     }

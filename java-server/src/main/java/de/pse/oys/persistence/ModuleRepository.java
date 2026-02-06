@@ -11,11 +11,8 @@ import java.util.UUID;
 /**
  * Repository für {@link Module}-Entitäten.
  *
- * <p>
- * Umsetzung über Spring Data JPA Derived Queries:
- * Die Methodennamen werden zur Laufzeit analysiert und in passende SQL-Abfragen übersetzt
- * (Property-Traversal über {@code Module -> user -> userId}).
- * </p>
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface ModuleRepository extends JpaRepository<Module, UUID> {
@@ -24,7 +21,7 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
      * Findet alle Module eines bestimmten Nutzers.
      *
      * @param userId die ID des Nutzers
-     * @return Liste der Module des Nutzers (leer, wenn keine vorhanden sind)
+     * @return Liste der Module des Nutzers
      */
     List<Module> findAllByUser_UserId(UUID userId);
 
