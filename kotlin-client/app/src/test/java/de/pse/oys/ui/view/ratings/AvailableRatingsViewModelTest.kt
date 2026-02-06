@@ -62,7 +62,7 @@ class AvailableRatingsViewModelTest {
             start = TEST_TIME,
             end = TEST_TIME
         )
-        every { model.steps } returns mapOf(TEST_DATE.dayOfWeek to mapOf(testUuid to testStepData))
+        every { model.steps } returns mapOf<DayOfWeek, Map<Uuid, StepData>>(TEST_DATE.dayOfWeek to mapOf(testUuid to testStepData))
 
         coEvery { api.queryRateable() } returns Response(
             status = HttpStatusCode.OK.value,

@@ -1,5 +1,7 @@
 package de.pse.oys.ui.view
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
