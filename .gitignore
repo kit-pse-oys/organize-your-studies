@@ -10,7 +10,7 @@ out/
 *.jar
 *.war
 
-!**/gradle-wrapperDTO.jar
+!**/gradle-wrapper.jar
 
 ###########################################
 ## Python
