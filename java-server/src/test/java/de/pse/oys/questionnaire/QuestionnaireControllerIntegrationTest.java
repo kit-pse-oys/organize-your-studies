@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class QuestionnaireControllerIntegrationTest {
 
     private static final String QUESTIONNAIRE_BASE = "/api/v1/questionnaire";
-    private static final String SUBMIT = QUESTIONNAIRE_BASE + "/submit";
+    private static final String SUBMIT = QUESTIONNAIRE_BASE;
     private static final String STATUS = QUESTIONNAIRE_BASE + "/status";
 
     @Container
