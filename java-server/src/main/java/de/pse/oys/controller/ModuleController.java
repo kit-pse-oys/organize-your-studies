@@ -1,11 +1,14 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.ModuleDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.ModuleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -14,7 +17,7 @@ import java.util.UUID;
  * Bietet Endpunkte zum Abrufen, Erstellen, Aktualisieren und Löschen von Modulen.
  */
 @RestController
-@RequestMapping("/modules")
+@RequestMapping("/api/v1/modules")
 public class ModuleController extends BaseController {
 
     private final ModuleService moduleService;
@@ -32,59 +35,49 @@ public class ModuleController extends BaseController {
      * @param dto Die Daten des zu erstellenden Moduls.
      * @return Eine ResponseEntity mit dem erstellten Modul (Status 201).
      */
-    @PostMapping("/create")
-    public ResponseEntity<UUID> createModule(@RequestBody ModuleDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            UUID moduleId = moduleService.createModule(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(moduleId);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PostMapping
+    public ResponseEntity<Map<String, UUID>> createModule(@RequestBody ModuleDTO dto) {
+        UUID userId = getAuthenticatedUserId();
+        UUID moduleId = moduleService.createModule(userId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", moduleId));
     }
 
 
     /**
      * Aktualisiert ein bestehendes Modul.
-     * @param dto Die aktualisierten Moduldaten.
+     * @param wrapper Die aktualisierten Moduldaten.
      * @return Eine ResponseEntity mit dem geänderten Modul (Status 200).
      */
-    @PutMapping("/update")
-    public ResponseEntity<ModuleDTO> updateModule(@RequestBody ModuleDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            ModuleDTO updated = moduleService.updateModule(userId, dto);
-            return ResponseEntity.ok(updated);
-        } catch (SecurityException e) {
-            // Nutzer versucht ein Modul zu ändern, das ihm nicht gehört
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            // ID fehlt oder Titel ist leer
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PutMapping
+    public ResponseEntity<Void> updateModule(@RequestBody WrapperDTO<ModuleDTO> wrapper) {
+        UUID userId = getAuthenticatedUserId();
+        ModuleDTO data = wrapper.getData();
+        data.setId(wrapper.getId());
+        moduleService.updateModule(userId, data);
+        return ResponseEntity.ok().build();
     }
 
     /**
      * Löscht ein Modul aus dem System.
      * @param dto Das DTO, welches das zu löschende Modul identifiziert.
-     * @return 200 bei Erfolg, 403 bei fehlender Berechtigung.
+     * @return 200 bei Erfolg.
      */
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<Void> deleteModule(@RequestBody ModuleDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            moduleService.deleteModule(userId, dto.getId());
-            return ResponseEntity.ok().build();
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        UUID userId = getAuthenticatedUserId();
+        moduleService.deleteModule(userId, dto.getId());
+        return ResponseEntity.ok().build();
+    }
+
+
+    /**
+    * Gibt alle Module zurück, die dem authentifizierten Nutzer zugeordnet sind.
+    * @return Eine Liste von Modulen (Status 200).
+    */
+    @GetMapping
+    public ResponseEntity<List<WrapperDTO<ModuleDTO>>> getAllModules() {
+        UUID userId = getAuthenticatedUserId();
+        List<WrapperDTO<ModuleDTO>> modules = moduleService.getModulesByUserId(userId);
+        return ResponseEntity.ok(modules);
     }
 }
