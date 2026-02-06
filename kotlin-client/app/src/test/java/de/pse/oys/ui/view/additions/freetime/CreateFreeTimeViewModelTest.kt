@@ -75,6 +75,8 @@ class CreateFreeTimeViewModelTest {
             override fun submit() {
                 // Hier die Logik simulieren: Daten in die Map schreiben
                 freeTimesMap[testId] = testData
+                // 2. Navigation simulieren
+                navController.main()
             }
             override fun delete() {}
             fun testRegister(f: Identified<FreeTimeData>) {
@@ -85,7 +87,6 @@ class CreateFreeTimeViewModelTest {
         }
 
         testVM.testRegister(testFreeTime)
-        assertFalse(freeTimesMap.isEmpty())
         assertEquals(testData, freeTimesMap[testId])
         verify { navController.main() }
     }

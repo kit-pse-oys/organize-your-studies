@@ -17,7 +17,7 @@ object TestUtils {
     const val TEST_TITLE = "Test-Title"
     const val TEST_DESC = "Test-Description"
     val TEST_COLOR = Blue
-    val TEST_PRIORITY = Priority.NEUTRAL
+    val TEST_PRIORITY = Priority.HIGH
 
     // Feste Daten weit in der Zukunft verhindern "Past Date" Fehler
     val TEST_DATE = LocalDate(2030, 1, 1)
