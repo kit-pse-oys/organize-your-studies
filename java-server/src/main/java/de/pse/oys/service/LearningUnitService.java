@@ -150,7 +150,7 @@ public class LearningUnitService {
 
     /** Lädt den Plan im User-Scope (planId + userId). */
     private LearningPlan loadPlanForUserOrThrow(UUID userId, UUID planId) {
-        return learningPlanRepository.findByIdAndUserId(planId, userId)
+        return learningPlanRepository.findByPlanIdAndUserId(planId, userId)
                 .orElseThrow(() -> new AccessDeniedException(MSG_ACCESS_DENIED));
     }
 

@@ -21,9 +21,19 @@ public enum PerceivedDuration {
     /** Die geplante Zeit war viel zu großzügig bemessen. */
     MUCH_TOO_LONG(-2.5);
 
-
+    /**
+     * Numerischer Anpassungswert für die Planung.
+     *
+     * <p>Positive Werte bedeuten: künftig tendenziell mehr Zeit einplanen.
+     * Negative Werte bedeuten: künftig tendenziell weniger Zeit einplanen.</p>
+     */
     private final double adjustmentValue;
 
+    /**
+     * Erzeugt eine Enum-Ausprägung mit dem zugehörigen Anpassungswert.
+     *
+     * @param value numerischer Anpassungswert für die Planung.
+     */
     PerceivedDuration(double value) {
         this.adjustmentValue = value;
     }

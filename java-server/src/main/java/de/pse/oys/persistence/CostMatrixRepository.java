@@ -8,15 +8,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * CostMatrixRepository – Repository-Schnittstelle für CostMatrix-Entitäten.
+ * Repository für {@link CostMatrix}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface CostMatrixRepository extends JpaRepository<CostMatrix, UUID> {
 
     /**
      * Findet eine CostMatrix anhand der zugehörigen Task-ID.
-     * @param taskId Die ID des Tasks.
-     * @return Optional mit der gefundenen CostMatrix oder leer, wenn keine gefunden wurde.
+     *
+     * @param taskId Die ID des Tasks
+     * @return Optional mit der gefundenen CostMatrix oder leer, wenn keine gefunden wurde
      */
     Optional<CostMatrix> findByTask_TaskId(UUID taskId);
 }

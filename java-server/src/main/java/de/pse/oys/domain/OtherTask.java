@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Repräsentiert eine allgemeine Aufgabe ohne punktuelle Deadline.
  * Diese Aufgabe ist stattdessen an einen definierten Bearbeitungszeitraum gebunden.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -52,11 +53,19 @@ public class OtherTask extends Task {
         return endTime;
     }
 
+    /**
+     * Prüft, ob die Aufgabe aktuell aktiv ist.
+     * Eine {@link OtherTask} ist aktiv, wenn {@code now} strikt nach {@link #startTime}
+     * und strikt vor {@link #endTime} liegt.
+     *
+     * @return {@code true}, wenn sich der aktuelle Zeitpunkt innerhalb des Zeitfensters befindet, sonst {@code false}.
+     */
     @Override
     protected boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
         return (startTime != null && endTime != null) && now.isAfter(startTime) && now.isBefore(endTime);
     }
+
     // Getter & Setter
 
     /** @return Den Start des Zeitrahmens. */

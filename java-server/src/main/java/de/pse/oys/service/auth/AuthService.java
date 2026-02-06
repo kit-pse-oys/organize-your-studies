@@ -109,7 +109,7 @@ public class AuthService {
             String googleSub = payload.getSubject(); // Eindeutige Google-Benutzer-ID
 
             // 3. Falls der Benutzer bereits existiert, laden wir ihn um nicht seine Daten zu überschreiben.
-            Optional<ExternalUser> optionalUser = userRepository.findByExternalSubjectIdAndType(googleSub, UserType.GOOGLE);
+            Optional<ExternalUser> optionalUser = userRepository.findByExternalSubjectIdAndUserType(googleSub, UserType.GOOGLE);
 
             // 4. Benutzer laden, falls nicht existiert, neuen Benutzer anlegen (Just-in-Time-Provisioning).
             User user = optionalUser.orElseGet(() -> new ExternalUser(name, googleSub, UserType.GOOGLE));
