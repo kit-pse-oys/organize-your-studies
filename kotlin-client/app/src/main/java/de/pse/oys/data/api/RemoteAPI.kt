@@ -298,7 +298,7 @@ internal constructor(
         withContext(Dispatchers.IO) {
             client.get(serverUrl) {
                 url {
-                    apiPath("plan")
+                    apiPath("plan/units")
                 }
             }.responseAs()
         }
