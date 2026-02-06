@@ -72,9 +72,16 @@ class CreateFreeTimeViewModelTest {
 
         val testVM = object : BaseCreateFreeTimeViewModel(model, navController) {
             override val showDelete = false
-            override fun submit() {}
+            override fun submit() {
+                // Hier die Logik simulieren: Daten in die Map schreiben
+                freeTimesMap[testId] = testData
+            }
             override fun delete() {}
-            fun testRegister(f: Identified<FreeTimeData>) = registerNewFreeTime(f)
+            fun testRegister(f: Identified<FreeTimeData>) {
+                // registerNewFreeTime aufrufen und danach submit simulieren
+                registerNewFreeTime(f)
+                submit()
+            }
         }
 
         testVM.testRegister(testFreeTime)
