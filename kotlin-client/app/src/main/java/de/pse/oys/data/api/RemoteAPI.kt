@@ -167,7 +167,8 @@ internal constructor(
 
     override suspend fun register(credentials: Credentials): Response<Unit> =
         withContext(Dispatchers.IO) {
-            requestTokens("users", credentials)
+            val path = if (credentials is Credentials.OIDC) "auth/login" else "users"
+            requestTokens(path, credentials)
         }
 
     override suspend fun login(credentials: Credentials): Response<Unit> =
