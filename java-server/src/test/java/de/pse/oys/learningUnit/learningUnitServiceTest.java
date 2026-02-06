@@ -5,7 +5,7 @@ import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.enums.ModulePriority;
-import de.pse.oys.domain.enums.TaskCategory;
+import de.pse.oys.domain.OtherTask;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
@@ -169,7 +169,7 @@ class LearningUnitServiceTest {
         module.setDescription(moduleDesc);
         module.setColorHexCode(moduleColor);
 
-        Task task = new TestTask(taskTitle);
+        OtherTask task = new OtherTask(taskTitle, 1, start, end);
         task.setModule(module);
 
         return new LearningUnit(task, start, end);
@@ -184,26 +184,4 @@ class LearningUnitServiceTest {
             throw new AssertionError("Failed to set field '" + fieldName + "'", e);
         }
     }
-
-    private static final class TestTask extends Task { //TODO
-
-        private TestTask(String title) {
-            super(title, 1, TaskCategory.OTHER);
-        }
-
-        @Override
-        public LocalDateTime getHardDeadline() {
-            return null; // für den Test egal
-        }
-
-        /**
-         * @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann.
-         */
-        @Override
-        protected boolean isActive() {
-            return false;
-        }
-    }
-
-
 }

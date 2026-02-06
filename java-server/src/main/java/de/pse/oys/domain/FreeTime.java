@@ -122,6 +122,18 @@ public abstract class FreeTime {
         return startTime != null && endTime != null && startTime.isBefore(endTime);
     }
 
+
+    /**
+     * Prüft, ob dieser Freizeitblock wöchentlich wiederkehrend ist.
+     *
+     * @return {@code true}, wenn {@link #getRecurrenceType()} {@link RecurrenceType#WEEKLY} liefert,
+     *         sonst {@code false}
+     */
+    @Transient
+    public boolean isWeekly() {
+        return getRecurrenceType() == RecurrenceType.WEEKLY;
+    }
+
     // Getter
 
     /** @return Die ID des Freizeitblocks. */

@@ -2,7 +2,6 @@ package de.pse.oys.service.planning;
 
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
@@ -326,7 +325,7 @@ public class PlanningService {
      * @return Liste der TaskDTOs für offene Aufgaben.
      */
     private List<PlanningTaskDTO> fetchOpenTasksAsDTOs(User user, LocalDateTime now, LocalDate weekStart) {
-        List<Task> openTasks = taskRepository.findAllByModuleUserUserIdAndStatus(user.getId(), TaskStatus.OPEN);
+        List<Task> openTasks = taskRepository.findAllByModuleUserUserId(user.getId()).stream().filter(Task::isActive).toList();
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);

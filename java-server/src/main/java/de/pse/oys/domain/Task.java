@@ -1,17 +1,17 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.TaskCategory;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.UnitStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Abstrakte Basisklasse für alle Aufgabentypen im System.
- * Hält die gemeinsamen Merkmale wie Titel, Aufwand und Status.
+ * Hält die gemeinsamen Merkmale wie Titel und Aufwand.
  *
  * @author utgid
  * @version 1.0
@@ -67,11 +67,6 @@ public abstract class Task {
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Module module;
 
-    /** Der aktuelle Status der Ausführung (offen, in arbeit, abgeschlossen). */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private TaskStatus status;
-
     /**
      * Standardkonstruktor für JPA/Hibernate.
      */
@@ -115,6 +110,9 @@ public abstract class Task {
         LocalDateTime soft = getSoftDeadline(bufferDays);
         return (soft != null) && LocalDateTime.now().isAfter(soft);
     }
+
+    /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */
+    public abstract boolean isActive();
 
     // Getter & Setter
 
@@ -162,27 +160,7 @@ public abstract class Task {
     /** @param durationMinutes Der neue wöchentliche Aufwand. */
     public void setWeeklyDurationMinutes(int durationMinutes) { this.weeklyDurationMinutes = durationMinutes; }
 
-    /**
-     * Liefert den aktuellen Ausführungsstatus der Aufgabe.
-     *
-     * @return Der aktuelle {@link TaskStatus} der Aufgabe.
-     */
-    public TaskStatus getStatus() {
-        updateTaskStatus();
-        return status;
-    }
-
-    /**
-     * Setzt den Ausführungsstatus der Aufgabe.
-     *
-     * @param status Neuer {@link TaskStatus} (darf nicht null sein).
-     */
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
-
-    // Hilfsmethoden für learningUnits
+    // helpers
 
     /**
      * Fügt der Aufgabe eine neue Lerneinheit hinzu.
@@ -209,19 +187,4 @@ public abstract class Task {
     public void setLearningUnits(List<LearningUnit> learningUnits) {
         this.learningUnits = learningUnits;
     }
-
-    /**
-     * Synchronisiert {@link #status} anhand der fachlichen Aktivität ({@link #isActive()}).
-     * Aktiv -> {@link TaskStatus#OPEN}, inaktiv -> {@link TaskStatus#CLOSED}.
-     */
-    private void updateTaskStatus() {
-        if (isActive()) {
-            this.status = TaskStatus.OPEN;
-        } else {
-            this.status = TaskStatus.CLOSED;
-        }
-    }
-
-    /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */
-    protected abstract boolean isActive();
 }

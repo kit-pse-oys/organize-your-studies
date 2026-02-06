@@ -12,6 +12,7 @@ import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
+import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
@@ -38,21 +39,28 @@ public class LearningUnitService {
     private static final String MSG_TIME_FIELDS_REQUIRED = "Datum, Start und Ende müssen gesetzt sein.";
     private static final String MSG_INVALID_RANGE = "Die Startzeit muss vor der Endzeit liegen.";
     private static final String MSG_UNIT_NOT_FOUND = "LearningUnit existiert nicht.";
+    private static final String MSG_USER_NOT_FOUND = "User existiert nicht.";
     private static final String MSG_ACCESS_DENIED = "Kein Zugriff auf die angefragte Ressource.";
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
     private static final String MSG_OVERLAP = "Die Einheit überschneidet sich zeitlich mit einer anderen Einheit im Plan.";
 
     private final LearningUnitRepository learningUnitRepository;
     private final LearningPlanRepository learningPlanRepository;
+    private final UserRepository userRepository;
+
+
 
     /**
      * Erstellt den Service.
      *
      * @param learningPlanRepository Repository für LearningPlans (inkl. Ownership-Query)
      */
-    public LearningUnitService(LearningUnitRepository learningUnitRepository, LearningPlanRepository learningPlanRepository) {
+    public LearningUnitService(LearningUnitRepository learningUnitRepository,
+                               LearningPlanRepository learningPlanRepository,
+                               UserRepository userRepository) {
         this.learningPlanRepository = learningPlanRepository;
         this.learningUnitRepository = learningUnitRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -80,7 +88,7 @@ public class LearningUnitService {
         LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
 
-        moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end), true);
+        moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end));
 
         learningPlanRepository.save(plan);
         return toDto(plan);
@@ -105,7 +113,7 @@ public class LearningUnitService {
         LearningPlan plan = loadPlanForUserOrThrow(userId, planId);
         LearningUnit unit = findUnitOrThrow(plan, unitId);
 
-        moveUnitInternal(plan, unit, start, end, true);
+        moveUnitInternal(plan, unit, start, end);
 
         learningPlanRepository.save(plan);
         return toDto(plan);
@@ -137,11 +145,19 @@ public class LearningUnitService {
         return toDto(plan);
     }
 
+    /**
+     * Lädt alle Lerneinheiten eines Users als Wrapper-Liste (ID + DTO).
+     *
+     * @param userId ID des Users
+     * @return Liste aller Lerneinheiten des Users
+     * @throws NullPointerException      wenn userId {@code null} ist
+     * @throws ResourceNotFoundException wenn der User nicht existiert
+     */
     public List<WrapperDTO<UnitDTO>> getLearningUnitsByUserId(UUID userId) throws ResourceNotFoundException {
         Objects.requireNonNull(userId, "userId");
-        //requireUserExists(userId);
+        requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
-                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), toUnitDto(unit))).toList();
+                .map(unit -> new WrapperDTO<UnitDTO>(unit.getUnitId(), mapUnit(unit))).toList();
     }
 
     // -------------------------------------------------------------------------
@@ -164,14 +180,13 @@ public class LearningUnitService {
 
     /** Setzt neue Zeiten und prüft optional Überschneidungen. */
     private void moveUnitInternal(LearningPlan plan, LearningUnit unit,
-                                  LocalDateTime start, LocalDateTime end,
-                                  boolean checkOverlap) {
+                                  LocalDateTime start, LocalDateTime end) {
         if (!start.isBefore(end)) {
             throw new ValidationException(MSG_INVALID_RANGE);
         }
-        if (checkOverlap) {
-            assertNoOverlap(plan, unit, start, end);
-        }
+
+        assertNoOverlap(plan, unit, start, end);
+
         unit.setStartTime(start);
         unit.setEndTime(end);
     }
@@ -249,6 +264,7 @@ public class LearningUnitService {
                 .toList();
     }
 
+    /** Mappt ein FreeTime-Objekt auf ein FreeTimeDTO. */
     private FreeTimeDTO mapFreeTime(FreeTime ft) {
         boolean weekly = ft.getRecurrenceType() == RecurrenceType.WEEKLY;
 
@@ -261,28 +277,11 @@ public class LearningUnitService {
         );
     }
 
-    private UnitDTO toUnitDto(LearningUnit unit) {
-        UnitDTO dto = new UnitDTO();
-
-        if (unit.getTask() != null) {
-            dto.setTitle(unit.getTask().getTitle());
-
-            // dto.setDescription(unit.getTask().getDescription()); //TODO lässt sich nicht clean transformieren
-            // dto.setColor(unit.getTask().getColor());
+    /** Validiert, dass der angegebene User existiert. */
+    private void requireUserExists(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException(MSG_USER_NOT_FOUND);
         }
-        if (unit.getStartTime() != null) {
-            dto.setDate(unit.getStartTime().toLocalDate());
-            dto.setStart(unit.getStartTime().toLocalTime());
-        }
-        if (unit.getEndTime() != null) {
-            if (dto.getDate() == null) {
-                dto.setDate(unit.getEndTime().toLocalDate());
-            }
-            dto.setEnd(unit.getEndTime().toLocalTime());
-        }
-
-        return dto;
     }
-
 
 }
