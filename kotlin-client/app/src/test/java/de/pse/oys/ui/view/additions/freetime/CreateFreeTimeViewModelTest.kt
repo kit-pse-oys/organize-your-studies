@@ -85,6 +85,7 @@ class CreateFreeTimeViewModelTest {
         }
 
         testVM.testRegister(testFreeTime)
+        assertFalse(freeTimesMap.isEmpty())
         assertEquals(testData, freeTimesMap[testId])
         verify { navController.main() }
     }
