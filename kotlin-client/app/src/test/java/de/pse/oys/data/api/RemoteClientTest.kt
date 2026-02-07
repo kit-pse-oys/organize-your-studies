@@ -824,7 +824,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task1.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("type", "exam")
+                                put("category", "exam")
                                 put("title", "Task 1")
                                 put("module", task1.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 2)
@@ -835,7 +835,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task2.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("type", "submission")
+                                put("category", "submission")
                                 put("title", "Task 2")
                                 put("module", task2.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 6)
@@ -847,7 +847,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task3.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("type", "other")
+                                put("category", "other")
                                 put("title", "Task 3")
                                 put("module", task3.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 3)
@@ -887,7 +887,7 @@ class RemoteClientTest {
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
-                    put("type", "exam")
+                    put("category", "exam")
                     put("title", "Task 1")
                     put("module", uuid2.toHexDashString())
                     put("weeklyTimeLoad", 2)
@@ -939,7 +939,7 @@ class RemoteClientTest {
                 assertEquals(buildJsonObject {
                     put("id", uuid1.toHexDashString())
                     put("data", buildJsonObject {
-                        put("type", "exam")
+                        put("category", "exam")
                         put("title", "Task 1")
                         put("module", uuid2.toHexDashString())
                         put("weeklyTimeLoad", 2)
