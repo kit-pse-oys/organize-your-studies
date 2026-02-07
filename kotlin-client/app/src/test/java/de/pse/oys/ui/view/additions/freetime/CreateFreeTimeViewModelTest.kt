@@ -67,6 +67,9 @@ class CreateFreeTimeViewModelTest {
         val testData = createMockFreeTimeData()
         val testFreeTime = Identified(testData, testId)
 
+        // Deklaration der Variable, damit der Compiler nicht meckert
+        var navigationCalled = false
+
         val freeTimesMap = mutableMapOf<Uuid, FreeTimeData>()
         every { model.freeTimes } returns freeTimesMap
 
