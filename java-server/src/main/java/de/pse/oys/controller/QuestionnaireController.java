@@ -52,7 +52,7 @@ public class QuestionnaireController extends BaseController {
      * @return Eine ResponseEntity mit den Statusinformationen.
      */
     @GetMapping("/status")
-    public ResponseEntity<Boolean> getQuestionnaireStatus() {
+    public ResponseEntity<Boolean> getQuestionnaireStatus() { //todo: wird nicht verwendet???
         UUID userId = getAuthenticatedUserId();
         boolean isCompleted = questionnaireService.hasLearningPreferences(userId);
         return ResponseEntity.ok(isCompleted);

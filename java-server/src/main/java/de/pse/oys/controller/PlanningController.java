@@ -5,7 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 /**
@@ -31,31 +33,24 @@ public class PlanningController extends BaseController {
 
     /**
      * Stößt die Generierung eines neuen Wochenplans für den authentifizierten Nutzer an.
-     * @return Status 200 (OK) bei Erfolg oder 400 (Bad Request) bei Validierungsfehlern.
+     * @return Status 200 (OK) bei Erfolg.
      */
-    @PostMapping("/generate")
-    public ResponseEntity<Void> generateWeeklyPlan(@RequestParam LocalDate startTime) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            planningService.generateWeeklyPlan(userId, startTime);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            // Rückgabe von 400 Bad Request bei ungültigen Parametern oder fehlenden Daten
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            // Allgemeiner Serverfehler (500) für unerwartete Probleme
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PutMapping
+    public ResponseEntity<Void> generateWeeklyPlan() {
+        UUID userId = getAuthenticatedUserId();
+        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        planningService.generateWeeklyPlan(userId, weekStart);
+        return ResponseEntity.ok().build();
     }
 
     /**
-     * Verschiebt eine spezifische Planungseinheit auf einen anderen Zeitpunkt.
+     * Verschiebt eine spezifische Lerneinheit auf einen anderen Zeitpunkt.
      * @param unitId Die UUID der zu verschiebenden Planungseinheit.
      * @param newStartTime Der neue gewünschte Startzeitpunkt.
      * @return Status 200 (OK), 403 (Forbidden) bei Zugriffsschutz oder 400 (Bad Request).
      */
     @PatchMapping("/{unitId}/reschedule")
-    public ResponseEntity<Void> rescheduleUnit(
+    public ResponseEntity<Void> rescheduleUnit( //todo: soll ich das für moveUnit (auto und manuell) nutzen? falls ja anpassen!
             @PathVariable UUID unitId,
             @RequestParam LocalDate newStartTime) {
         try {

@@ -59,7 +59,7 @@ public class ModuleController extends BaseController {
 
     /**
      * Löscht ein Modul aus dem System.
-     * @param dto Das DTO, welches das zu löschende Modul identifiziert.
+     * @param dto Das DTO, welches die ID des zu löschenden Moduls enthält.
      * @return 200 bei Erfolg.
      */
     @DeleteMapping

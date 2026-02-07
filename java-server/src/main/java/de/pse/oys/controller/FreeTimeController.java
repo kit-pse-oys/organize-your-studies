@@ -66,7 +66,8 @@ public class FreeTimeController extends BaseController {
      * Aktualisiert einen bestehenden Zeitraum.
      * Prüft dabei, ob das Objekt existiert und dem Nutzer gehört.
      *
-     * @param wrapperDTO@return Das geänderte FreeTimeDTO oder ein entsprechender Fehlerstatus.
+     * @param wrapperDTO Enthält die ID des zu aktualisierenden Freizeitraums und die neuen Daten als FreeTimeDTO.
+     * @return Das geänderte FreeTimeDTO oder ein entsprechender Fehlerstatus.
      */
     @PutMapping
     public ResponseEntity<Void> updateFreeTime(@RequestBody WrapperDTO<FreeTimeDTO> wrapperDTO) {
@@ -81,13 +82,13 @@ public class FreeTimeController extends BaseController {
     /**
      * Löscht einen Freizeitraum anhand der im Body übergebenen ID.
      *
-     * @param idDto DTO mit der ID des zu löschenden Freizeitraums.
+     * @param wrapperDTO DTO mit der ID des zu löschenden Freizeitraums.
      * @return 204 bei Erfolg, 403 bei fehlender Berechtigung oder 404.
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteFreeTime(@RequestBody WrapperDTO<Void> idDto) {
+    public ResponseEntity<Void> deleteFreeTime(@RequestBody WrapperDTO<Void> wrapperDTO) {
         UUID userId = getAuthenticatedUserId();
-        freeTimeService.deleteFreeTime(userId, idDto.getId());
+        freeTimeService.deleteFreeTime(userId, wrapperDTO.getId());
         return ResponseEntity.noContent().build();
     }
 }

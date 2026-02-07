@@ -1,6 +1,7 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.dto.RatingDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.RatingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,13 +35,13 @@ public class RatingController extends BaseController {
     /**
      * Übermittelt eine Bewertung für eine Lerneinheit.
      * Das Feedback wird genutzt, um die Effizienz der Planung zu steigern.
-     * @param learningUnitId Die ID der bewerteten Lerneinheit.
-     * @param dto Das DTO mit den Bewertungsinformationen (Konzentration, Dauer, Erfolg).
+     *
+     * @param wrapperDTO Enthält die ID der Lerneinheit und die Bewertung als RatingDTO.
      * @return Eine leere ResponseEntity bei Erfolg.
      */
     @PostMapping
-    public ResponseEntity<Void> rateUnit(@RequestBody UUID learningUnitId, @RequestBody RatingDTO dto) {
-        ratingService.submitRating(learningUnitId, dto);
+    public ResponseEntity<Void> rateUnit(@RequestBody WrapperDTO<RatingDTO> wrapperDTO) {
+        ratingService.submitRating(wrapperDTO.getId(), wrapperDTO.getData());
         return ResponseEntity.ok().build();
     }
 
@@ -48,12 +49,12 @@ public class RatingController extends BaseController {
      * Markiert eine spezifische Aufgabe als verpasst.
      * Dies triggert im Service die entsprechende Logik zur Anpassung der Planung.
      *
-     * @param unitId Die UUID der Aufgabe, die als verpasst markiert werden soll.
+     * @param wrapper Enthält die ID der Lerneinheit, die als verpasst markiert werden soll.
      * @return Status 200 (OK) bei Erfolg.
      */
     @PostMapping("/missed")
-    public ResponseEntity<Void> markAsMissed(@RequestBody UUID unitId) {
-        ratingService.markAsMissed(unitId);
+    public ResponseEntity<Void> markAsMissed(@RequestBody WrapperDTO<Void> wrapper) {
+        ratingService.markAsMissed(wrapper.getId());
         return ResponseEntity.ok().build();
     }
 
