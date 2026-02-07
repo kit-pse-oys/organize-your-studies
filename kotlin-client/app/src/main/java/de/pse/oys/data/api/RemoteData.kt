@@ -19,6 +19,7 @@ typealias RemoteSubmissionTask = Identified<RemoteSubmissionTaskData>
 typealias RemoteOtherTask = Identified<RemoteOtherTaskData>
 
 @Serializable
+@JsonClassDiscriminator("category")
 sealed class RemoteTaskData {
     abstract val title: String
     abstract val module: Uuid
