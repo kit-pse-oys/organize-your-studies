@@ -7,16 +7,10 @@ import de.pse.oys.domain.UnitRating;
 import de.pse.oys.domain.enums.AchievementLevel;
 import de.pse.oys.domain.enums.ConcentrationLevel;
 import de.pse.oys.domain.enums.PerceivedDuration;
-import de.pse.oys.dto.controller.WrapperDTO;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
 import de.pse.oys.dto.RatingDTO;
 import de.pse.oys.persistence.CostMatrixRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.persistence.RatingRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,26 +106,15 @@ public class RatingService {
         learningUnitRepository.save(unit);
     }
 
-    public List<WrapperDTO<RatingDTO>> getRatingsByUserId(UUID userId) {
+    public List<UUID> getRateableUnits(UUID userId) {
         Objects.requireNonNull(userId, "userId");
-        // requireUserExists(userId); TODO
+        // requireUserExists(userId); // TODO (eigentlich nicht, da die userId aus dem Token kommt und damit immer gültig sein sollte)
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
-                .filter(unit -> unit.getRating() != null)
-                .map(unit -> new WrapperDTO<>(unit.getUnitId(), toRatingDto(unit.getRating())))
+                .filter(unit -> unit.getRating() == null)
+                .map(LearningUnit::getUnitId)
                 .toList();
     }
 
-    // ---------------------------
-    // private helper
-    // ---------------------------
-
-    private RatingDTO toRatingDto(UnitRating rating) {
-        return new RatingDTO(
-                rating.getAchievement(),
-                rating.getPerceivedDuration(),
-                rating.getConcentration()
-        );
-    }
 
 
 

@@ -29,7 +29,7 @@ import java.util.UUID;
  * TaskService kapselt die Geschäftslogik für Aufgaben:
  * - Laden aller Tasks eines Users
  * - Erstellen, Updaten und Löschen von Tasks
- * - Validierung von DTOs und Mapping DTO <-> Entity
+ * - Validierung von DTOs und Mapping DTO ↔ Entity
  *
  * @author uqvfm
  * @version 1.1
@@ -50,7 +50,6 @@ public class TaskService {
     private static final String MSG_SUBMISSION_CYCLE_INVALID = "submissionCycle muss >= 1 sein.";
     private static final String MSG_SUBMISSION_RANGE_INVALID = "endTime muss nach firstDeadline liegen.";
     private static final String MSG_OTHER_RANGE_INVALID = "Bei sonstigen Aufgaben muss endTime größer als startTime sein.";
-    private static final String MSG_DTO_TYPE_MISMATCH = "DTO-Typ oder Task-Subtyp passt nicht zur Kategorie.";
 
     private final UserRepository userRepository;
     private final ModuleRepository moduleRepository;
@@ -65,7 +64,7 @@ public class TaskService {
     }
 
     /**
-     * Erstellt eine neue Task für einen Nutzer.
+     * Erstellt einen neuen Task für einen Nutzer.
      *
      * <p>Ablauf:
      * DTO validieren, User prüfen, Modul des Users laden, Entity erzeugen und dem Modul zuordnen
@@ -90,7 +89,7 @@ public class TaskService {
     }
 
     /**
-     * Aktualisiert eine bestehende Task.
+     * Aktualisiert einen bestehenden Task.
      *
      * <p>Wichtig: Die Kategorie darf nicht geändert werden, da das einem Typwechsel
      * (z.B. ExamTask -> OtherTask) entsprechen würde.</p>
@@ -102,7 +101,7 @@ public class TaskService {
      * @throws NullPointerException      wenn {@code userId} oder {@code taskId} {@code null} ist
      * @throws ValidationException       wenn das DTO ungültig ist oder die Kategorie geändert würde
      * @throws ResourceNotFoundException wenn Nutzer, Modul oder Task nicht existiert
-     * @throws AccessDeniedException     wenn die Task existiert, aber nicht dem Nutzer gehört
+     * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
     public TaskDTO updateTask(UUID userId, UUID taskId, TaskDTO dto) {
         Objects.requireNonNull(userId, "userId");
@@ -112,7 +111,7 @@ public class TaskService {
 
         Task task = requireOwnedTask(userId, taskId);
 
-        // Kategorie-Wechsel würde Typwechsel bedeuten -> nicht erlaubt
+        // Kategorie-Wechsel würde Typwechsel bedeuten → nicht erlaubt
         if (dto.getCategory() != task.getCategory()) {
             throw new ValidationException(MSG_CATEGORY_CHANGE_FORBIDDEN);
         }
@@ -136,17 +135,17 @@ public class TaskService {
     }
 
     /**
-     * Löscht eine bestehende Task.
+     * Löscht einen bestehenden Task.
      *
-     * <p>Die Task wird zunächst aus der Task-Liste ihres Moduls entfernt, damit die
+     * <p>Der Task wird zunächst aus der Task-Liste ihres Moduls entfernt, damit die
      * bidirektionale Beziehung im aktuellen Persistence-Context konsistent bleibt.
-     * Anschließend wird die Task über das Repository aus der Datenbank gelöscht.</p>
+     * Anschließend wird der Task über das Repository aus der Datenbank gelöscht.</p>
      *
      * @param userId ID des Nutzers (darf nicht {@code null} sein)
      * @param taskId ID der zu löschenden Task (darf nicht {@code null} sein)
      * @throws NullPointerException      wenn {@code userId} oder {@code taskId} {@code null} ist
      * @throws ResourceNotFoundException wenn Nutzer oder Task nicht existiert
-     * @throws AccessDeniedException     wenn die Task existiert, aber nicht dem Nutzer gehört
+     * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
     public void deleteTask(UUID userId, UUID taskId) {
         Objects.requireNonNull(userId, "userId");
@@ -288,9 +287,9 @@ public class TaskService {
     }
 
     /**
-     * Lädt eine Task anhand (taskId, userId).
-     * Wenn taskId existiert, aber nicht dem User gehört -> AccessDenied.
-     * Wenn taskId nicht existiert -> NotFound.
+     * Lädt einen Task anhand (taskId, userId).
+     * Wenn taskId existiert, aber nicht dem User gehört → AccessDenied,
+     * wenn taskId nicht existiert → NotFound.
      */
     private Task requireOwnedTask(UUID userId, UUID taskId) {
         return taskRepository.findByTaskIdAndModuleUserUserId(taskId, userId)

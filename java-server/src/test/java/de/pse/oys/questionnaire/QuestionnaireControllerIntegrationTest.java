@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.time.DayOfWeek;
 import java.util.EnumSet;
@@ -49,8 +50,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class QuestionnaireControllerIntegrationTest {
 
-    private static final String QUESTIONNAIRE_BASE = "/questionnaire";
-    private static final String SUBMIT = QUESTIONNAIRE_BASE + "/submit";
+    private static final String QUESTIONNAIRE_BASE = "/api/v1/questionnaire";
+    private static final String SUBMIT = QUESTIONNAIRE_BASE;
     private static final String STATUS = QUESTIONNAIRE_BASE + "/status";
 
     @Container
@@ -106,7 +107,7 @@ class QuestionnaireControllerIntegrationTest {
         String loginJson = objectMapper.writeValueAsString(loginDTO);
 
         // Login Request durchführen
-        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
@@ -139,7 +140,7 @@ class QuestionnaireControllerIntegrationTest {
         String dtoJson = objectMapper.writeValueAsString(dto);
 
         // Fragebogen absenden mit echtem JWT und speichern lassen
-        mockMvc.perform(post(SUBMIT)
+        mockMvc.perform(put(SUBMIT)
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dtoJson))

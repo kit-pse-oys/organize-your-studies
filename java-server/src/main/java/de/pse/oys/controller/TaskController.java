@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -17,7 +18,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/api/v1/tasks")
 public class TaskController extends BaseController {
 
     private final TaskService taskService;
@@ -36,15 +37,10 @@ public class TaskController extends BaseController {
      */
     @GetMapping
     public ResponseEntity<List<WrapperDTO<TaskDTO>>> getTasks() {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            List<WrapperDTO<TaskDTO>> tasks = taskService.getTasksByUserId(userId);
-            return ResponseEntity.ok(tasks);
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        UUID userId = getAuthenticatedUserId();
+        List<WrapperDTO<TaskDTO>> tasks = taskService.getTasksByUserId(userId);
+        return ResponseEntity.ok(tasks);
+
     }
 
     /**
@@ -53,60 +49,35 @@ public class TaskController extends BaseController {
      * @return Das erstellte TaskDTO.
      */
     @PostMapping
-    public ResponseEntity<UUID> createTask(@RequestBody TaskDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            UUID taskId = taskService.createTask(userId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(taskId);
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<Map<String, UUID>> createTask(@RequestBody TaskDTO dto) {
+        UUID userId = getAuthenticatedUserId();
+        UUID taskId = taskService.createTask(userId, dto);
+        return ResponseEntity.ok(Map.of("id", taskId));
     }
 
     /**
      * Aktualisiert eine bestehende Aufgabe.
-     * @param dto Die aktualisierten Daten.
-     * @return Das geänderte TaskDTO.
+     * @param wrapper Enthält die ID des Tasks und die neuen Daten als TaskDTO.
+     * @return Status 200 (OK) bei Erfolg.
      */
-    @PutMapping("/{taskId}")
-    public ResponseEntity<TaskDTO> updateTask(@PathVariable UUID taskId, @RequestBody TaskDTO dto) {
-        try {
-            UUID userId = getAuthenticatedUserId();
+    @PutMapping
+    public ResponseEntity<Void> updateTask(@RequestBody WrapperDTO<TaskDTO> wrapper) {
+        UUID userId = getAuthenticatedUserId();
+        taskService.updateTask(userId, wrapper.getId(), wrapper.getData());
+        return ResponseEntity.ok().build();
 
-            TaskDTO updatedTask = taskService.updateTask(userId, taskId, dto);
-
-            return ResponseEntity.ok(updatedTask);
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
     /**
      * Löscht eine Aufgabe.
      *
-     * @param taskId Die ID der zu löschenden Aufgabe.
+     * @param wrapper Enthält die ID der zu löschenden Aufgabe.
      * @return No Content Status.
      */
-    @DeleteMapping("/{taskId}")
-    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            taskService.deleteTask(userId, taskId);
-            return ResponseEntity.noContent().build();
-        }catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @DeleteMapping
+    public ResponseEntity<Void> deleteTask(@RequestBody WrapperDTO<Void> wrapper) {
+        UUID userId = getAuthenticatedUserId();
+        taskService.deleteTask(userId, wrapper.getId());
+        return ResponseEntity.noContent().build();
     }
 }

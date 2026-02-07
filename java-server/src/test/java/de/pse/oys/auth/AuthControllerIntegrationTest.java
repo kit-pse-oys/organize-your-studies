@@ -26,6 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -42,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerIntegrationTest {
 
     // Endpunkt-Pfade, die vom AuthController verwendet werden
-    private static final String AUTH_BASE = "/auth";
+    private static final String AUTH_BASE = "/api/v1/auth";
     private static final String LOGIN = AUTH_BASE + "/login";
     private static final String REFRESH = AUTH_BASE + "/refresh";
 
@@ -104,6 +105,7 @@ class AuthControllerIntegrationTest {
         MvcResult result = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(jsonPath("$.refreshToken").exists())
@@ -174,6 +176,7 @@ class AuthControllerIntegrationTest {
         String loginResponse = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

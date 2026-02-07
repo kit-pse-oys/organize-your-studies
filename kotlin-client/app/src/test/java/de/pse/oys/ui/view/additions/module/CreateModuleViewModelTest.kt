@@ -63,9 +63,18 @@ class CreateModuleViewModelTest {
 
         val testVM = object : BaseCreateModuleViewModel(model, navController) {
             override val showDelete = false
-            override fun submit() {}
+            override fun submit() {
+                // 1. Simulation: Daten in die Map schreiben
+                modulesMap[testId] = testData
+                // 2. Simulation: Navigation auslösen
+                navController.main()
+            }
             override fun delete() {}
-            fun testRegister(m: Identified<ModuleData>) = registerNewModule(m)
+
+            fun testRegister(m: Identified<ModuleData>) {
+                registerNewModule(m) // Daten intern setzen
+                submit()             // "Speichern" und "Navigieren" auslösen
+            }
         }
 
         testVM.testRegister(testModule)

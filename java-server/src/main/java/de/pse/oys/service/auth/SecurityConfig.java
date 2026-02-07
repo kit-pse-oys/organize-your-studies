@@ -56,7 +56,7 @@ public class SecurityConfig {
 
                 // Berechtigungen festlegen
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/api/users/register").permitAll() // Login/Register sind öffentlich
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/users/register").permitAll() // Login/Register sind öffentlich
                         .anyRequest().authenticated()            // Alles andere erfordert einen Token
                 );
 

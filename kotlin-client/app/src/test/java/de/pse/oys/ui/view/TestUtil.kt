@@ -1,5 +1,7 @@
 package de.pse.oys.ui.view
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
@@ -15,11 +17,15 @@ object TestUtils {
     const val TEST_TITLE = "Test-Title"
     const val TEST_DESC = "Test-Description"
     val TEST_COLOR = Blue
-    val TEST_PRIORITY = Priority.NEUTRAL
-    val TEST_DATE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    val TEST_DATE_FUTURE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.plus(1, DateTimeUnit.DAY)
-    val TEST_TIME = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
-    val TEST_TIME_FUTURE = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+    val TEST_PRIORITY = Priority.HIGH
+
+    // Feste Daten weit in der Zukunft verhindern "Past Date" Fehler
+    val TEST_DATE = LocalDate(2030, 1, 1)
+    val TEST_DATE_FUTURE = LocalDate(2030, 1, 2)
+
+    // Unterschiedliche Zeiten für Start und Ende (wichtig für Validierung)
+    val TEST_TIME = LocalTime(10, 0)
+    val TEST_TIME_FUTURE = LocalTime(12, 0)
 
     fun randomUuid() = Uuid.random()
 

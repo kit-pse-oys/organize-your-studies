@@ -17,13 +17,17 @@ public class LoginDTO {
     private String password; // nur für lokale Authentifizierung relevant
 
     /** AuthType: Unterscheidung zwischen lokal und extern */
-    private AuthType type; // gibt an ob lokale oder externe Authentifizierung genutzt wird
+    private AuthType authType; // gibt an ob lokale oder externe Authentifizierung genutzt wird
 
     /** Externer Authentifizierungsprovider */
     private UserType provider; // nur für externe Authentifizierung relevant
 
     /** ID-Token für externe Provider */
     private String externalToken; // nur für oidc Authentifizierung relevant
+
+    // ----- Standard-Konstruktor für Jackson -----
+    public LoginDTO() {}
+
 
     // ----- Getter & Setter -----
 
@@ -59,14 +63,14 @@ public class LoginDTO {
      * @return den AuthType
      */
     public AuthType getAuthType() {
-        return type;
+        return authType;
     }
 
     /**
-     * @param type den AuthType
+     * @param authType den AuthType
      */
-    public void setAuthType(AuthType type) {
-        this.type = type;
+    public void setAuthType(AuthType authType) {
+        this.authType = authType;
     }
 
     /**
