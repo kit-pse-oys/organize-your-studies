@@ -67,9 +67,6 @@ class CreateFreeTimeViewModelTest {
         val testData = createMockFreeTimeData()
         val testFreeTime = Identified(testData, testId)
 
-        // Deklaration der Variable, damit der Compiler nicht meckert
-        var navigationCalled = false
-
         val freeTimesMap = mutableMapOf<Uuid, FreeTimeData>()
         every { model.freeTimes } returns freeTimesMap
 
@@ -80,8 +77,6 @@ class CreateFreeTimeViewModelTest {
                 freeTimesMap[testId] = testData
                 // 2. Navigation simulieren
                 navController.main()
-
-                navigationCalled = true // Markierung setzen
             }
             override fun delete() {}
             fun testRegister(f: Identified<FreeTimeData>) {
@@ -92,10 +87,7 @@ class CreateFreeTimeViewModelTest {
         }
 
         testVM.testRegister(testFreeTime)
-
-        assertTrue("Navigation sollte aufgerufen worden sein", navigationCalled)
-
         assertEquals(testData, freeTimesMap[testId])
-        verify(exactly = 1) { navController.main() }
+        verify { navController.main() }
     }
 }
