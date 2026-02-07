@@ -7,6 +7,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
+import kotlinx.serialization.json.JsonClassDiscriminator
 
 typealias RemoteStep = Identified<RemoteStepData>
 
