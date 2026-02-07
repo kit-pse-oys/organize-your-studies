@@ -77,6 +77,8 @@ class CreateFreeTimeViewModelTest {
                 freeTimesMap[testId] = testData
                 // 2. Navigation simulieren
                 navController.main()
+
+                navigationCalled = true // Markierung setzen
             }
             override fun delete() {}
             fun testRegister(f: Identified<FreeTimeData>) {
@@ -87,7 +89,10 @@ class CreateFreeTimeViewModelTest {
         }
 
         testVM.testRegister(testFreeTime)
+
+        assertTrue("Navigation sollte aufgerufen worden sein", navigationCalled)
+
         assertEquals(testData, freeTimesMap[testId])
-        verify { navController.main() }
+        verify(exactly = 1) { navController.main() }
     }
 }
