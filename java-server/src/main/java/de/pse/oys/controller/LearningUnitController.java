@@ -7,7 +7,6 @@ import de.pse.oys.dto.response.LearningPlanDTO;
 import de.pse.oys.service.LearningUnitService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,26 +33,26 @@ public class LearningUnitController extends BaseController {
         this.learningUnitService = learningUnitService;
     }
 
-    /**
-     * Aktualisiert eine spezifische Lerneinheit (z.B. Zeitraum).
-     * @param control Die Steuerungsinformationen zur Einheit.
-     * @return Der aktualisierte Gesamtplan als DTO.
-     */
-    @PatchMapping("/moveAuto")
-    public ResponseEntity<WrapperDTO<UnitDTO>> moveUnitAutomatically(@RequestBody UnitControlDTO control) {
-        UUID userId = getAuthenticatedUserId();
-        UUID unitId = control.getId();
-        UnitDTO updatedUnit = learningUnitService.moveLearningUnitAutomatically(userId, unitId);
-
-        return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
-    }
+//    /**
+//     * Aktualisiert eine spezifische Lerneinheit (z.B. Zeitraum).
+//     * @param control Die Steuerungsinformationen zur Einheit.
+//     * @return Der aktualisierte Gesamtplan als DTO.
+//     */
+//    @PostMapping("/moveAuto") //todo: das ist jetzt im planningservice, hier also rausnehmen
+//    public ResponseEntity<WrapperDTO<UnitDTO>> moveUnitAutomatically(@RequestBody UnitControlDTO control) {
+//        UUID userId = getAuthenticatedUserId();
+//        UUID unitId = control.getId();
+//        UnitDTO updatedUnit = learningUnitService.moveLearningUnitAutomatically(userId, unitId);
+//
+//        return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
+//    }
 
     /**
      * Verschiebt eine Lerneinheit manuell auf einen neuen Zeitraum.
      * @param control Die Steuerungsinformationen zur Einheit.
      * @return Der aktualisierte Gesamtplan.
      */
-    @PatchMapping("/move")
+    @PostMapping("/move")
     public ResponseEntity<Void> moveLearningUnitManually(@RequestBody UnitControlDTO control) {
         UUID userId = getAuthenticatedUserId();
         learningUnitService.moveLearningUnitManually(userId, control.getId(), control.getNewTime());

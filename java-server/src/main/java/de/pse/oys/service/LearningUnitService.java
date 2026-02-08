@@ -2,8 +2,6 @@ package de.pse.oys.service;
 
 import de.pse.oys.domain.LearningPlan;
 import de.pse.oys.domain.LearningUnit;
-import de.pse.oys.domain.Module;
-import de.pse.oys.domain.Task;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
@@ -79,7 +77,7 @@ public class LearningUnitService {
         moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end));
 
         learningPlanRepository.save(plan);
-        return mapUnit(unit);
+        return unit.toDTO();
     }
 
     /**
@@ -131,7 +129,7 @@ public class LearningUnitService {
         Objects.requireNonNull(userId, "userId");
         //requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
-                .map(unit -> new WrapperDTO<>(unit.getUnitId(), mapUnit(unit))).toList();
+                .map(unit -> new WrapperDTO<>(unit.getUnitId(), unit.toDTO())).toList();
     }
     // -------------------------------------------------------------------------
     // intern
@@ -173,40 +171,6 @@ public class LearningUnitService {
                 throw new ValidationException(MSG_OVERLAP);
             }
         }
-    }
-
-
-    /** Erstellt ein UnitDTO aus einer LearningUnit. */
-    private UnitDTO mapUnit(LearningUnit unit) {
-        UnitDTO dto = new UnitDTO();
-
-        Task task = unit.getTask();
-        if (task != null) {
-            dto.setTitle(task.getTitle());
-            dto.setTask(task);
-
-            Module module = task.getModule();
-            if (module != null) {
-                dto.setDescription(module.getDescription());
-                dto.setColor(module.getColorHexCode());
-            }
-        }
-
-        LocalDateTime startTime = unit.getStartTime();
-        if (startTime != null) {
-            dto.setDate(startTime.toLocalDate());
-            dto.setStart(startTime.toLocalTime());
-        }
-
-        LocalDateTime endTime = unit.getEndTime();
-        if (endTime != null) {
-            dto.setEnd(endTime.toLocalTime());
-            if (dto.getDate() == null) {
-                dto.setDate(endTime.toLocalDate());
-            }
-        }
-
-        return dto;
     }
 
     /**

@@ -12,6 +12,7 @@ import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
+import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
@@ -152,7 +153,7 @@ public class PlanningService {
      */
 
     @Transactional
-    public void rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
+    public UnitDTO rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
@@ -212,14 +213,14 @@ public class PlanningService {
             unitToReschedule.setStartTime(newStart);
             unitToReschedule.setEndTime(newEnd);
             learningPlanRepository.save(plan);
-
+            return unitToReschedule.toDTO();
 
         } else {
             System.out.println("Keine Planungsergebnisse für Rescheduling empfangen.");
+            return null;
         }
-
-
     }
+
 
     private void applyPenaltyToCostMatrix(Task task, LearningUnit unit, LocalDate weekStart) {
         LocalDateTime startTime = unit.getStartTime();

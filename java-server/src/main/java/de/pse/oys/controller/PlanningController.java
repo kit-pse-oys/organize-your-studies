@@ -1,9 +1,14 @@
 package de.pse.oys.controller;
 
+import de.pse.oys.dto.UnitDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.planning.PlanningService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -18,7 +23,7 @@ import java.util.UUID;
  * @version 1.1
  */
 @RestController
-@RequestMapping("/plan")
+@RequestMapping("/api/v1/plan")
 public class PlanningController extends BaseController {
 
     private final PlanningService planningService;
@@ -45,26 +50,15 @@ public class PlanningController extends BaseController {
 
     /**
      * Verschiebt eine spezifische Lerneinheit auf einen anderen Zeitpunkt.
-     * @param unitId Die UUID der zu verschiebenden Planungseinheit.
-     * @param newStartTime Der neue gewünschte Startzeitpunkt.
+     * @param wrapperDTO Enthält die ID der Lerneinheit.
      * @return Status 200 (OK), 403 (Forbidden) bei Zugriffsschutz oder 400 (Bad Request).
      */
-    @PatchMapping("/{unitId}/reschedule")
-    public ResponseEntity<Void> rescheduleUnit( //todo: soll ich das für moveUnit (auto und manuell) nutzen? falls ja anpassen!
-            @PathVariable UUID unitId,
-            @RequestParam LocalDate newStartTime) {
-        try {
-            UUID userId = getAuthenticatedUserId();
-            planningService.rescheduleUnit(userId, newStartTime, unitId);
-            return ResponseEntity.ok().build();
-        } catch (SecurityException e) {
-            // 403 Forbidden, falls die Unit nicht dem anfragenden User gehört
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
-            // 400 Bad Request bei ungültiger ID oder Zeitformat
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @PostMapping("/units/moveAuto")
+    public ResponseEntity<WrapperDTO<UnitDTO>> rescheduleUnit(@RequestParam WrapperDTO<Void> wrapperDTO) {
+        UUID userId = getAuthenticatedUserId();
+        UUID unitId = wrapperDTO.getId();
+        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        UnitDTO updatedUnit = planningService.rescheduleUnit(userId, weekStart, unitId);
+        return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
     }
 }
