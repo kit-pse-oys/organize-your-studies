@@ -6,6 +6,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.uuid.Uuid
 
 typealias RemoteStep = Identified<RemoteStepData>
@@ -19,11 +20,11 @@ typealias RemoteSubmissionTask = Identified<RemoteSubmissionTaskData>
 typealias RemoteOtherTask = Identified<RemoteOtherTaskData>
 
 @Serializable
+@JsonClassDiscriminator(discriminator = "category")
 sealed class RemoteTaskData {
     abstract val title: String
     abstract val module: Uuid
     abstract val weeklyTimeLoad: Int
-    abstract val sendNotification: Boolean
 }
 
 @Serializable
@@ -32,7 +33,6 @@ data class RemoteExamTaskData(
     override val title: String,
     override val module: Uuid,
     override val weeklyTimeLoad: Int,
-    override val sendNotification: Boolean,
     val examDate: LocalDate,
 ) : RemoteTaskData()
 
@@ -42,7 +42,6 @@ data class RemoteSubmissionTaskData(
     override val title: String,
     override val module: Uuid,
     override val weeklyTimeLoad: Int,
-    override val sendNotification: Boolean,
     val firstDate: LocalDateTime,
     val cycle: Int,
 ) : RemoteTaskData()
@@ -53,7 +52,6 @@ data class RemoteOtherTaskData(
     override val title: String,
     override val module: Uuid,
     override val weeklyTimeLoad: Int,
-    override val sendNotification: Boolean,
     val start: LocalDate,
     val end: LocalDate,
 ): RemoteTaskData()

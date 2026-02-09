@@ -51,10 +51,12 @@ import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.theme.MediumBlue
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * View for the welcome and questionnaire screen.
@@ -277,7 +279,9 @@ abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
         viewModelScope.launch {
             api.updateQuestionnaire(state)
 
-            navigateToMain()
+            withContext(Dispatchers.Main.immediate) {
+                navigateToMain()
+            }
         }
     }
 

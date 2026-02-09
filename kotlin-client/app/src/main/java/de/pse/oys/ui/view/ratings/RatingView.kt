@@ -14,8 +14,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +35,7 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.RatingAspect
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.Rating
 import de.pse.oys.data.facade.UnitRatings
 import de.pse.oys.ui.navigation.AvailableRatings
@@ -53,7 +57,18 @@ import kotlin.uuid.Uuid
  */
 @Composable
 fun RatingView(viewModel: IRatingViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         var selectedMissed by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
@@ -169,6 +184,8 @@ private fun RatingQuestion(
  * Interface for the view model of the [RatingView].
  */
 interface IRatingViewModel {
+    var error: Boolean
+
     /**
      * Gets the rating for a specific aspect.
      * @param aspect the [RatingAspect] to get the rating for.
@@ -203,6 +220,8 @@ class RatingViewModel(
     private val target: Uuid,
     private val navController: NavController
 ) : ViewModel(), IRatingViewModel {
+    override var error: Boolean by mutableStateOf(false)
+
     private var completion by mutableStateOf(Rating.MEDIUM)
     private var duration by mutableStateOf(Rating.MEDIUM)
     private var motivation by mutableStateOf(Rating.MEDIUM)
@@ -229,6 +248,7 @@ class RatingViewModel(
     override fun submitRating() {
         viewModelScope.launch {
             api.rateUnit(target, UnitRatings(completion, duration, motivation))
+                .defaultHandleError(navController) { error = true }
 
             withContext(Dispatchers.Main.immediate) {
                 navController.availableRatings(dontGoBack = AvailableRatings)
@@ -237,6 +257,8 @@ class RatingViewModel(
     }
 
     override fun submitMissed() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            api.rateUnitMissed(target).defaultHandleError(navController) { error = true }
+        }
     }
 }
