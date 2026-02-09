@@ -11,9 +11,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +31,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.properties.Darkmode
 import de.pse.oys.data.properties.Properties
 import de.pse.oys.ui.navigation.accountSettings
@@ -49,7 +56,18 @@ import kotlinx.coroutines.plus
  */
 @Composable
 fun MenuView(viewModel: IMenuViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         val darkmode by viewModel.darkmode.collectAsStateWithLifecycle()
 
         Box(
@@ -132,6 +150,7 @@ private fun Darkmode.label(): String = when (this) {
  * @property darkmode the [StateFlow] of the current [Darkmode].
  */
 interface IMenuViewModel {
+    var error: Boolean
     val darkmode: StateFlow<Darkmode>
 
     /**
@@ -183,6 +202,7 @@ class MenuViewModel(
     private val navController: NavController
 ) : ViewModel(),
     IMenuViewModel {
+    override var error: Boolean by mutableStateOf(false)
     override val darkmode = properties.darkmode.stateIn(
         viewModelScope + Dispatchers.IO,
         SharingStarted.Eagerly,
@@ -217,7 +237,7 @@ class MenuViewModel(
 
     override fun updatePlan() {
         viewModelScope.launch {
-            api.updatePlan()
+            api.updatePlan().defaultHandleError(navController) { error = true }
         }
     }
 }

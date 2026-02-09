@@ -12,8 +12,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModelFacade
@@ -41,6 +46,9 @@ import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -60,8 +68,18 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
     var confirmDelete by remember { mutableStateOf(false) }
     val dateText = viewModel.date.toFormattedString()
     val submitButtonActive = viewModel.title.isNotBlank() && viewModel.start <= viewModel.end
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -179,6 +197,7 @@ private fun TimePickerButton(label: String, time: LocalTime, onClick: () -> Unit
  * Interface for the view model of [CreateFreeTimeView].
  */
 interface ICreateFreeTimeViewModel {
+    var error: Boolean
     val showDelete: Boolean
 
     var title: String
@@ -206,10 +225,10 @@ interface ICreateFreeTimeViewModel {
  */
 abstract class BaseCreateFreeTimeViewModel(
     private val model: ModelFacade,
-    private val navController: NavController,
+    protected val navController: NavController,
     freeTime: FreeTimeData? = null
 ) : ViewModel(), ICreateFreeTimeViewModel {
-
+    override var error: Boolean by mutableStateOf(false)
     override var title by mutableStateOf(freeTime?.title ?: "")
     override var date by mutableStateOf(
         freeTime?.date ?: Clock.System.now()
@@ -246,7 +265,14 @@ class CreateFreeTimeViewModel(
     override val showDelete = false
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = FreeTimeData(title, date, start, end, weekly)
+            api.createFreeTime(data).defaultHandleError(navController) { error = true }?.let { id ->
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewFreeTime(FreeTime(data, id))
+                }
+            }
+        }
     }
 
     override fun delete() {
@@ -267,13 +293,27 @@ class EditFreeTimeViewModel(
     target: FreeTime,
     navController: NavController
 ) : BaseCreateFreeTimeViewModel(model, navController, target.data) {
+    private val uuid = target.id
+
     override val showDelete = true
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = FreeTimeData(title, date, start, end, weekly)
+            val freeTime = FreeTime(data, uuid)
+            api.updateFreeTime(freeTime).defaultHandleError(navController) { error = true }?.let {
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewFreeTime(freeTime)
+                }
+            }
+        }
     }
 
     override fun delete() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            api.deleteFreeTime(uuid).defaultHandleError(navController) { error = true }?.let {
+                navController.main()
+            }
+        }
     }
 }

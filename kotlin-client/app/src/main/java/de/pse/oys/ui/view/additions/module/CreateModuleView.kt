@@ -12,8 +12,11 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,9 +29,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
@@ -43,6 +48,9 @@ import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * View for creating a new module or editing an existing one.
@@ -53,7 +61,18 @@ import de.pse.oys.ui.util.ViewHeaderBig
 fun CreateModuleView(viewModel: ICreateModuleViewModel) {
     var confirmDelete by remember { mutableStateOf(false) }
     val submitButtonActive = viewModel.title.isNotBlank() && viewModel.description.isNotBlank()
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -179,6 +198,7 @@ private fun PriorityChip(
  * Interface for the view model of [CreateModuleView].
  */
 interface ICreateModuleViewModel {
+    var error: Boolean
     val showDelete: Boolean
 
     var title: String
@@ -205,9 +225,11 @@ interface ICreateModuleViewModel {
  */
 abstract class BaseCreateModuleViewModel(
     private val model: ModelFacade,
-    private val navController: NavController,
+    protected val navController: NavController,
     module: ModuleData? = null
 ) : ViewModel(), ICreateModuleViewModel {
+    override var error: Boolean by mutableStateOf(false)
+
     override var title by mutableStateOf(module?.title ?: "")
     override var description by mutableStateOf(module?.description ?: "")
     override var priority by mutableStateOf(module?.priority ?: Priority.NEUTRAL)
@@ -241,7 +263,14 @@ class CreateModuleViewModel(
     override val showDelete = false
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = ModuleData(title, description, priority, color)
+            api.createModule(data).defaultHandleError(navController) { error = true }?.let { id ->
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewModule(Module(data, id))
+                }
+            }
+        }
     }
 
     override fun delete() {
@@ -267,10 +296,22 @@ class EditModuleViewModel(
     override val showDelete = true
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = ModuleData(title, description, priority, color)
+            val module = Module(data, uuid)
+            api.updateModule(module).defaultHandleError(navController) { error = true }?.let {
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewModule(module)
+                }
+            }
+        }
     }
 
     override fun delete() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            api.deleteModule(uuid).defaultHandleError(navController) { error = true }?.let {
+                navController.main()
+            }
+        }
     }
 }

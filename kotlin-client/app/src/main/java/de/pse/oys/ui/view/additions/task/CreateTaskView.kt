@@ -19,11 +19,14 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,11 +41,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.RemoteExamTaskData
+import de.pse.oys.data.api.RemoteOtherTaskData
+import de.pse.oys.data.api.RemoteSubmissionTaskData
+import de.pse.oys.data.api.RemoteTask
+import de.pse.oys.data.api.RemoteTaskData
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.ExamTaskData
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.OtherTaskData
 import de.pse.oys.data.facade.SubmissionTaskData
 import de.pse.oys.data.facade.Task
@@ -61,6 +72,9 @@ import de.pse.oys.ui.util.SubmitButton
 import de.pse.oys.ui.util.ViewHeaderBig
 import de.pse.oys.ui.util.toFormattedString
 import de.pse.oys.ui.util.toFormattedTimeString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -84,7 +98,18 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
         viewModel.title.isNotBlank() && viewModel.module != stringResource(id = R.string.nothing_chosen)
                 && viewModel.weeklyTimeLoad >= 0 && (if (viewModel.type == TaskType.SUBMISSION) viewModel.submissionCycle in 1..<10 else false)
                 && (if (viewModel.type == TaskType.OTHER) viewModel.start <= viewModel.end else false)
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -474,6 +499,7 @@ enum class TaskType {
  * Interface for the view model of [CreateTaskView].
  */
 interface ICreateTaskViewModel {
+    var error: Boolean
     val availableModules: List<String>
     val showDelete: Boolean
 
@@ -509,13 +535,14 @@ interface ICreateTaskViewModel {
  */
 abstract class BaseCreateTaskViewModel(
     private val model: ModelFacade,
-    private val navController: NavController,
+    protected val navController: NavController,
     task: TaskData? = null
 ) : ViewModel(), ICreateTaskViewModel {
     init {
         require(model.modules != null)
     }
 
+    override var error: Boolean by mutableStateOf(false)
     override val availableModules: List<String> = model.modules!!.map { it.value.title }
 
     override var title by mutableStateOf(task?.title ?: "")
@@ -560,6 +587,39 @@ abstract class BaseCreateTaskViewModel(
 
         navController.main()
     }
+
+    protected fun assembleRemoteTask(): RemoteTaskData {
+        val module = model.modules!!.entries.find { it.value.title == module }!!.key
+        return when (type) {
+            TaskType.EXAM -> RemoteExamTaskData(title, module, weeklyTimeLoad, examDate)
+            TaskType.SUBMISSION -> RemoteSubmissionTaskData(
+                title,
+                module,
+                weeklyTimeLoad,
+                submissionDate,
+                submissionCycle
+            )
+
+            TaskType.OTHER -> RemoteOtherTaskData(title, module, weeklyTimeLoad, start, end)
+        }
+    }
+
+    protected fun assembleTask(): TaskData {
+        val module = model.modules!!.entries.find { it.value.title == module }!!
+            .let { Module(it.value, it.key) }
+        return when (type) {
+            TaskType.EXAM -> ExamTaskData(title, module, weeklyTimeLoad, examDate)
+            TaskType.SUBMISSION -> SubmissionTaskData(
+                title,
+                module,
+                weeklyTimeLoad,
+                submissionDate,
+                submissionCycle
+            )
+
+            TaskType.OTHER -> OtherTaskData(title, module, weeklyTimeLoad, start, end)
+        }
+    }
 }
 
 /**
@@ -576,7 +636,14 @@ class CreateTaskViewModel(
     override val showDelete = false
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = assembleRemoteTask()
+            api.createTask(data).defaultHandleError(navController) { error = true }?.let { id ->
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewTask(Task(assembleTask(), id))
+                }
+            }
+        }
     }
 
     override fun delete() {
@@ -597,13 +664,27 @@ class EditTaskViewModel(
     target: Task,
     navController: NavController
 ) : BaseCreateTaskViewModel(model, navController, target.data) {
+    private val uuid = target.id
+
     override val showDelete = true
 
     override fun submit() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            val data = assembleRemoteTask()
+            val task = RemoteTask(data, uuid)
+            api.updateTask(task).defaultHandleError(navController) { error = true }?.let {
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewTask(Task(assembleTask(), uuid))
+                }
+            }
+        }
     }
 
     override fun delete() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let {
+                navController.main()
+            }
+        }
     }
 }

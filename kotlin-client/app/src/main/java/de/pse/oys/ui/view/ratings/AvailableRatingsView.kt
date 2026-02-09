@@ -13,11 +13,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +35,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.ensureUnits
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.rating
@@ -47,7 +52,18 @@ import kotlin.uuid.Uuid
  */
 @Composable
 fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -127,6 +143,7 @@ data class RatingTarget(val name: String, val color: Color)
  * @property available the list of available ratings.
  */
 interface IAvailableRatingsViewModel {
+    var error: Boolean
     val available: List<RatingTarget>
 
     /**
@@ -147,6 +164,8 @@ class AvailableRatingsViewModel(
     private val model: ModelFacade,
     private val navController: NavController
 ) : ViewModel(), IAvailableRatingsViewModel {
+    override var error: Boolean by mutableStateOf(false)
+
     private var _available: Map<RatingTarget, Uuid> by mutableStateOf(mapOf())
     override val available: List<RatingTarget> by derivedStateOf {
         _available.entries.sortedBy { it.value }.map { it.key }
@@ -156,19 +175,13 @@ class AvailableRatingsViewModel(
         require(model.steps != null)
 
         viewModelScope.launch {
-            val units = model.ensureUnits(api)
-            if (units.status != HttpStatusCode.OK.value) {
-                // TODO: Show error
-            }
-
-            val rateable = api.queryRateable()
-            if (rateable.status != HttpStatusCode.OK.value) {
-                // TODO: Show error
-            }
-            val uuids = rateable.response ?: error("No response with Status 200")
-            _available = uuids.associateBy { uuid ->
-                val step = units.response?.values?.firstOrNull { it.values.any { it.task.id == uuid } }?.get(uuid) ?: error("Task not found")
-                RatingTarget(step.task.data.title, step.task.data.module.data.color)
+            model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let { units ->
+                api.queryRateable().defaultHandleError(navController) { error = true }?.let { rateable ->
+                    _available = rateable.associateBy { uuid ->
+                        val step = units.values.firstOrNull { it.values.any { it.task.id == uuid } }?.get(uuid) ?: error("Task not found")
+                        RatingTarget(step.task.data.title, step.task.data.module.data.color)
+                    }
+                }
             }
         }
     }
