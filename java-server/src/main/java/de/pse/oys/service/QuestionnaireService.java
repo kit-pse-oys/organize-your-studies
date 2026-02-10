@@ -137,16 +137,42 @@ public class QuestionnaireService {
         }
     }
 
+
+
     /**
-     * Prüft, ob der Nutzer mit der angegebenen ID Lernpräferenzen gesetzt hat.
+     * Ruft die Lernpräferenzen eines Nutzers ab und wandelt sie in ein QuestionnaireDTO um.
      *
      * @param userId die eindeutige Id des Nutzers.
-     * @return true, wenn der Nutzer bereits Lernpräferenzen hat, sonst false.
-     * @throws EntityNotFoundException wenn kein Nutzer mit der angegebenen ID existiert.
+     * @return das QuestionnaireDTO mit den gespeicherten Präferenzen.
+     * @throws EntityNotFoundException wenn kein Nutzer gefunden wurde.
      */
-    public boolean hasLearningPreferences(UUID userId) throws EntityNotFoundException {
+    public QuestionnaireDTO getQuestionnaire(UUID userId) throws EntityNotFoundException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(ERR_USER_NOT_FOUND, userId)));
-        return user.getPreferences() != null;
+
+        LearningPreferences preferences = user.getPreferences();
+
+        // Falls noch keine Präferenzen existieren, ein leeres DTO zurückgeben
+        if (preferences == null) {
+            return new QuestionnaireDTO();
+        }
+
+        return getQuestionnaireDTO(preferences);
+    }
+
+    private static QuestionnaireDTO getQuestionnaireDTO(LearningPreferences preferences) {
+        QuestionnaireDTO dto = new QuestionnaireDTO();
+
+        // Einfache Felder mappen
+        dto.setMinUnitDuration(preferences.getMinUnitDurationMinutes());
+        dto.setMaxUnitDuration(preferences.getMaxUnitDurationMinutes());
+        dto.setMaxDayLoad(preferences.getMaxDailyWorkloadHours());
+        dto.setPreferredPauseDuration(preferences.getBreakDurationMinutes());
+        dto.setTimeBeforeDeadlines(preferences.getDeadlineBufferDays());
+
+        // Multiple-Choice Felder (Sets) in die Map-Struktur des DTOs konvertieren
+        dto.setPreferredStudyDays(preferences.getPreferredDays());
+        dto.setPreferredStudyTimes(preferences.getPreferredTimeSlots());
+        return dto;
     }
 }

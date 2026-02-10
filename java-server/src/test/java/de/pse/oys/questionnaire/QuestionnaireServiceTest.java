@@ -117,19 +117,70 @@ class QuestionnaireServiceTest {
     }
 
     @Test
-    void testHasLearningPreferences_trueFalse() {
+    void testGetQuestionnaire_success() {
+        // GIVEN: Ein Nutzer mit existierenden Lernpräferenzen
         UUID userId = UUID.randomUUID();
+        LocalUser user = new LocalUser("testuser", "hash");
 
-        LocalUser userWithPrefs = new LocalUser("testuser", "hash");
-        userWithPrefs.setPreferences(new LearningPreferences(10, 60, 4, 5, 1, new HashSet<>(), new HashSet<>()));
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(userWithPrefs));
-        assertTrue(service.hasLearningPreferences(userId));
+        LearningPreferences prefs = new LearningPreferences(
+                30, 120, 8, 15, 3,
+                Set.of(TimeSlot.MORNING, TimeSlot.AFTERNOON),
+                Set.of(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        );
+        user.setPreferences(prefs);
 
-        LocalUser userWithoutPrefs = new LocalUser("testuser2", "hash");
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(userWithoutPrefs));
-        assertFalse(service.hasLearningPreferences(userId));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.hasLearningPreferences(userId));
+        // WHEN: Die Methode aufgerufen wird
+        QuestionnaireDTO result = service.getQuestionnaire(userId);
+
+        // THEN: Das DTO muss die Werte der Entität korrekt widerspiegeln
+        assertNotNull(result);
+        assertEquals(30, result.getMinUnitDuration());
+        assertEquals(120, result.getMaxUnitDuration());
+        assertEquals(8, result.getMaxDayLoad());
+        assertEquals(15, result.getPreferredPauseDuration());
+        assertEquals(3, result.getTimeBeforeDeadlines());
+
+        // Prüfung der Multiple-Choice Sets (die intern im DTO als Maps verwaltet werden)
+        Set<TimeSlot> times = result.getPreferredStudyTimes();
+        assertTrue(times.contains(TimeSlot.MORNING));
+        assertTrue(times.contains(TimeSlot.AFTERNOON));
+        assertEquals(2, times.size());
+
+        Set<DayOfWeek> days = result.getPreferredStudyDays();
+        assertTrue(days.contains(DayOfWeek.MONDAY));
+        assertTrue(days.contains(DayOfWeek.FRIDAY));
+        assertEquals(2, days.size());
+    }
+
+    @Test
+    void testGetQuestionnaire_returnsEmptyDtoWhenNoPreferences() {
+        // GIVEN: Ein Nutzer existiert, hat aber noch keine Präferenzen gesetzt
+        UUID userId = UUID.randomUUID();
+        LocalUser user = new LocalUser("testuser", "hash");
+        user.setPreferences(null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // WHEN: Die Methode aufgerufen wird
+        QuestionnaireDTO result = service.getQuestionnaire(userId);
+
+        // THEN: Es sollte ein leeres (nicht null) DTO zurückgegeben werden
+        assertNotNull(result);
+        // Da die Felder im DTO Maps sind, die initial leer sind,
+        // sollten die Getter nun Exceptions werfen oder leere Sets liefern.
+        assertTrue(result.getPreferredStudyDays().isEmpty());
+        assertTrue(result.getPreferredStudyTimes().isEmpty());
+    }
+
+    @Test
+    void testGetQuestionnaire_userNotFound() {
+        // GIVEN: Die ID gehört zu keinem existierenden Nutzer
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // WHEN & THEN: Es muss eine EntityNotFoundException geworfen werden
+        assertThrows(EntityNotFoundException.class, () -> service.getQuestionnaire(userId));
     }
 }

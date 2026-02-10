@@ -33,7 +33,6 @@ public class QuestionnaireController extends BaseController {
     }
 
 
-    //TODO: mit RemoteClientTest abgleichen, was übergeben wird. getQuestionnaireStatus prüfen?
 
     /**
      * Übermittelt die Antworten des Fragebogens für den aktuell angemeldeten Nutzer.
@@ -51,12 +50,10 @@ public class QuestionnaireController extends BaseController {
      * Ruft den Status des Fragebogens ab (z. B. ob dieser bereits ausgefüllt wurde).
      * @return Eine ResponseEntity mit den Statusinformationen.
      */
-    @GetMapping("/status")
-    public ResponseEntity<Boolean> getQuestionnaireStatus() { //todo: wird nicht verwendet???
+    @GetMapping
+    public ResponseEntity<QuestionnaireDTO> getQuestionnaire() {
         UUID userId = getAuthenticatedUserId();
-        boolean isCompleted = questionnaireService.hasLearningPreferences(userId);
-        return ResponseEntity.ok(isCompleted);
-
-
+        QuestionnaireDTO questionnaireDTO = questionnaireService.getQuestionnaire(userId);
+        return ResponseEntity.ok(questionnaireDTO);
     }
 }
