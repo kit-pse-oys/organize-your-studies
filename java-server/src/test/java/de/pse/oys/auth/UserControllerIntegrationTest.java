@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("integration")
 @AutoConfigureMockMvc
-class AuthControllerIntegrationTest {
+class UserControllerIntegrationTest {
 
     // Endpunkt-Pfade, die vom AuthController verwendet werden
     private static final String AUTH_BASE = "/api/v1/users";

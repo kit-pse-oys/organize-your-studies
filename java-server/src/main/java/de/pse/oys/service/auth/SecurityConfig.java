@@ -56,8 +56,12 @@ public class SecurityConfig {
 
                 // Berechtigungen festlegen
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/users/register").permitAll() // Login/Register sind öffentlich
-                        .anyRequest().authenticated()            // Alles andere erfordert einen Token
+                        // Nur Login und Register sind explizit öffentlich
+                        .requestMatchers("/api/v1/users/login", "/api/v1/users/register").permitAll()
+                        // Auch der Refresh-Endpunkt sollte öffentlich sein, da man dort ja einen neuen Access-Token will
+                        .requestMatchers("/api/v1/users/refresh").permitAll()
+                        // Alle anderen Anfragen (DELETE /api/v1/users) erfordern Authentifizierung
+                        .anyRequest().authenticated()
                 );
 
 
