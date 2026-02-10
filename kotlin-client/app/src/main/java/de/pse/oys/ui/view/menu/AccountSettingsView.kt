@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.login
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
@@ -38,7 +42,18 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         var confirmDelete by remember { mutableStateOf(false) }
 
         Column(
@@ -87,6 +102,8 @@ private fun DeleteAccountDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
  * Interface for the view model of [AccountSettingsView].
  */
 interface IAccountSettingsViewModel {
+    var error: Boolean
+
     /**
      * Logs out the user and navigates to the login screen.
      */
@@ -109,6 +126,8 @@ class AccountSettingsViewModel(
     private val navController: NavController
 ) : ViewModel(),
     IAccountSettingsViewModel {
+    override var error: Boolean by mutableStateOf(false)
+
     private val credentialManager = CredentialManager.create(context)
 
     override fun logout() {
@@ -124,11 +143,12 @@ class AccountSettingsViewModel(
 
     override fun deleteAccount() {
         viewModelScope.launch {
-            api.deleteAccount()
-            credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            api.deleteAccount().defaultHandleError(navController) { error = true }?.let {
+                credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
-            withContext(Dispatchers.Main.immediate) {
-                navController.login(dontGoBack = Main)
+                withContext(Dispatchers.Main.immediate) {
+                    navController.login(dontGoBack = Main)
+                }
             }
         }
     }
