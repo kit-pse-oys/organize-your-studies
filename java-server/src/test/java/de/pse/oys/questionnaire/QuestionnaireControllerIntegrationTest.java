@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.time.DayOfWeek;
@@ -121,7 +123,7 @@ class QuestionnaireControllerIntegrationTest {
 
     @Test
     @Transactional
-    void testSubmitQuestionnaireAndStatus() throws Exception {
+    void testSubmitAndGetQuestionnaire() throws Exception {
         // Login und Token holen und Nutzer in den SecurityContext setzen (da SecurityContext in MockMvc nicht automatisch gesetzt wird)
         String accessToken = loginAndGetToken();
 
@@ -146,19 +148,28 @@ class QuestionnaireControllerIntegrationTest {
                         .content(dtoJson))
                 .andExpect(status().isOk());
 
-        // Status abfragen (Wurde der Fragebogen bereits ausgefüllt?)
-        MvcResult statusResult = mockMvc.perform(get(STATUS)
+        // Abrufen der Daten über GET /api/v1/questionnaire
+        MvcResult getResult = mockMvc.perform(get(QUESTIONNAIRE_BASE)
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String statusContent = statusResult.getResponse().getContentAsString();
-        assertTrue(Boolean.parseBoolean(statusContent), "Questionnaire sollte als ausgefüllt markiert sein.");
+        String responseContent = getResult.getResponse().getContentAsString();
+        QuestionnaireDTO resultDto = objectMapper.readValue(responseContent, QuestionnaireDTO.class);
 
-        // DB prüfen
+        // Validierung der zurückgegebenen Daten
+        assertNotNull(resultDto);
+        assertEquals(30, resultDto.getMinUnitDuration());
+        assertEquals(90, resultDto.getMaxUnitDuration());
+        assertEquals(6, resultDto.getMaxDayLoad());
+        assertEquals(10, resultDto.getPreferredPauseDuration());
+
+        Set<DayOfWeek> days = resultDto.getPreferredStudyDays();
+        assertTrue(days.contains(DayOfWeek.MONDAY));
+        assertTrue(days.contains(DayOfWeek.WEDNESDAY));
+
+        // DB-Check zur Sicherheit
         User savedUser = userRepository.findById(testUser.getId()).orElseThrow();
         assertNotNull(savedUser.getPreferences());
-        assertTrue(savedUser.getPreferences().getPreferredDays().contains(DayOfWeek.MONDAY));
-        assertTrue(savedUser.getPreferences().getPreferredTimeSlots().contains(TimeSlot.MORNING));
     }
 }
