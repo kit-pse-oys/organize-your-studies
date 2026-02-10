@@ -54,7 +54,6 @@ class QuestionnaireControllerIntegrationTest {
 
     private static final String QUESTIONNAIRE_BASE = "/api/v1/questionnaire";
     private static final String SUBMIT = QUESTIONNAIRE_BASE;
-    private static final String STATUS = QUESTIONNAIRE_BASE + "/status";
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -109,7 +108,7 @@ class QuestionnaireControllerIntegrationTest {
         String loginJson = objectMapper.writeValueAsString(loginDTO);
 
         // Login Request durchführen
-        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
