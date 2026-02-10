@@ -783,7 +783,6 @@ class RemoteClientTest {
                 title = "Task 1",
                 module = Uuid.random(),
                 weeklyTimeLoad = 2,
-                sendNotification = false,
                 examDate = LocalDate(2026, 1, 1)
             ), Uuid.random()
         )
@@ -792,7 +791,6 @@ class RemoteClientTest {
                 title = "Task 2",
                 module = Uuid.random(),
                 weeklyTimeLoad = 6,
-                sendNotification = true,
                 firstDate = LocalDateTime(2026, 1, 1, 0, 0),
                 cycle = 1
             ), Uuid.random()
@@ -802,7 +800,6 @@ class RemoteClientTest {
                 title = "Task 3",
                 module = Uuid.random(),
                 weeklyTimeLoad = 3,
-                sendNotification = false,
                 start = LocalDate(2026, 1, 1),
                 end = LocalDate(2026, 2, 1)
             ), Uuid.random()
@@ -828,7 +825,6 @@ class RemoteClientTest {
                                 put("title", "Task 1")
                                 put("module", task1.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 2)
-                                put("sendNotification", false)
                                 put("examDate", "2026-01-01")
                             })
                         })
@@ -839,7 +835,6 @@ class RemoteClientTest {
                                 put("title", "Task 2")
                                 put("module", task2.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 6)
-                                put("sendNotification", true)
                                 put("firstDate", "2026-01-01T00:00")
                                 put("cycle", 1)
                             })
@@ -851,7 +846,6 @@ class RemoteClientTest {
                                 put("title", "Task 3")
                                 put("module", task3.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 3)
-                                put("sendNotification", false)
                                 put("start", "2026-01-01")
                                 put("end", "2026-02-01")
                             })
@@ -891,7 +885,6 @@ class RemoteClientTest {
                     put("title", "Task 1")
                     put("module", uuid2.toHexDashString())
                     put("weeklyTimeLoad", 2)
-                    put("sendNotification", false)
                     put("examDate", "2026-01-01")
                 }, json)
 
@@ -910,7 +903,6 @@ class RemoteClientTest {
                     title = "Task 1",
                     module = uuid2,
                     weeklyTimeLoad = 2,
-                    sendNotification = false,
                     examDate = LocalDate(2026, 1, 1)
                 )
             )
@@ -943,7 +935,6 @@ class RemoteClientTest {
                         put("title", "Task 1")
                         put("module", uuid2.toHexDashString())
                         put("weeklyTimeLoad", 2)
-                        put("sendNotification", false)
                         put("examDate", "2026-01-01")
                     })
                 }, json)
@@ -956,7 +947,6 @@ class RemoteClientTest {
                         title = "Task 1",
                         module = uuid2,
                         weeklyTimeLoad = 2,
-                        sendNotification = false,
                         examDate = LocalDate(2026, 1, 1)
                     ), uuid1
                 )
