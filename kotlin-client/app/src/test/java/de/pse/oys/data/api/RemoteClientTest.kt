@@ -88,7 +88,7 @@ class RemoteClientTest {
             val (engine, client) = createClient(sessionStore)
 
             engine += { request ->
-                assertEquals("/api/v1/users", request.url.encodedPath)
+                assertEquals("/api/v1/users/register", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(ContentType.Application.Json, request.body.contentType)
 
@@ -124,7 +124,7 @@ class RemoteClientTest {
             val (engine, client) = createClient(sessionStore)
 
             engine += { request ->
-                assertEquals("/api/v1/auth/login", request.url.encodedPath)
+                assertEquals("/api/v1/users/register", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(ContentType.Application.Json, request.body.contentType)
 
@@ -160,7 +160,7 @@ class RemoteClientTest {
             val (engine, client) = createClient(sessionStore)
 
             engine += { request ->
-                assertEquals("/api/v1/auth/login", request.url.encodedPath)
+                assertEquals("/api/v1/users/login", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(ContentType.Application.Json, request.body.contentType)
 
@@ -196,7 +196,7 @@ class RemoteClientTest {
             val (engine, client) = createClient(sessionStore)
 
             engine += { request ->
-                assertEquals("/api/v1/auth/login", request.url.encodedPath)
+                assertEquals("/api/v1/users/login", request.url.encodedPath)
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals(ContentType.Application.Json, request.body.contentType)
 
