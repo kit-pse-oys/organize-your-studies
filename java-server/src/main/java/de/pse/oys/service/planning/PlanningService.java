@@ -1,10 +1,18 @@
 package de.pse.oys.service.planning;
 
-import de.pse.oys.domain.*;
+import de.pse.oys.domain.FreeTime;
+import de.pse.oys.domain.LearningPlan;
+import de.pse.oys.domain.LearningPreferences;
+import de.pse.oys.domain.LearningUnit;
+import de.pse.oys.domain.RecurringFreeTime;
+import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.Task;
+import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
+import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
@@ -14,14 +22,26 @@ import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 
 /**
@@ -58,11 +78,11 @@ public class PlanningService {
     /**
      * Konstruktor für PlanningService.
      *
-     * @param taskRepository
-     * @param learningPlanRepository
-     * @param userRepository
-     * @param learningAnalyticsProvider
-     * @param restTemplate
+     * @param taskRepository der TaskRepository
+     * @param learningPlanRepository der LearningPlanRepository
+     * @param userRepository der UserRepository
+     * @param learningAnalyticsProvider der LearningAnalyticsProvider
+     * @param restTemplate der RestTemplate für HTTP-Anfragen
      */
     public PlanningService(TaskRepository taskRepository,
                            LearningPlanRepository learningPlanRepository,
@@ -115,7 +135,7 @@ public class PlanningService {
 
         if (planningResults != null && !planningResults.isEmpty()) {
             int breakDuration = userPreferences.getBreakDurationMinutes();
-            saveLearningResults(planningResults, weekStart, breakDuration);
+            saveLearningResults(planningResults, weekStart, breakDuration, user);
             System.out.println("Planungsergebnisse erfolgreich gespeichert.");
         } else {
             System.out.println("Keine Planungsergebnisse empfangen.");
@@ -133,7 +153,7 @@ public class PlanningService {
      */
 
     @Transactional
-    public void rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
+    public UnitDTO rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
@@ -193,14 +213,14 @@ public class PlanningService {
             unitToReschedule.setStartTime(newStart);
             unitToReschedule.setEndTime(newEnd);
             learningPlanRepository.save(plan);
-
+            return unitToReschedule.toDTO();
 
         } else {
             System.out.println("Keine Planungsergebnisse für Rescheduling empfangen.");
+            return null;
         }
-
-
     }
+
 
     private void applyPenaltyToCostMatrix(Task task, LearningUnit unit, LocalDate weekStart) {
         LocalDateTime startTime = unit.getStartTime();
@@ -272,8 +292,10 @@ public class PlanningService {
      *
      * @param results   Die Liste der Planungsergebnisse vom Solver.
      * @param weekStart Das Startdatum der Woche.
+     * @param breakDuration Die Pausendauer zwischen den Lerneinheiten in Minuten.
+     * @param user      Der Nutzer, dem der Lernplan zugeordnet werden soll.
      */
-    private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration) {
+    private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration, User user) {
         LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
         List<LearningUnit> newLearningUnits = new ArrayList<>();
         for (PlanningResponseDTO result : results) {
@@ -294,8 +316,19 @@ public class PlanningService {
                 taskRepository.save(task);
             }
         }
+        plan.setUser(user);
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
+        cleanUpOldPlans(user.getId());
+    }
+
+
+    private void cleanUpOldPlans(UUID userId) {
+        // Stichtag berechnen: Alles was vor 3 Wochen startete
+        LocalDate cutoffDate = LocalDate.now().minusWeeks(3);
+
+        // Lösche alle Pläne des Users, deren Woche vor dem Stichtag begann
+        learningPlanRepository.deleteByUserIdAndWeekStartBefore(userId, cutoffDate);
     }
 
     /**

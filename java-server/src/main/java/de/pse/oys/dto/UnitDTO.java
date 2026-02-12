@@ -1,5 +1,7 @@
 package de.pse.oys.dto;
 
+import de.pse.oys.domain.Task;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -26,6 +28,9 @@ public class UnitDTO {
 
     /** Die Endzeit der Einheit im Format HH:mm. */
     private LocalTime end;
+
+    /** Die zugehörige Aufgabe der Lerneinheit. */
+    private Task task;
 
     /**
      * Standardkonstruktor für die Deserialisierung.
@@ -54,6 +59,10 @@ public class UnitDTO {
     /** @return Die Enduhrzeit. */
     public LocalTime getEnd() { return end; }
 
+    /** Gibt den zugehörigen Task zurück. */
+    public Task getTask() { return task; }
+
+
     // Setter
 
     /** @param title Der Titel der Einheit. */
@@ -73,4 +82,7 @@ public class UnitDTO {
 
     /** @param end Die Endzeit (LocalTime). */
     public void setEnd(LocalTime end) { this.end = end; }
+
+    /** Setzt den zugehörigen Task. */
+    public void setTask(Task task) { this.task = task; }
 }

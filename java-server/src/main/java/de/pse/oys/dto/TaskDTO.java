@@ -1,10 +1,24 @@
 package de.pse.oys.dto;
 
 import de.pse.oys.domain.enums.TaskCategory;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 
 /**
  * Gemeinsame Basis für Task-DTOs.
  */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "category",
+        visible = true // Erlaubt, dass das Feld auch im Enum-Feld landet
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ExamTaskDTO.class, name = "exam"),
+        @JsonSubTypes.Type(value = SubmissionTaskDTO.class, name = "submission"),
+        @JsonSubTypes.Type(value = OtherTaskDTO.class, name = "other")
+})
 public abstract class TaskDTO {
 
     private String title;

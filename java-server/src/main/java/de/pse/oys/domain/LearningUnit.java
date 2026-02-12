@@ -1,6 +1,7 @@
 package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.UnitStatus;
+import de.pse.oys.dto.UnitDTO;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -131,6 +132,37 @@ public class LearningUnit {
         return this.rating != null;
     }
 
+
+    /** Erstellt ein UnitDTO aus einer LearningUnit.
+     * @return das DTO mit den relevanten Informationen dieser Einheit.
+     */
+    public UnitDTO toDTO() {
+        UnitDTO dto = new UnitDTO();
+
+        Task task = this.getTask();
+        if (task != null) {
+            dto.setTitle(task.getTitle());
+            dto.setTask(task);
+
+            Module module = task.getModule();
+            if (module != null) {
+                dto.setDescription(module.getDescription());
+                dto.setColor(module.getColorHexCode());
+            }
+        }
+        if (startTime != null) {
+            dto.setDate(startTime.toLocalDate());
+            dto.setStart(startTime.toLocalTime());
+        }
+
+        if (endTime != null) {
+            dto.setEnd(endTime.toLocalTime());
+            if (dto.getDate() == null) {
+                dto.setDate(endTime.toLocalDate());
+            }
+        }
+        return dto;
+    }
 
     // Getter
 

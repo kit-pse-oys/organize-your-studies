@@ -26,6 +26,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+
 import java.time.DayOfWeek;
 import java.util.EnumSet;
 import java.util.Set;
@@ -49,9 +52,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class QuestionnaireControllerIntegrationTest {
 
-    private static final String QUESTIONNAIRE_BASE = "/questionnaire";
-    private static final String SUBMIT = QUESTIONNAIRE_BASE + "/submit";
-    private static final String STATUS = QUESTIONNAIRE_BASE + "/status";
+    private static final String QUESTIONNAIRE_BASE = "/api/v1/questionnaire";
+    private static final String SUBMIT = QUESTIONNAIRE_BASE;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -106,7 +108,7 @@ class QuestionnaireControllerIntegrationTest {
         String loginJson = objectMapper.writeValueAsString(loginDTO);
 
         // Login Request durchführen
-        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
@@ -120,7 +122,7 @@ class QuestionnaireControllerIntegrationTest {
 
     @Test
     @Transactional
-    void testSubmitQuestionnaireAndStatus() throws Exception {
+    void testSubmitAndGetQuestionnaire() throws Exception {
         // Login und Token holen und Nutzer in den SecurityContext setzen (da SecurityContext in MockMvc nicht automatisch gesetzt wird)
         String accessToken = loginAndGetToken();
 
@@ -139,25 +141,34 @@ class QuestionnaireControllerIntegrationTest {
         String dtoJson = objectMapper.writeValueAsString(dto);
 
         // Fragebogen absenden mit echtem JWT und speichern lassen
-        mockMvc.perform(post(SUBMIT)
+        mockMvc.perform(put(SUBMIT)
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dtoJson))
                 .andExpect(status().isOk());
 
-        // Status abfragen (Wurde der Fragebogen bereits ausgefüllt?)
-        MvcResult statusResult = mockMvc.perform(get(STATUS)
+        // Abrufen der Daten über GET /api/v1/questionnaire
+        MvcResult getResult = mockMvc.perform(get(QUESTIONNAIRE_BASE)
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String statusContent = statusResult.getResponse().getContentAsString();
-        assertTrue(Boolean.parseBoolean(statusContent), "Questionnaire sollte als ausgefüllt markiert sein.");
+        String responseContent = getResult.getResponse().getContentAsString();
+        QuestionnaireDTO resultDto = objectMapper.readValue(responseContent, QuestionnaireDTO.class);
 
-        // DB prüfen
+        // Validierung der zurückgegebenen Daten
+        assertNotNull(resultDto);
+        assertEquals(30, resultDto.getMinUnitDuration());
+        assertEquals(90, resultDto.getMaxUnitDuration());
+        assertEquals(6, resultDto.getMaxDayLoad());
+        assertEquals(10, resultDto.getPreferredPauseDuration());
+
+        Set<DayOfWeek> days = resultDto.getPreferredStudyDays();
+        assertTrue(days.contains(DayOfWeek.MONDAY));
+        assertTrue(days.contains(DayOfWeek.WEDNESDAY));
+
+        // DB-Check zur Sicherheit
         User savedUser = userRepository.findById(testUser.getId()).orElseThrow();
         assertNotNull(savedUser.getPreferences());
-        assertTrue(savedUser.getPreferences().getPreferredDays().contains(DayOfWeek.MONDAY));
-        assertTrue(savedUser.getPreferences().getPreferredTimeSlots().contains(TimeSlot.MORNING));
     }
 }

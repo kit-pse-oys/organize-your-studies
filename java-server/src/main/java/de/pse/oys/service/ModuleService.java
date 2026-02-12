@@ -75,10 +75,9 @@ public class ModuleService {
      *
      * @param userId Die ID des Nutzers (zur Autorisierung)[cite: 5].
      * @param dto    Die aktualisierten Moduldaten[cite: 5].
-     * @return Das aktualisierte Modul als {@link ModuleDTO}[cite: 5].
      * @throws IllegalArgumentException wenn die ID fehlt oder das Modul nicht existiert.
      */
-    public ModuleDTO updateModule(UUID userId, ModuleDTO dto) {
+    public void updateModule(UUID userId, ModuleDTO dto) {
         if (dto.getId() == null) {
             throw new IllegalArgumentException(MSG_UPDATE_REQUIRES_ID);
         }
@@ -99,8 +98,7 @@ public class ModuleService {
         existing.setPriority(dto.getPriority());
         existing.setColorHexCode(dto.getColor());
 
-        Module updated = moduleRepository.save(existing);
-        return mapToDto(updated);
+        moduleRepository.save(existing);
     }
 
     /**
@@ -139,7 +137,7 @@ public class ModuleService {
         requireUserExists(userId);
 
         return moduleRepository.findAllByUser_UserId(userId).stream()
-                .map(module -> new WrapperDTO<ModuleDTO>(module.getModuleId(), toDto(module)))
+                .map(module -> new WrapperDTO<>(module.getModuleId(), toDto(module)))
                 .collect(Collectors.toList());
     }
 
@@ -168,23 +166,10 @@ public class ModuleService {
         return entity;
     }
 
-    /**
-     * Wandelt eine {@link Module}-Entität in ein {@link ModuleDTO} um.
-     * * @param entity Die zu konvertierende Entität.
-     * @return Das resultierende Datentransferobjekt.
-     */
-    private ModuleDTO mapToDto(Module entity) {
-        ModuleDTO dto = new ModuleDTO();
-        dto.setId(entity.getModuleId());
-        dto.setTitle(entity.getTitle());
-        dto.setDescription(entity.getDescription());
-        dto.setPriority(entity.getPriority());
-        dto.setColor(entity.getColorHexCode());
-        return dto;
-    }
+
 
     /**
-     * Prüft die Existenz eine Users.
+     * Prüft die Existenz eines Users.
      */
     private void requireUserExists(UUID userId) throws ResourceNotFoundException {
         if (!userRepository.existsById(userId)) {

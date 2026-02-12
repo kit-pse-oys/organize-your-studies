@@ -127,7 +127,7 @@ internal constructor(
                     val refreshToken = oldTokens?.refreshToken!!
                     val tokenInfo = client.post(serverUrl) {
                         url {
-                            apiPath("auth/refresh")
+                            apiPath("users/refresh")
                         }
 
                         contentType(ContentType.Application.Json)
@@ -167,12 +167,12 @@ internal constructor(
 
     override suspend fun register(credentials: Credentials): Response<Unit> =
         withContext(Dispatchers.IO) {
-            requestTokens("users", credentials)
+            requestTokens("users/register", credentials)
         }
 
     override suspend fun login(credentials: Credentials): Response<Unit> =
         withContext(Dispatchers.IO) {
-            requestTokens("auth/login", credentials)
+            requestTokens("users/login", credentials)
         }
 
     override fun logout() {

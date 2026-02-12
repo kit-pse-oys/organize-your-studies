@@ -2,9 +2,8 @@ package de.pse.oys.service;
 
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
-import de.pse.oys.domain.enums.UserType;
-import de.pse.oys.dto.UserDTO;
 import de.pse.oys.dto.auth.AuthResponseDTO;
+import de.pse.oys.dto.auth.LoginDTO;
 import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.auth.JwtProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +25,6 @@ public class UserService {
     // --- Konstanten für Fehlermeldungen ---
     private static final String ERR_USER_NOT_FOUND = "Nutzer mit der ID %s wurde nicht gefunden.";
     private static final String ERR_USERNAME_TAKEN = "Der Benutzername ist bereits vergeben.";
-    private static final String ERR_INVALID_PASSWORD = "Das eingegebene Passwort ist nicht korrekt.";
     private static final String ERROR_USERNAME_TOO_SHORT = "Username zu kurz.";
     private static final String ERROR_PASSWORD_TOO_SHORT = "Passwort zu kurz.";
 
@@ -58,7 +56,7 @@ public class UserService {
      * @return Die Authentifizierungsantwort mit Tokens und Nutzerinformationen.
      */
     @Transactional
-    public AuthResponseDTO register(UserDTO dto) throws Exception {
+    public AuthResponseDTO register(LoginDTO dto) throws IllegalArgumentException{
         validateRegistration(dto);
 
         if (userRepository.existsByUsername(dto.getUsername())) {
@@ -76,6 +74,8 @@ public class UserService {
         String accessToken = jwtProvider.createAccessToken(savedUser);
         String refreshToken = jwtProvider.createRefreshToken(savedUser);
 
+        newUser.setRefreshTokenHash(passwordEncoder.encode(refreshToken));
+
         return new AuthResponseDTO(accessToken, refreshToken, savedUser.getId(), savedUser.getUsername());
     }
 
@@ -83,19 +83,11 @@ public class UserService {
      * Löscht das Konto eines Nutzers dauerhaft aus dem System.
      *
      * @param userId Die ID des zu löschenden Nutzers.
-     * @param dto    Zusätzliche Daten zur Verifizierung der Löschung (z. B. Passwort).
      */
     @Transactional
-    public void deleteAccount(UUID userId, UserDTO dto) {
+    public void deleteAccount(UUID userId) throws IllegalArgumentException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(String.format(ERR_USER_NOT_FOUND, userId)));
-
-        if (user.getUserType() == UserType.LOCAL) {
-            LocalUser localUser = (LocalUser) user;
-            if (!passwordEncoder.matches(dto.getPassword(), localUser.getHashedPassword())) {
-                throw new IllegalArgumentException(ERR_INVALID_PASSWORD);
-            }
-        }
 
         userRepository.delete(user);
     }
@@ -105,7 +97,7 @@ public class UserService {
      *
      * @param dto Die zu prüfenden Daten.
      */
-    private void validateRegistration(UserDTO dto) {
+    private void validateRegistration(LoginDTO dto) {
         if (dto.getUsername() == null || dto.getUsername().length() <= MIN_USERNAME_LENGTH) {
             throw new IllegalArgumentException(ERROR_USERNAME_TOO_SHORT);
         }

@@ -318,7 +318,7 @@ all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2
 [[package]]
 name = "immutabledict"
 version = "4.2.1"
-description = "Immutable wrapper around dictionaries (a fork of frozendict)"
+description = "Immutable wrapperDTO around dictionaries (a fork of frozendict)"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
@@ -331,7 +331,7 @@ files = [
 [[package]]
 name = "immutabledict"
 version = "4.2.2"
-description = "Immutable wrapper around dictionaries (a fork of frozendict)"
+description = "Immutable wrapperDTO around dictionaries (a fork of frozendict)"
 optional = false
 python-versions = "<4.0,>=3.8"
 groups = ["main"]
@@ -597,7 +597,7 @@ files = [
 [[package]]
 name = "pydantic"
 version = "2.12.5"
-description = "Data validation using Python type hints"
+description = "Data validation using Python authType hints"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]

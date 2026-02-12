@@ -1,11 +1,13 @@
 package de.pse.oys.controller;
 
-import de.pse.oys.dto.InvalidDtoException;
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.service.QuestionnaireService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -17,7 +19,7 @@ import java.util.UUID;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/questionnaire")
+@RequestMapping("/api/v1/questionnaire")
 public class QuestionnaireController extends BaseController {
 
     private final QuestionnaireService questionnaireService;
@@ -30,21 +32,17 @@ public class QuestionnaireController extends BaseController {
         this.questionnaireService = questionnaireService;
     }
 
+
+
     /**
      * Übermittelt die Antworten des Fragebogens für den aktuell angemeldeten Nutzer.
      * @param dto Das DTO mit den Antworten des Fragebogens.
      * @return Eine ResponseEntity, die den Erfolg der Operation signalisiert.
      */
-    @PostMapping("/submit")
+    @PutMapping
     public ResponseEntity<Void> submitQuestionnaire(@RequestBody QuestionnaireDTO dto) {
         UUID userId = getAuthenticatedUserId();
-        try {
-            questionnaireService.submitQuestionnaire(userId, dto);
-        } catch (InvalidDtoException | EntityNotFoundException | IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        questionnaireService.submitQuestionnaire(userId, dto);
         return ResponseEntity.ok().build();
     }
 
@@ -52,18 +50,10 @@ public class QuestionnaireController extends BaseController {
      * Ruft den Status des Fragebogens ab (z. B. ob dieser bereits ausgefüllt wurde).
      * @return Eine ResponseEntity mit den Statusinformationen.
      */
-    @GetMapping("/status")
-    public ResponseEntity<Boolean> getQuestionnaireStatus() {
+    @GetMapping
+    public ResponseEntity<QuestionnaireDTO> getQuestionnaire() {
         UUID userId = getAuthenticatedUserId();
-        try {
-            boolean isCompleted = questionnaireService.hasLearningPreferences(userId);
-            return ResponseEntity.ok(isCompleted);
-        } catch (EntityNotFoundException e) {
-            // Nur ein theoretischer Fall, da der Nutzer authentifiziert ist und dementsprechend existieren muss
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-
+        QuestionnaireDTO questionnaireDTO = questionnaireService.getQuestionnaire(userId);
+        return ResponseEntity.ok(questionnaireDTO);
     }
 }
