@@ -86,7 +86,7 @@ class PlanningServiceTest {
         );
 
         // URL setzen
-        ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5000/solve");
+        ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5001/optimize");
 
         // --- 1. LEARNING PREFERENCES MOCKEN ---
 
@@ -135,7 +135,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
@@ -169,7 +169,7 @@ class PlanningServiceTest {
 
         assertTrue(request.getPreference_time().contains(TimeSlot.MORNING.toString()));
 
-        verify(learningPlanRepository, times(2)).save(any(LearningPlan.class));
+        verify(learningPlanRepository, times(1)).save(any(LearningPlan.class));
     }
 
     @Test
@@ -182,12 +182,9 @@ class PlanningServiceTest {
         ReflectionTestUtils.setField(realTask, "taskId", taskId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class)))
+        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
                 .thenReturn(List.of(realTask));
-
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(realTask));
-        when(taskRepository.findAllByUserAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
-        when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
         responseItem.setId(taskId.toString() + "_0");

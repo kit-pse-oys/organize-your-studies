@@ -1,13 +1,6 @@
 package de.pse.oys.service.planning;
 
-import de.pse.oys.domain.FreeTime;
-import de.pse.oys.domain.LearningPlan;
-import de.pse.oys.domain.LearningPreferences;
-import de.pse.oys.domain.LearningUnit;
-import de.pse.oys.domain.RecurringFreeTime;
-import de.pse.oys.domain.SingleFreeTime;
-import de.pse.oys.domain.Task;
-import de.pse.oys.domain.User;
+import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TaskStatus;
@@ -273,6 +266,7 @@ public class PlanningService {
     private List<PlanningResponseDTO> callSolver(PlanningRequestDTO requestDTO) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Connection", "close");
         // --- DEBUGGING START ---
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -315,7 +309,8 @@ public class PlanningService {
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration, User user) {
         LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
-        plan = learningPlanRepository.save(plan);
+        plan.setUser(user);
+
         List<LearningUnit> newLearningUnits = new ArrayList<>();
 
         for (PlanningResponseDTO result : results) {
@@ -330,9 +325,12 @@ public class PlanningService {
                 if (java.time.Duration.between(startDateTime, endDateTime).toMinutes() > breakDuration) {
                     endDateTime = endDateTime.minusMinutes(breakDuration);
                 }
+
                 LearningUnit unit = new LearningUnit(task, startDateTime, endDateTime);
                 task.addLearningUnit(unit);
+
                 taskRepository.save(task);
+
                 Task savedTask = taskRepository.findById(originalTaskId).orElse(task);
                 List<LearningUnit> units = savedTask.getLearningUnits();
                 if (!units.isEmpty()) {
@@ -345,16 +343,6 @@ public class PlanningService {
         plan.setUser(user);
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
-        cleanUpOldPlans(user.getId());
-    }
-
-
-    private void cleanUpOldPlans(UUID userId) {
-        // Stichtag berechnen: Alles was vor 3 Wochen startete
-        LocalDate cutoffDate = LocalDate.now().minusWeeks(3);
-
-        // Lösche alle Pläne des Users, deren Woche vor dem Stichtag begann
-        learningPlanRepository.deleteByUserIdAndWeekStartBefore(userId, cutoffDate);
     }
 
     /**
@@ -385,7 +373,6 @@ public class PlanningService {
      * @return Liste der TaskDTOs für offene Aufgaben.
      */
     private List<PlanningTaskDTO> fetchOpenTasksAsDTOs(User user, LocalDateTime now, LocalDate weekStart) {
-        List<Task> openTasks = taskRepository.findAllByUserAndStatus(user.getId(), TaskStatus.OPEN);
         List<Task> openTasks = taskRepository.findAllByModuleUserUserIdAndStatus(user.getId(), TaskStatus.OPEN);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
