@@ -1,16 +1,11 @@
 package de.pse.oys.ui.view
 
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
 import de.pse.oys.ui.theme.Blue
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlin.uuid.Uuid
 
 object TestUtils {
@@ -18,14 +13,10 @@ object TestUtils {
     const val TEST_DESC = "Test-Description"
     val TEST_COLOR = Blue
     val TEST_PRIORITY = Priority.HIGH
-
-    private fun now() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-
-    val TEST_DATE: LocalDate get() = now().date
-    val TEST_DATE_FUTURE: LocalDate get() = now().date.plus(1, DateTimeUnit.DAY)
-
-    val TEST_TIME: LocalTime get() = LocalTime(now().hour, 0)
-    val TEST_TIME_FUTURE: LocalTime get() = LocalTime((now().hour + 1) % 24, 0)
+    val TEST_DATE = LocalDate(2030, 1, 1)
+    val TEST_DATE_ALTERNATIVE = LocalDate(2030, 2, 1)
+    val TEST_TIME = LocalTime(0, 0)
+    val TEST_TIME_ALTERNATIVE = LocalTime(1, 0)
 
     fun randomUuid() = Uuid.random()
 
