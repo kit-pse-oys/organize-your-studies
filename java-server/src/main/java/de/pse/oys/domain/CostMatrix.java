@@ -10,6 +10,7 @@ import java.util.UUID;
  * Repräsentiert die Kostenmatrix einer Aufgabe.
  * Diese Matrix speichert die vom Planungsalgorithmus berechneten Kostenprofile,
  * um die optimale Platzierung von Lerneinheiten im Zeitplan zu bestimmen.
+ *
  * @author utgid
  * @version 1.0
  */

@@ -8,6 +8,7 @@ package de.pse.oys.domain.enums;
  * Um bei dem Authentifizierungsprozess den entsprechenden Mechanismus zu wählen,
  * wird dieses Enum auch als Diskriminator bei der UserType-Auswahl verwendet.
  * @see de.pse.oys.dto.auth.LoginDTO
+ *
  * @author utgid
  * @version 1.0
  */

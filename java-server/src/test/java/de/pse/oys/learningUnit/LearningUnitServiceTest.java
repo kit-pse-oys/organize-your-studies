@@ -52,7 +52,7 @@ class LearningUnitServiceTest {
 
         // Plan mit dem öffentlichen Konstruktor (start, end)
         plan = new LearningPlan(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 7));
-        plan.setUser(testUser); // Verknüpfung für den Service-Check
+        plan.setUserId(testUser.getId()); // Verknüpfung für den Service-Check
 
         // Unit vorbereiten
         unit = unitWithTaskAndModule(
@@ -98,7 +98,7 @@ class LearningUnitServiceTest {
     private static LearningUnit unitWithTaskAndModule(String title, LocalDateTime start, LocalDateTime end) {
         Task task = new Task(title, 1, TaskCategory.OTHER) {
             @Override public LocalDateTime getHardDeadline() { return null; }
-            @Override protected boolean isActive() { return true; }
+            @Override public boolean isActive() { return true; }
         };
         return new LearningUnit(task, start, end);
     }

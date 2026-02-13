@@ -14,6 +14,7 @@ import java.util.UUID;
  * Speichert die individuellen Lernpräferenzen eines Nutzers.
  * Dazu gehören die gewünschte Dauer von Lerneinheiten sowie das tägliche Arbeitspensum.
  * Gemäß dem Rich Domain Model enthält diese Klasse auch Validierungslogik.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -54,7 +55,6 @@ public class LearningPreferences {
     @Column(name = "time_slot")
     private Set<TimeSlot> preferredTimeSlots;
 
-    // TODO: @Marcel kannst du mal drüber schauen ob das so passt mit den preferredDays?
     @ElementCollection(targetClass = DayOfWeek.class)
     @CollectionTable(name = "preferred_week_days", joinColumns = @JoinColumn(name = "preference_id"))
     @Enumerated(EnumType.STRING)
