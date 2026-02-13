@@ -1,7 +1,6 @@
 package de.pse.oys.persistence;
 
 import de.pse.oys.domain.Task;
-import de.pse.oys.domain.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -43,13 +42,4 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
      * @return Liste der Tasks des Moduls innerhalb des User-Scopes
      */
     List<Task> findAllByModuleModuleIdAndModuleUserUserId(UUID moduleId, UUID userId);
-
-    /**
-     * Findet alle Tasks eines Users mit einem bestimmten Status.
-     *
-     * @param userId ID des Users
-     * @param status Status
-     * @return Liste der Tasks des Users mit dem angegebenen Status
-     */
-    List<Task> findAllByModuleUserUserIdAndStatus(UUID userId, TaskStatus status);
 }

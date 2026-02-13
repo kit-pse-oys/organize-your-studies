@@ -70,7 +70,7 @@ public class SubmissionTask extends Task {
      * sonst {@code false}.
      */
     @Override
-    protected boolean isActive() {
+    public boolean isActive() {
         return endTime != null && LocalDateTime.now().isBefore(endTime);
     }
 

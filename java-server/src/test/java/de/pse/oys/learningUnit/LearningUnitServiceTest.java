@@ -98,7 +98,7 @@ class LearningUnitServiceTest {
     private static LearningUnit unitWithTaskAndModule(String title, LocalDateTime start, LocalDateTime end) {
         Task task = new Task(title, 1, TaskCategory.OTHER) {
             @Override public LocalDateTime getHardDeadline() { return null; }
-            @Override protected boolean isActive() { return true; }
+            @Override public boolean isActive() { return true; }
         };
         return new LearningUnit(task, start, end);
     }

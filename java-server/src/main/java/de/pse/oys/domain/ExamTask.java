@@ -66,7 +66,7 @@ public class ExamTask extends Task {
      * @return {@code true}, wenn die Prüfung noch nicht erreicht ist, sonst {@code false}.
      */
     @Override
-    protected boolean isActive() {
+    public boolean isActive() {
         LocalDateTime examDateTime = getHardDeadline();
         return examDateTime != null && LocalDateTime.now().isBefore(examDateTime);
     }

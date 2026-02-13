@@ -61,7 +61,7 @@ public class OtherTask extends Task {
      * @return {@code true}, wenn sich der aktuelle Zeitpunkt innerhalb des Zeitfensters befindet, sonst {@code false}.
      */
     @Override
-    protected boolean isActive() {
+    public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
         return (startTime != null && endTime != null) && now.isAfter(startTime) && now.isBefore(endTime);
     }
