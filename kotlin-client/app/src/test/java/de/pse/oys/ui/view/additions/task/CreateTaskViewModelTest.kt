@@ -2,13 +2,23 @@ package de.pse.oys.ui.view.additions.task
 
 import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.RemoteExamTaskData
+import de.pse.oys.data.api.RemoteOtherTaskData
+import de.pse.oys.data.api.RemoteSubmissionTaskData
+import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.main
+import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_FUTURE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockModuleData
 import de.pse.oys.ui.view.TestUtils.randomUuid
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -106,5 +116,67 @@ class CreateTaskViewModelTest {
         viewModel.type = TaskType.SUBMISSION
         viewModel.submissionDate = pastDateTime
         assertNotEquals(pastDateTime, viewModel.submissionDate)
+    }
+
+    @Test
+    fun `submit should call api with correct ExamTaskData`() = runTest {
+        val moduleId = randomUuid()
+        every { model.modules } returns mapOf(moduleId to createMockModuleData())
+
+        viewModel.title = TEST_TITLE
+        viewModel.module = TEST_TITLE
+        viewModel.weeklyTimeLoad = 90
+        viewModel.type = TaskType.EXAM
+        viewModel.examDate = TEST_DATE_FUTURE
+
+        coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
+        viewModel.submit()
+        coVerify {
+            api.createTask(match { it is RemoteExamTaskData && it.title == TEST_TITLE })
+        }
+        verify { navController.main() }
+    }
+
+    @Test
+    fun `submit should call api with correct SubmissionTaskData`() = runTest {
+        val moduleId = randomUuid()
+        every { model.modules } returns mapOf(moduleId to createMockModuleData())
+
+        viewModel.title = TEST_TITLE
+        viewModel.module = TEST_TITLE
+        viewModel.weeklyTimeLoad = 90
+        viewModel.type = TaskType.SUBMISSION
+        viewModel.submissionDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        viewModel.submissionCycle = 1
+
+        coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
+        viewModel.submit()
+        coVerify {
+            api.createTask(match { it is RemoteSubmissionTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.cycle == 1 })
+        }
+    }
+
+    @Test
+    fun `submit should call api with correct OtherTaskData`() = runTest {
+        val moduleId = randomUuid()
+        every { model.modules } returns mapOf(moduleId to createMockModuleData())
+
+        viewModel.title = TEST_TITLE
+        viewModel.module = TEST_TITLE
+        viewModel.weeklyTimeLoad = 90
+        viewModel.type = TaskType.OTHER
+        viewModel.start = TEST_DATE
+        viewModel.end = TEST_DATE_FUTURE
+
+        coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
+        viewModel.submit()
+        coVerify {
+            api.createTask(match { it is RemoteOtherTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.start == TEST_DATE && it.end == TEST_DATE_FUTURE })
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `delete in CreateViewModel should throw error`() {
+        viewModel.delete()
     }
 }

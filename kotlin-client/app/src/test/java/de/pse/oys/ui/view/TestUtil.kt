@@ -19,13 +19,13 @@ object TestUtils {
     val TEST_COLOR = Blue
     val TEST_PRIORITY = Priority.HIGH
 
-    // Feste Daten weit in der Zukunft verhindern "Past Date" Fehler
-    val TEST_DATE = LocalDate(2030, 1, 1)
-    val TEST_DATE_FUTURE = LocalDate(2030, 1, 2)
+    private fun now() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
-    // Unterschiedliche Zeiten für Start und Ende (wichtig für Validierung)
-    val TEST_TIME = LocalTime(10, 0)
-    val TEST_TIME_FUTURE = LocalTime(12, 0)
+    val TEST_DATE: LocalDate get() = now().date
+    val TEST_DATE_FUTURE: LocalDate get() = now().date.plus(1, DateTimeUnit.DAY)
+
+    val TEST_TIME: LocalTime get() = LocalTime(now().hour, 0)
+    val TEST_TIME_FUTURE: LocalTime get() = LocalTime((now().hour + 1) % 24, 0)
 
     fun randomUuid() = Uuid.random()
 

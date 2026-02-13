@@ -44,7 +44,7 @@ class FreeTimesViewModelTest {
     }
 
     @Test
-    fun `select should NOT navigate if freeTimr is not in the list`() {
+    fun `select should NOT navigate if freeTime is not in the list`() {
         val viewModel = FreeTimesViewModel(modelFacade, navController)
 
         val unknownFreeTime = Identified(freeTimeData, randomUuid())
