@@ -2,6 +2,7 @@ package de.pse.oys.ui.view.additions.freetime
 
 import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
@@ -11,9 +12,13 @@ import de.pse.oys.ui.view.TestUtils.TEST_TIME_FUTURE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockFreeTimeData
 import de.pse.oys.ui.view.TestUtils.randomUuid
+import io.ktor.http.HttpStatusCode
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -73,14 +78,12 @@ class CreateFreeTimeViewModelTest {
         val testVM = object : BaseCreateFreeTimeViewModel(model, navController) {
             override val showDelete = false
             override fun submit() {
-                // Hier die Logik simulieren: Daten in die Map schreiben
                 freeTimesMap[testId] = testData
-                // 2. Navigation simulieren
                 navController.main()
             }
+
             override fun delete() {}
             fun testRegister(f: Identified<FreeTimeData>) {
-                // registerNewFreeTime aufrufen und danach submit simulieren
                 registerNewFreeTime(f)
                 submit()
             }
@@ -89,5 +92,37 @@ class CreateFreeTimeViewModelTest {
         testVM.testRegister(testFreeTime)
         assertEquals(testData, freeTimesMap[testId])
         verify { navController.main() }
+    }
+
+    @Test
+    fun `submit should call api and navigate to main when successful`() = runTest {
+        val viewModel = CreateFreeTimeViewModel(api, model, navController)
+        val testData =
+            FreeTimeData(TEST_TITLE, TEST_DATE_FUTURE, TEST_TIME_FUTURE, TEST_TIME_FUTURE, false)
+
+        coEvery { api.createFreeTime(any()) } returns Response(
+            randomUuid(),
+            HttpStatusCode.OK.value
+        )
+        viewModel.title = TEST_TITLE
+        viewModel.date = TEST_DATE_FUTURE
+        viewModel.start = TEST_TIME_FUTURE
+        viewModel.end = TEST_TIME_FUTURE
+        viewModel.submit()
+        coVerify { api.createFreeTime(testData) }
+        verify { navController.main() }
+    }
+
+    @Test
+    fun `submit should set error true when api fails`() = runTest {
+        val viewModel = CreateFreeTimeViewModel(api, model, navController)
+
+        coEvery { api.createFreeTime(any()) } returns Response(
+            null,
+            HttpStatusCode.InternalServerError.value
+        )
+        viewModel.title = TEST_TITLE
+        viewModel.submit()
+        assertTrue(viewModel.error)
     }
 }
