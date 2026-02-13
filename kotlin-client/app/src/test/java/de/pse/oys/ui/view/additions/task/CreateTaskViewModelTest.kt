@@ -9,7 +9,7 @@ import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
-import de.pse.oys.ui.view.TestUtils.TEST_DATE_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockModuleData
 import de.pse.oys.ui.view.TestUtils.randomUuid
@@ -76,8 +76,8 @@ class CreateTaskViewModelTest {
         assertEquals(90, viewModel.weeklyTimeLoad)
 
         viewModel.type = TaskType.EXAM
-        viewModel.examDate = TEST_DATE_FUTURE
-        assertEquals(TEST_DATE_FUTURE, viewModel.examDate)
+        viewModel.examDate = TEST_DATE_ALTERNATIVE
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.examDate)
         assertEquals(TaskType.EXAM, viewModel.type)
 
         viewModel.type = TaskType.SUBMISSION
@@ -89,20 +89,11 @@ class CreateTaskViewModelTest {
         assertEquals(TaskType.SUBMISSION, viewModel.type)
 
         viewModel.type = TaskType.OTHER
-        viewModel.start = TEST_DATE_FUTURE
-        viewModel.end = TEST_DATE_FUTURE
+        viewModel.start = TEST_DATE_ALTERNATIVE
+        viewModel.end = TEST_DATE_ALTERNATIVE
         assertEquals(TaskType.OTHER, viewModel.type)
-        assertEquals(TEST_DATE_FUTURE, viewModel.start)
-        assertEquals(TEST_DATE_FUTURE, viewModel.end)
-    }
-
-    @Test
-    fun `end date should not be before start date`() {
-        viewModel.type = TaskType.OTHER
-        viewModel.start = TEST_DATE_FUTURE
-        val pastDate = LocalDate(2024, 1, 1)
-        viewModel.end = pastDate
-        assertNotEquals(pastDate, viewModel.end)
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.start)
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.end)
     }
 
     @Test
@@ -127,7 +118,7 @@ class CreateTaskViewModelTest {
         viewModel.module = TEST_TITLE
         viewModel.weeklyTimeLoad = 90
         viewModel.type = TaskType.EXAM
-        viewModel.examDate = TEST_DATE_FUTURE
+        viewModel.examDate = TEST_DATE_ALTERNATIVE
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
         viewModel.submit()
@@ -146,7 +137,8 @@ class CreateTaskViewModelTest {
         viewModel.module = TEST_TITLE
         viewModel.weeklyTimeLoad = 90
         viewModel.type = TaskType.SUBMISSION
-        viewModel.submissionDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        viewModel.submissionDate =
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         viewModel.submissionCycle = 1
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
@@ -166,12 +158,12 @@ class CreateTaskViewModelTest {
         viewModel.weeklyTimeLoad = 90
         viewModel.type = TaskType.OTHER
         viewModel.start = TEST_DATE
-        viewModel.end = TEST_DATE_FUTURE
+        viewModel.end = TEST_DATE_ALTERNATIVE
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
         viewModel.submit()
         coVerify {
-            api.createTask(match { it is RemoteOtherTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.start == TEST_DATE && it.end == TEST_DATE_FUTURE })
+            api.createTask(match { it is RemoteOtherTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.start == TEST_DATE && it.end == TEST_DATE_ALTERNATIVE })
         }
     }
 

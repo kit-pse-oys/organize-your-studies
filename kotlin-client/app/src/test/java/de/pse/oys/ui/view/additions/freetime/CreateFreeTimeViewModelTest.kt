@@ -7,8 +7,8 @@ import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.main
-import de.pse.oys.ui.view.TestUtils.TEST_DATE_FUTURE
-import de.pse.oys.ui.view.TestUtils.TEST_TIME_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
+import de.pse.oys.ui.view.TestUtils.TEST_TIME_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockFreeTimeData
 import de.pse.oys.ui.view.TestUtils.randomUuid
@@ -40,8 +40,7 @@ class CreateFreeTimeViewModelTest {
 
         assertEquals("", viewModel.title)
         assertEquals(
-            Clock.System.now()
-                .toLocalDateTime(TimeZone.currentSystemDefault()).date, viewModel.date
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date, viewModel.date
         )
         assertEquals(LocalTime(0, 0), viewModel.start)
         assertEquals(LocalTime(0, 0), viewModel.end)
@@ -54,15 +53,15 @@ class CreateFreeTimeViewModelTest {
         val viewModel = CreateFreeTimeViewModel(api, model, navController)
 
         viewModel.title = TEST_TITLE
-        viewModel.date = TEST_DATE_FUTURE
-        viewModel.start = TEST_TIME_FUTURE
-        viewModel.end = TEST_TIME_FUTURE
+        viewModel.date = TEST_DATE_ALTERNATIVE
+        viewModel.start = TEST_TIME_ALTERNATIVE
+        viewModel.end = TEST_TIME_ALTERNATIVE
         viewModel.weekly = true
 
         assertEquals(TEST_TITLE, viewModel.title)
-        assertEquals(TEST_DATE_FUTURE, viewModel.date)
-        assertEquals(TEST_TIME_FUTURE, viewModel.start)
-        assertEquals(TEST_TIME_FUTURE, viewModel.end)
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.date)
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.start)
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.end)
         assertTrue(viewModel.weekly)
     }
 
@@ -97,17 +96,17 @@ class CreateFreeTimeViewModelTest {
     @Test
     fun `submit should call api and navigate to main when successful`() = runTest {
         val viewModel = CreateFreeTimeViewModel(api, model, navController)
-        val testData =
-            FreeTimeData(TEST_TITLE, TEST_DATE_FUTURE, TEST_TIME_FUTURE, TEST_TIME_FUTURE, false)
+        val testData = FreeTimeData(
+            TEST_TITLE, TEST_DATE_ALTERNATIVE, TEST_TIME_ALTERNATIVE, TEST_TIME_ALTERNATIVE, false
+        )
 
         coEvery { api.createFreeTime(any()) } returns Response(
-            randomUuid(),
-            HttpStatusCode.OK.value
+            randomUuid(), HttpStatusCode.OK.value
         )
         viewModel.title = TEST_TITLE
-        viewModel.date = TEST_DATE_FUTURE
-        viewModel.start = TEST_TIME_FUTURE
-        viewModel.end = TEST_TIME_FUTURE
+        viewModel.date = TEST_DATE_ALTERNATIVE
+        viewModel.start = TEST_TIME_ALTERNATIVE
+        viewModel.end = TEST_TIME_ALTERNATIVE
         viewModel.submit()
         coVerify { api.createFreeTime(testData) }
         verify { navController.main() }
@@ -118,8 +117,7 @@ class CreateFreeTimeViewModelTest {
         val viewModel = CreateFreeTimeViewModel(api, model, navController)
 
         coEvery { api.createFreeTime(any()) } returns Response(
-            null,
-            HttpStatusCode.InternalServerError.value
+            null, HttpStatusCode.InternalServerError.value
         )
         viewModel.title = TEST_TITLE
         viewModel.submit()

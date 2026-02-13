@@ -7,9 +7,9 @@ import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
-import de.pse.oys.ui.view.TestUtils.TEST_DATE_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TIME
-import de.pse.oys.ui.view.TestUtils.TEST_TIME_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_TIME_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockFreeTimeData
 import de.pse.oys.ui.view.TestUtils.randomUuid
@@ -54,14 +54,14 @@ class EditFreeTimeViewModelTest {
         viewModel.title = newTitle
         assertEquals(newTitle, viewModel.title)
 
-        viewModel.date = TEST_DATE_FUTURE
-        assertEquals(TEST_DATE_FUTURE, viewModel.date)
+        viewModel.date = TEST_DATE_ALTERNATIVE
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.date)
 
-        viewModel.start = TEST_TIME_FUTURE
-        assertEquals(TEST_TIME_FUTURE, viewModel.start)
+        viewModel.start = TEST_TIME_ALTERNATIVE
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.start)
 
-        viewModel.end = TEST_TIME_FUTURE
-        assertEquals(TEST_TIME_FUTURE, viewModel.end)
+        viewModel.end = TEST_TIME_ALTERNATIVE
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.end)
 
         viewModel.weekly = true
         assertTrue(viewModel.weekly)
