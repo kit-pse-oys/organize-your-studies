@@ -1,67 +1,90 @@
 package de.pse.oys.persistence;
-
-import de.pse.oys.domain.Task;
 import de.pse.oys.domain.enums.TaskStatus;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import de.pse.oys.domain.Task;
 
 /**
  * Repository für {@link Task}-Entitäten.
- *
- * @author uqvfm
- * @version 1.1
+ * <p>
+ * Die Abfragen werden zusätzlich über {@code userId} auf einen Nutzer eingeschränkt
+ * (Ownership: User → Module → Task), indem über {@code modules.userid} gefiltert wird.
+ * </p>
  */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     /**
-     * Liefert alle Aufgaben eines Nutzers.
+     * Findet alle Tasks mit einer Deadline vor dem angegebenen Datum, eingeschränkt auf einen User.
      * <p>
-     * Die Zuordnung erfolgt indirekt über das zugehörige Modul:
-     * {@code Task -> Module -> User}. Es werden alle Tasks zurückgegeben,
-     * deren Modul dem Nutzer mit der angegebenen {@code userId} gehört.
+     * Berücksichtigt {@code fixed_deadline} sowie {@code time_frame_end}.
      * </p>
      *
-     * @param userId ID des Nutzers, dessen Aufgaben abgefragt werden.
-     * @return Liste aller Aufgaben des Nutzers (leer, wenn keine vorhanden sind).
+     * @param userId   ID des Users, auf dessen Daten eingeschränkt wird
+     * @param deadline Stichtag; Deadlines müssen strikt davor liegen
+     * @return Liste der passenden Tasks innerhalb des User-Scopes
      */
-    List<Task> findAllByModuleUserUserId(UUID userId);
+    @Query(value = """
+        SELECT
+            t.*,
+            t.weekly_effort_minutes AS weekly_duration_minutes
+        FROM tasks t
+        JOIN modules m ON m.moduleid = t.moduleid
+        WHERE m.user_id = :userId
+          AND (
+                (t.fixed_deadline IS NOT NULL AND t.fixed_deadline < :deadline)
+             OR (t.time_frame_end IS NOT NULL AND t.time_frame_end < :deadline)
+          )
+        """, nativeQuery = true)
+    List<Task> findAllByDeadlineBefore(@Param("userId") UUID userId,
+                                       @Param("deadline") LocalDate deadline);
 
     /**
-     * Findet eine Task anhand (taskId, userId) im User-Scope.
-     * <p>
-     * Die Task wird nur zurückgegeben, wenn sie existiert und ihr Modul dem Nutzer gehört.
-     * </p>
+     * Findet alle Tasks, die zu einem bestimmten Modul gehören, eingeschränkt auf einen User.
      *
-     * @param taskId ID der Task.
-     * @param userId ID des Users.
-     * @return Task, falls existent und dem User zugehörig.
+     * @param userId   ID des Users, auf dessen Daten eingeschränkt wird
+     * @param moduleId ID des Moduls
+     * @return Liste der Tasks des Moduls innerhalb des User-Scopes
      */
-    Optional<Task> findByTaskIdAndModuleUserUserId(UUID taskId, UUID userId);
-
-    /**
-     * Findet alle Tasks, die zu einem bestimmten Modul gehören (Ownership abgesichert).
-     * <p>
-     * Es werden nur Tasks zurückgegeben, deren Modul die angegebene {@code moduleId} hat
-     * und gleichzeitig dem Nutzer mit {@code userId} gehört.
-     * </p>
-     *
-     * @param userId   ID des Users.
-     * @param moduleId ID des Moduls.
-     * @return Liste der Tasks des Moduls innerhalb des User-Scopes.
-     */
-    List<Task> findAllByModuleModuleIdAndModuleUserUserId(UUID moduleId, UUID userId);
+    @Query(value = """
+        SELECT
+            t.*,
+            t.weekly_effort_minutes AS weekly_duration_minutes
+        FROM tasks t
+        JOIN modules m ON m.moduleid = t.moduleid
+        WHERE t.moduleid = :moduleId
+          AND m.user_id = :userId
+        """, nativeQuery = true)
+    List<Task> findByModuleId(@Param("userId") UUID userId,
+                              @Param("moduleId") UUID moduleId);
 
     /**
      * Findet alle Tasks eines Users mit einem bestimmten Status.
+     * <p>
+     * Erwartete Werte für {@code status} entsprechen dem Datenbank-Enum {@code task_status},
+     * z. B. {@code "active"} oder {@code "completed"}.
+     * </p>
      *
-     * @param userId ID des Users.
-     * @param status Status (Enum).
-     * @return Liste der Tasks des Users mit dem angegebenen Status.
+     * @param userId  ID des Users, auf dessen Daten eingeschränkt wird
+     * @param status  Statuswert gemäß {@code task_status} (z. B. {@code "active"}, {@code "completed"})
+     * @return Liste der Tasks des Users mit dem angegebenen Status
      */
-    List<Task> findAllByModuleUserUserIdAndStatus(UUID userId, TaskStatus status);
+    @Query("""
+        SELECT t FROM Task t
+        WHERE t.module.user.userId = :userId
+          AND t.status = :status
+        """)
+    List<Task> findAllByUserAndStatus(@Param("userId") UUID userId,
+                                      @Param("status") TaskStatus status);
 }
+
+
+

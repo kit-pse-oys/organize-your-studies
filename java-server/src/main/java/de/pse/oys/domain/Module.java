@@ -40,12 +40,8 @@ public class Module {
     @Column(name = "priority", nullable = false)
     private ModulePriority priority;
 
-    /**
-     * Besitzer des Moduls.
-     */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // Wir nennen die Spalte explizit user_id
     private User user;
 
     /**
@@ -76,8 +72,7 @@ public class Module {
     /**
      * Fügt eine neue Aufgabe zu diesem Modul hinzu und stellt die
      * bidirektionale Konsistenz sicher.
-     *
-     * @param task Die hinzuzufügende Aufgabe.
+     * * @param task Die hinzuzufügende Aufgabe.
      */
     public void addTask(Task task) {
         if (task != null && !this.tasks.contains(task)) {
@@ -87,14 +82,14 @@ public class Module {
     }
 
     /**
-     * Entfernt eine Aufgabe aus der Collection.
-     * Das echte Löschen aus der Datenbank passiert im Taskservice.
-     *
-     * @param task Die zu entfernende Aufgabe.
+     * Entfernt eine Aufgabe aus diesem Modul und löst die
+     * bidirektionale Verknüpfung auf.
+     * * @param task Die zu entfernende Aufgabe.
      */
     public void deleteTask(Task task) {
-        if (task != null) {
+        if (task != null && this.tasks.contains(task)) {
             this.tasks.remove(task);
+            task.setModule(null);
         }
     }
 
@@ -113,11 +108,6 @@ public class Module {
     /** @return Die Priorität des Moduls. */
     public ModulePriority getPriority() {
         return priority;
-    }
-
-    /** @return Der Besitzer (User) des Moduls. */
-    public User getUser() {
-        return user;
     }
 
     /** @return Die Liste der zugehörigen Aufgaben. */
@@ -157,11 +147,10 @@ public class Module {
         this.priority = priority;
     }
 
-    /**
-     * Setzt den Besitzer des Moduls.
-     *
-     * WHY: wird von User.addModule/deleteModule genutzt, um die Beziehung konsistent zu halten.
-     */
+    public User getUser() {
+        return user;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
