@@ -316,7 +316,7 @@ public class PlanningService {
                 taskRepository.save(task);
             }
         }
-        plan.setUser(user);
+        plan.setUserId(user.getId());
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
         cleanUpOldPlans(user.getId());

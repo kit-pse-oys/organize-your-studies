@@ -52,7 +52,7 @@ class LearningUnitServiceTest {
 
         // Plan mit dem öffentlichen Konstruktor (start, end)
         plan = new LearningPlan(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 7));
-        plan.setUser(testUser); // Verknüpfung für den Service-Check
+        plan.setUserId(testUser.getId()); // Verknüpfung für den Service-Check
 
         // Unit vorbereiten
         unit = unitWithTaskAndModule(
