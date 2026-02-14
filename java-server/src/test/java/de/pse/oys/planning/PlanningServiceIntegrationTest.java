@@ -13,13 +13,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.nio.file.Paths;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -31,15 +42,34 @@ public class PlanningServiceIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+    @Container
+    static GenericContainer<?> pythonMicroservice = new GenericContainer<>(
+            new ImageFromDockerfile()
+                    .withFileFromPath(".", Paths.get("../python-microservice"))
+    ).withExposedPorts(5001);
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        // Datenbank-Konfiguration für Testcontainers
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        registry.add("microservice.planning.url", () -> "http://localhost:5002/optimize");
+        registry.add("microservice.planning.url", () -> "http://localhost:5001/optimize");
+
+        registry.add("microservice.planning.url",
+                () -> "http://" + pythonMicroservice.getHost() + ":" + pythonMicroservice.getMappedPort(5001) + "/optimize");
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        @org.springframework.context.annotation.Primary
+        public RestTemplate restTemplate() {
+            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(2000);
+            factory.setReadTimeout(10000);
+            return new RestTemplate(factory);
+        }
     }
 
     @Autowired
@@ -103,7 +133,7 @@ public class PlanningServiceIntegrationTest {
 
     @Test
     void testGenerateWeeklyPlan_EndToEnd() {
-        LocalDate weekStart = LocalDate.of(2026, 1, 26);
+        LocalDate weekStart = LocalDate.of(2026, 2, 9);
         System.out.println("Starte Anfrage an Microservice...");
 
         try {
