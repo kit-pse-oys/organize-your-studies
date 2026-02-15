@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
+import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
@@ -51,6 +52,7 @@ import de.pse.oys.ui.util.ViewHeaderBig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.uuid.Uuid
 
 /**
  * View for creating a new module or editing an existing one.
@@ -139,7 +141,7 @@ private fun PriorityChips(current: Priority, onSelect: (Priority) -> Unit) {
             onSelect = onSelect
         )
         PriorityChip(
-            priority = Priority.NEUTRAL,
+            priority = Priority.MEDIUM,
             current = current,
             icon = painterResource(R.drawable.outline_expand_circle_right_24),
             label = stringResource(id = R.string.priority_neutral),
@@ -232,17 +234,22 @@ abstract class BaseCreateModuleViewModel(
 
     override var title by mutableStateOf(module?.title ?: "")
     override var description by mutableStateOf(module?.description ?: "")
-    override var priority by mutableStateOf(module?.priority ?: Priority.NEUTRAL)
+    override var priority by mutableStateOf(module?.priority ?: Priority.MEDIUM)
     override var color by mutableStateOf(module?.color ?: Color.Unspecified)
 
     /**
-     * Registers a new module in the [ModelFacade].
-     * @param module the [Module] to be registered.
+     * Registers or deletes a module in the [ModelFacade].
+     * @param id The uuid of the module
+     * @param module the [Module] to be registered or null to delete.
      */
-    protected fun registerNewModule(module: Module) {
+    protected fun registerNewModule(id: Uuid, module: ModuleData?) {
         val modules = model.modules.orEmpty().toMutableMap()
         model.modules = modules
-        modules[module.id] = module.data
+        if (module != null) {
+            modules[id] = module
+        } else {
+            modules.remove(id)
+        }
 
         navController.main()
     }
@@ -267,7 +274,7 @@ class CreateModuleViewModel(
             val data = ModuleData(title, description, priority, color)
             api.createModule(data).defaultHandleError(navController) { error = true }?.let { id ->
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewModule(Module(data, id))
+                    registerNewModule(id, data)
                 }
             }
         }
@@ -298,10 +305,9 @@ class EditModuleViewModel(
     override fun submit() {
         viewModelScope.launch {
             val data = ModuleData(title, description, priority, color)
-            val module = Module(data, uuid)
-            api.updateModule(module).defaultHandleError(navController) { error = true }?.let {
+            api.updateModule(Module(data, uuid)).defaultHandleError(navController) { error = true }?.let {
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewModule(module)
+                    registerNewModule(uuid, data)
                 }
             }
         }
@@ -310,7 +316,9 @@ class EditModuleViewModel(
     override fun delete() {
         viewModelScope.launch {
             api.deleteModule(uuid).defaultHandleError(navController) { error = true }?.let {
-                navController.main()
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewModule(uuid, null)
+                }
             }
         }
     }

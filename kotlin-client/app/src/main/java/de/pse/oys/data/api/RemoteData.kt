@@ -28,7 +28,7 @@ sealed class RemoteTaskData {
 }
 
 @Serializable
-@SerialName("exam")
+@SerialName("EXAM")
 data class RemoteExamTaskData(
     override val title: String,
     override val module: Uuid,
@@ -37,7 +37,7 @@ data class RemoteExamTaskData(
 ) : RemoteTaskData()
 
 @Serializable
-@SerialName("submission")
+@SerialName("SUBMISSION")
 data class RemoteSubmissionTaskData(
     override val title: String,
     override val module: Uuid,
@@ -47,7 +47,7 @@ data class RemoteSubmissionTaskData(
 ) : RemoteTaskData()
 
 @Serializable
-@SerialName("other")
+@SerialName("OTHER")
 data class RemoteOtherTaskData(
     override val title: String,
     override val module: Uuid,

@@ -40,7 +40,7 @@ class CreateModuleViewModelTest {
 
         assertEquals("", viewModel.title)
         assertEquals("", viewModel.description)
-        assertEquals(Priority.NEUTRAL, viewModel.priority)
+        assertEquals(Priority.MEDIUM, viewModel.priority)
         assertEquals(Color.Unspecified, viewModel.color)
         assertFalse(viewModel.showDelete)
     }

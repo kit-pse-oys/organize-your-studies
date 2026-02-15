@@ -107,11 +107,11 @@
     <string name="no_tasks_available">You don\'t have any Tasks yet.</string>
     <string name="no_modules_available">You don\'t have any Modules yet.</string>
     <string name="no_freetimes_available">You don\'t have any Freetimes yet.</string>
-    <string name="min_unit_duration">What should the minimal Unit Duration be? (in minutes)</string>
-    <string name="max_unit_duration">What should the maximal Unit Duration be? (in minutes)</string>
-    <string name="max_day_load">What should the maximal amount of Units be (in one day)?</string>
+    <string name="min_unit_duration">What should the minimal Unit Duration be?</string>
+    <string name="max_unit_duration">What should the maximal Unit Duration be?</string>
+    <string name="max_day_load">What should the maximal amount of Units be per day?</string>
     <string name="time_before_deadline">How many days before a deadline do you want to be done with a task?</string>
-    <string name="preferred_pause_duration">How long should breaks between Units be? (in minutes)</string>
+    <string name="preferred_pause_duration">How long should breaks between Units be?</string>
     <string name="preferred_study_days">Please select all the days of the week that you prefer to study on.</string>
     <string name="preferred_study_times">Please select all the times of the day that you prefer to study at.?</string>
     <string name="MORNING">Morning</string>
@@ -131,4 +131,7 @@
     <string name="day_plan_header">Your Plan for Today:</string>
     <string name="week_plan_header">Your Plan for this Week:</string>
     <string name="upcoming_units_header">Your Units for tomorrow:</string>
+    <string name="minutes_template" translatable="false">%1$d min</string>
+    <string name="amount_template" translatable="false">%1$d</string>
+    <string name="days_template">%1$d days</string>
 </resources>
