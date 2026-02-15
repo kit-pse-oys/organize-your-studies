@@ -76,7 +76,7 @@ public class UserService {
 
         newUser.setRefreshTokenHash(passwordEncoder.encode(refreshToken));
 
-        return new AuthResponseDTO(accessToken, refreshToken, savedUser.getId(), savedUser.getUsername());
+        return new AuthResponseDTO(accessToken, refreshToken);
     }
 
     /**
