@@ -2,7 +2,6 @@ package de.pse.oys.planning;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.Module;
 import de.pse.oys.domain.enums.ModulePriority;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.persistence.LearningPlanRepository;
 import de.pse.oys.persistence.ModuleRepository;
@@ -16,19 +15,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -42,11 +35,6 @@ public class PlanningServiceIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-    @Container
-    static GenericContainer<?> pythonMicroservice = new GenericContainer<>(
-            new ImageFromDockerfile()
-                    .withFileFromPath(".", Paths.get("../python-microservice"))
-    ).withExposedPorts(5001);
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -55,20 +43,17 @@ public class PlanningServiceIntegrationTest {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("microservice.planning.url", () -> "http://localhost:5001/optimize");
-
-        registry.add("microservice.planning.url",
-                () -> "http://" + pythonMicroservice.getHost() + ":" + pythonMicroservice.getMappedPort(5001) + "/optimize");
     }
-
     @TestConfiguration
     static class TestConfig {
+
         @Bean
         @org.springframework.context.annotation.Primary
-        public RestTemplate restTemplate() {
-            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            factory.setConnectTimeout(2000);
-            factory.setReadTimeout(10000);
-            return new RestTemplate(factory);
+        public RestTemplate restTemplate(RestTemplateBuilder builder) {
+            return builder
+                    .setConnectTimeout(Duration.ofSeconds(2)) // Max 2 Sek warten auf Verbindung
+                    .setReadTimeout(Duration.ofSeconds(10))   // Max 10 Sek warten auf Antwort (Solver braucht Zeit!)
+                    .build();
         }
     }
 
@@ -115,7 +100,7 @@ public class PlanningServiceIntegrationTest {
 
         OtherTask otherTask = new OtherTask("Future Task", 60, startFuture, endFuture);
         otherTask.setModule(module);
-        otherTask.setStatus(TaskStatus.OPEN);
+
         taskRepository.save(otherTask);
 
 
@@ -123,7 +108,7 @@ public class PlanningServiceIntegrationTest {
         task.setModule(module);
         task.setWeeklyDurationMinutes(120);
         task.setTitle("TestTask");
-        task.setStatus(TaskStatus.OPEN);
+
 
         taskRepository.save(task);
         userRepository.flush();
@@ -145,9 +130,9 @@ public class PlanningServiceIntegrationTest {
         var plans = learningPlanRepository.findAll();
 
         if (plans.isEmpty()) {
-            System.out.println("ACHTUNG: Keine Pläne gefunden!");
+            System.out.println("ACHTUNG: Keine PlÃ¤ne gefunden!");
         } else {
-            System.out.println("Gefundene Pläne: " + plans.size());
+            System.out.println("Gefundene PlÃ¤ne: " + plans.size());
         }
 
         org.junit.jupiter.api.Assertions.assertFalse(plans.isEmpty(), "Kein Lernplan erstellt!");

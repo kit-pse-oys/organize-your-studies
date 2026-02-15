@@ -3,7 +3,6 @@ package de.pse.oys.service.planning;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
@@ -309,7 +308,7 @@ public class PlanningService {
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration, User user) {
         LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
-        plan.setUser(user);
+        plan.setUserId(user.getId());
 
         List<LearningUnit> newLearningUnits = new ArrayList<>();
 
@@ -340,9 +339,19 @@ public class PlanningService {
 
             }
         }
-        plan.setUser(user);
+        plan.setUserId(user.getId());
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
+        cleanUpOldPlans(user.getId());
+    }
+
+
+    private void cleanUpOldPlans(UUID userId) {
+        // Stichtag berechnen: Alles was vor 3 Wochen startete
+        LocalDate cutoffDate = LocalDate.now().minusWeeks(3);
+
+        // Lösche alle Pläne des Users, deren Woche vor dem Stichtag begann
+        learningPlanRepository.deleteByUserIdAndWeekStartBefore(userId, cutoffDate);
     }
 
     /**
@@ -373,7 +382,7 @@ public class PlanningService {
      * @return Liste der TaskDTOs für offene Aufgaben.
      */
     private List<PlanningTaskDTO> fetchOpenTasksAsDTOs(User user, LocalDateTime now, LocalDate weekStart) {
-        List<Task> openTasks = taskRepository.findAllByModuleUserUserIdAndStatus(user.getId(), TaskStatus.OPEN);
+        List<Task> openTasks = taskRepository.findAllByModuleUserUserId(user.getId()).stream().filter(Task::isActive).toList();
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         LearningPreferences userPreferences = user.getPreferences();
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);

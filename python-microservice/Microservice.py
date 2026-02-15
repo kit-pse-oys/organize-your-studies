@@ -47,7 +47,7 @@ KEY_AFTERNOON = "AFTERNOON"
 KEY_EVENING = "EVENING"
 
 SERVER_HOST = "0.0.0.0"
-SERVER_PORT = 5002
+SERVER_PORT = 5001
 
 
 # Component DataTransformer
@@ -272,5 +272,5 @@ async def optimize(data: dict = Body(...)):
 
 
 if __name__ == '__main__':
-    # FastAPI braucht Uvicorn als Server
+
     uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
