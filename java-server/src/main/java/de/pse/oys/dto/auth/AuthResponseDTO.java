@@ -15,13 +15,6 @@ public class AuthResponseDTO {
 
     /** Der Refresh-Token zum Erneuern des Access-Tokens. */
     private String refreshToken;
-
-    /** Die eindeutige Kennung des authentifizierten Nutzers. */
-    private UUID userId;
-
-    /** Der Anzeigename des Nutzers. */
-    private String username;
-
     /**
      * Standardkonstruktor für die Deserialisierung.
      */
@@ -34,14 +27,10 @@ public class AuthResponseDTO {
      *
      * @param accessToken der ausgestellte Access-Token
      * @param refreshToken der ausgestellte Refresh-Token
-     * @param id die ID des Nutzers, welcher sich authentifiziert hat
-     * @param username der Anzeigename des Nutzers
      */
-    public AuthResponseDTO(String accessToken, String refreshToken, UUID id, String username) {
+    public AuthResponseDTO(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.userId = id;
-        this.username = username;
     }
 
     // Getter
@@ -52,12 +41,6 @@ public class AuthResponseDTO {
     /** @return Der aktuelle Refresh-Token. */
     public String getRefreshToken() { return refreshToken; }
 
-    /** @return Die ID des Nutzers. */
-    public UUID getUserId() { return userId; }
-
-    /** @return Der Nutzername. */
-    public String getUsername() { return username; }
-
     // Setter
 
     /** @param accessToken Der neue Access-Token. */
@@ -66,9 +49,4 @@ public class AuthResponseDTO {
     /** @param refreshToken Der neue Refresh-Token. */
     public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 
-    /** @param userId Die ID des authentifizierten Nutzers. */
-    public void setUserId(UUID userId) { this.userId = userId; }
-
-    /** @param username Der Anzeigename des Nutzers. */
-    public void setUsername(String username) { this.username = username; }
 }
