@@ -35,7 +35,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlin.uuid.Uuid
@@ -604,7 +603,7 @@ class RemoteClientTest {
             ModuleData(
                 title = "Module 1",
                 description = "Description 1",
-                priority = Priority.NEUTRAL,
+                priority = Priority.MEDIUM,
                 color = Color(0xFF, 0x00, 0x00)
             ), Uuid.random()
         )
@@ -698,7 +697,7 @@ class RemoteClientTest {
                 ModuleData(
                     title = "Module 1",
                     description = "Description 1",
-                    priority = Priority.NEUTRAL,
+                    priority = Priority.MEDIUM,
                     color = Color(0xFF, 0x00, 0x00)
                 )
             )
@@ -740,7 +739,7 @@ class RemoteClientTest {
                     ModuleData(
                         title = "Module 1",
                         description = "Description 1",
-                        priority = Priority.NEUTRAL,
+                        priority = Priority.MEDIUM,
                         color = Color(0xFF, 0x00, 0x00)
                     ), uuid1
                 )

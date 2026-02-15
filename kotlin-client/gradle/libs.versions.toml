@@ -1,23 +1,25 @@
 [versions]
 agp = "9.0.1"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxCoroutinesTest = "1.10.2"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.3"
-composeBom = "2026.01.01"
+activityCompose = "1.12.4"
+composeBom = "2026.02.00"
 mockk = "1.14.9"
 navigation = "2.9.7"
 datastorePreferences = "1.2.0"
 kotlinxSerialization = "1.10.0"
 kotlinxDateTime = "0.7.1"
 ktor = "3.4.0"
-foundationLayout = "1.10.2"
+foundationLayout = "1.10.3"
 credentials = "1.6.0-rc01"
 googleid = "1.2.0"
+slf4j = "2.0.17"
+slf4jAndroid = "2.0.17-0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,9 @@ ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth" }
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+slf4j-android = { group = "uk.uuid.slf4j", name = "slf4j-android", version.ref = "slf4jAndroid" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }

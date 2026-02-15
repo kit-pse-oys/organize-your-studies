@@ -54,6 +54,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 /**
  * View for creating a new free time or editing an existing one.
@@ -239,13 +240,18 @@ abstract class BaseCreateFreeTimeViewModel(
     override var weekly by mutableStateOf(freeTime?.weekly ?: false)
 
     /**
-     * Registers a new free time in the [ModelFacade].
-     * @param freeTime the [FreeTime] to be registered.
+     * Registers or deletes a free time in the [ModelFacade].
+     * @param id The uuid of the free time
+     * @param freeTime the [FreeTime] to be registered or null to delete.
      */
-    protected fun registerNewFreeTime(freeTime: FreeTime) {
+    protected fun registerNewFreeTime(id: Uuid, freeTime: FreeTimeData?) {
         val freeTimes = model.freeTimes.orEmpty().toMutableMap()
         model.freeTimes = freeTimes
-        freeTimes[freeTime.id] = freeTime.data
+        if (freeTime != null) {
+            freeTimes[id] = freeTime
+        } else {
+            freeTimes.remove(id)
+        }
 
         navController.main()
     }
@@ -269,7 +275,7 @@ class CreateFreeTimeViewModel(
             val data = FreeTimeData(title, date, start, end, weekly)
             api.createFreeTime(data).defaultHandleError(navController) { error = true }?.let { id ->
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewFreeTime(FreeTime(data, id))
+                    registerNewFreeTime(id, data)
                 }
             }
         }
@@ -300,10 +306,9 @@ class EditFreeTimeViewModel(
     override fun submit() {
         viewModelScope.launch {
             val data = FreeTimeData(title, date, start, end, weekly)
-            val freeTime = FreeTime(data, uuid)
-            api.updateFreeTime(freeTime).defaultHandleError(navController) { error = true }?.let {
+            api.updateFreeTime(FreeTime(data, uuid)).defaultHandleError(navController) { error = true }?.let {
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewFreeTime(freeTime)
+                    registerNewFreeTime(uuid, data)
                 }
             }
         }
@@ -312,7 +317,9 @@ class EditFreeTimeViewModel(
     override fun delete() {
         viewModelScope.launch {
             api.deleteFreeTime(uuid).defaultHandleError(navController) { error = true }?.let {
-                navController.main()
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewFreeTime(uuid, null)
+                }
             }
         }
     }

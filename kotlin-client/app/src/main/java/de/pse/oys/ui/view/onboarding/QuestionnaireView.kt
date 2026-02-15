@@ -1,6 +1,5 @@
 package de.pse.oys.ui.view.onboarding
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -9,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -19,9 +20,12 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +47,7 @@ import de.pse.oys.data.Question
 import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.defaultHandleError
 import de.pse.oys.ui.navigation.Questionnaire
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
@@ -66,7 +70,19 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.error) {
+        if (viewModel.error) {
+            snackbarHostState.showSnackbar("Something went wrong...")
+            viewModel.error = false
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+        val scroll = rememberScrollState()
         if (viewModel.showWelcome) {
             Column(
                 Modifier
@@ -96,7 +112,9 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
             }
         } else {
             Column(
-                Modifier.padding(innerPadding),
+                Modifier
+                    .padding(innerPadding)
+                    .verticalScroll(scroll),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 ViewHeader(stringResource(R.string.questionnaire_header))
@@ -117,7 +135,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                                     stringResource(R.string.question_header, i + 1),
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                 )
-                                Text(question.getDisplayQuestion())
+                                Text(question.localisation())
                                 Spacer(Modifier.height(4.dp))
                                 FlowRow(
                                     modifier = Modifier
@@ -136,7 +154,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                                             shape = RoundedCornerShape(20.dp),
                                             label = {
                                                 Text(
-                                                    text = answer.getDisplayLabel(),
+                                                    text = answer.localisation(),
                                                     textAlign = TextAlign.Center
                                                 )
                                             },
@@ -170,40 +188,11 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
 }
 
 /**
- * Converts a [Question] to a string.
- * @return the string representation of the question.
- */
-@SuppressLint("DiscouragedApi", "LocalContextResourcesRead")
-@Composable
-fun Question.getDisplayQuestion(): String {
-    val context = LocalContext.current
-    val packageName = context.packageName
-    val resId = remember(id) {
-        context.resources.getIdentifier(id, "string", packageName)
-    }
-
-    return if (resId != 0) stringResource(resId) else id
-}
-
-/**
- * Converts an [Answer] to a string or the id if the string resource is not found.
- * @return the string representation of the answer or the id.
- */
-@SuppressLint("DiscouragedApi", "LocalContextResourcesRead")
-@Composable
-fun Answer.getDisplayLabel(): String {
-    val context = LocalContext.current
-    val resId = remember(id) {
-        context.resources.getIdentifier(id, "string", context.packageName)
-    }
-    return if (resId != 0) stringResource(resId) else id
-}
-
-/**
  * Interface for the view model of the [QuestionnaireView].
  * @property showWelcome whether the welcome screen should be shown.
  */
 interface IQuestionnaireViewModel {
+    var error: Boolean
     val showWelcome: Boolean
 
     /**
@@ -237,9 +226,13 @@ interface IQuestionnaireViewModel {
  * @param api the [RemoteAPI] for this view.
  * @property state the current state of the questionnaire.
  */
-abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
+abstract class BaseQuestionnaireViewModel(
+    private val api: RemoteAPI,
+    protected val navController: NavController
+) :
     ViewModel(),
     IQuestionnaireViewModel {
+    override var error: Boolean by mutableStateOf(false)
     private var state: QuestionState = QuestionState()
 
     private val _selectedFlows = Questions.associateWith { question ->
@@ -277,10 +270,10 @@ abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
 
     override fun submitQuestionnaire() {
         viewModelScope.launch {
-            api.updateQuestionnaire(state)
-
-            withContext(Dispatchers.Main.immediate) {
-                navigateToMain()
+            api.updateQuestionnaire(state).defaultHandleError(navController) { error = true }?.let {
+                withContext(Dispatchers.Main.immediate) {
+                    navigateToMain()
+                }
             }
         }
     }
@@ -296,8 +289,8 @@ abstract class BaseQuestionnaireViewModel(private val api: RemoteAPI) :
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class FirstQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
-    BaseQuestionnaireViewModel(api) {
+class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
+    BaseQuestionnaireViewModel(api, navController) {
     override var showWelcome by mutableStateOf(true)
 
     override fun showQuestionnaire() {
@@ -310,19 +303,23 @@ class FirstQuestionnaireViewModel(api: RemoteAPI, private val navController: Nav
 }
 
 /**
- * View model for the [QuestionnaireView] for when a users wants to edit their questionnaire.
+ * View model for the [QuestionnaireView] for when a user wants to edit their questionnaire.
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class EditQuestionnaireViewModel(api: RemoteAPI, private val navController: NavController) :
-    BaseQuestionnaireViewModel(api) {
+class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
+    BaseQuestionnaireViewModel(api, navController) {
+
     init {
-        val state = TODO("Get state from api")
-        updateState(state)
+        viewModelScope.launch {
+            api.getQuestionnaire().defaultHandleError(navController) { error = true }
+                ?.let { state ->
+                    updateState(state)
+                }
+        }
     }
 
     override val showWelcome = false
-
     override fun showQuestionnaire() {}
 
     override fun navigateToMain() {

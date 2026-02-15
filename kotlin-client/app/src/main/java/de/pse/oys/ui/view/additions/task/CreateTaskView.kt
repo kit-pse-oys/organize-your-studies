@@ -52,6 +52,7 @@ import de.pse.oys.data.api.RemoteTask
 import de.pse.oys.data.api.RemoteTaskData
 import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.ExamTaskData
+import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.OtherTaskData
@@ -82,6 +83,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 /**
  * View for creating a new task or editing an existing one.
@@ -96,8 +98,8 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var confirmDelete by remember { mutableStateOf(false) }
     val submitButtonActive =
         viewModel.title.isNotBlank() && viewModel.module != stringResource(id = R.string.nothing_chosen)
-                && viewModel.weeklyTimeLoad >= 0 && (if (viewModel.type == TaskType.SUBMISSION) viewModel.submissionCycle in 1..<10 else false)
-                && (if (viewModel.type == TaskType.OTHER) viewModel.start <= viewModel.end else false)
+                && viewModel.weeklyTimeLoad >= 0 && (viewModel.type != TaskType.SUBMISSION || viewModel.submissionCycle in 1..<10)
+                && (viewModel.type != TaskType.OTHER || viewModel.start <= viewModel.end)
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.error) {
@@ -577,13 +579,18 @@ abstract class BaseCreateTaskViewModel(
     )
 
     /**
-     * Registers a new task in the [ModelFacade].
-     * @param task the [Task] to be registered.
+     * Registers or deletes a task in the [ModelFacade].
+     * @param id The uuid of the task
+     * @param task the [Task] to be registered or null to delete.
      */
-    protected fun registerNewTask(task: Task) {
+    protected fun registerNewTask(id: Uuid, task: TaskData?) {
         val tasks = model.tasks.orEmpty().toMutableMap()
         model.tasks = tasks
-        tasks[task.id] = task.data
+        if (task != null) {
+            tasks[id] = task
+        } else {
+            tasks.remove(id)
+        }
 
         navController.main()
     }
@@ -640,7 +647,7 @@ class CreateTaskViewModel(
             val data = assembleRemoteTask()
             api.createTask(data).defaultHandleError(navController) { error = true }?.let { id ->
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewTask(Task(assembleTask(), id))
+                    registerNewTask(id, assembleTask())
                 }
             }
         }
@@ -674,7 +681,7 @@ class EditTaskViewModel(
             val task = RemoteTask(data, uuid)
             api.updateTask(task).defaultHandleError(navController) { error = true }?.let {
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewTask(Task(assembleTask(), uuid))
+                    registerNewTask(uuid, assembleTask())
                 }
             }
         }
@@ -683,7 +690,9 @@ class EditTaskViewModel(
     override fun delete() {
         viewModelScope.launch {
             api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let {
-                navController.main()
+                withContext(Dispatchers.Main.immediate) {
+                    registerNewTask(uuid, null)
+                }
             }
         }
     }

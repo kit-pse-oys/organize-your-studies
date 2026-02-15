@@ -131,4 +131,5 @@
     <string name="day_plan_header">Dein Plan für Heute:</string>
     <string name="week_plan_header">Dein Plan für diese Woche:</string>
     <string name="upcoming_units_header">Deine Einheiten für morgen:</string>
+    <string name="days_template">%1$d Tage</string>
 </resources>

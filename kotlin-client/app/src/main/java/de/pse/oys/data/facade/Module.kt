@@ -25,7 +25,7 @@ data class ModuleData(
 @Serializable
 enum class Priority {
     LOW,
-    NEUTRAL,
+    MEDIUM,
     HIGH;
 }
 

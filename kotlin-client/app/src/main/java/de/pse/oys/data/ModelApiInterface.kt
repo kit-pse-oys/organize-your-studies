@@ -20,6 +20,7 @@ import de.pse.oys.data.facade.TaskData
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.login
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
@@ -120,7 +121,7 @@ suspend fun ModelFacade.ensureUnits(api: RemoteAPI): Response<Map<DayOfWeek, Map
 }
 
 suspend fun <T> Response<T>.defaultHandleError(navController: NavController, error: () -> Unit): T? {
-    if (status != HttpStatusCode.OK.value) {
+    if (!HttpStatusCode.fromValue(status).isSuccess()) {
         if (status == HttpStatusCode.Unauthorized.value) {
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
@@ -132,6 +133,6 @@ suspend fun <T> Response<T>.defaultHandleError(navController: NavController, err
 
         return null
     } else {
-        return response ?: error("No response with Status 200")
+        return response ?: error("No response with successful status")
     }
 }

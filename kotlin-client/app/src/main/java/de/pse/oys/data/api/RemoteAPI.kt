@@ -17,6 +17,8 @@ import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -49,6 +51,7 @@ interface RemoteAPI {
     suspend fun register(credentials: Credentials): Response<Unit>
 
     suspend fun updateQuestionnaire(questions: QuestionState): Response<Unit>
+    suspend fun getQuestionnaire(): Response<QuestionState>
 
     suspend fun markUnitFinished(unit: Uuid, actualDuration: Duration): Response<Unit>
     suspend fun moveUnitAutomatically(unit: Uuid): Response<RemoteStep>
@@ -143,7 +146,12 @@ internal constructor(
         install(ContentNegotiation) {
             json(Json(from = DefaultJson) {
                 explicitNulls = false
+                ignoreUnknownKeys = true
             })
+        }
+
+        install(Logging) {
+            level = LogLevel.ALL
         }
     }
 
@@ -212,6 +220,29 @@ internal constructor(
                 })
             }.statusResponse()
         }
+
+    override suspend fun getQuestionnaire(): Response<QuestionState> =
+        withContext(Dispatchers.IO) {
+            val response = client.get(serverUrl) {
+                url {
+                    apiPath("questionnaire")
+                }
+            }.responseAs<Map<String, Map<String, Boolean>>>()
+
+            val questions = response.response?.let {
+                val questions = QuestionState()
+                for ((questionId, answers) in it) {
+                    val question = questions.questions.first { it.id == questionId }
+                    for ((answerId, _) in answers.filter { it.value }) {
+                        val answer = question.answers.first { it.id == answerId }
+                        questions.select(question, answer)
+                    }
+                }
+                questions
+            }
+
+            Response(questions, response.status)
+    }
 
     override suspend fun markUnitFinished(unit: Uuid, actualDuration: Duration): Response<Unit> =
         withContext(Dispatchers.IO) {
@@ -296,11 +327,14 @@ internal constructor(
 
     override suspend fun queryUnits(): Response<Map<DayOfWeek, List<RemoteStep>>> =
         withContext(Dispatchers.IO) {
-            client.get(serverUrl) {
+            val response = client.get(serverUrl) {
                 url {
                     apiPath("plan/units")
                 }
-            }.responseAs()
+            }.responseAs<List<RemoteStep>>()
+
+            val steps = response.response?.groupBy { it.data.date.dayOfWeek }
+            Response(steps, response.status)
         }
 
     override suspend fun queryModules(): Response<List<Module>> = withContext(Dispatchers.IO) {

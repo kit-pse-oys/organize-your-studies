@@ -18,7 +18,6 @@ sealed class TaskData {
 }
 
 @Serializable
-@SerialName("exam")
 data class ExamTaskData(
     override val title: String,
     override val module: Module,
@@ -27,7 +26,6 @@ data class ExamTaskData(
 ) : TaskData()
 
 @Serializable
-@SerialName("submission")
 data class SubmissionTaskData(
     override val title: String,
     override val module: Module,
@@ -37,7 +35,6 @@ data class SubmissionTaskData(
 ) : TaskData()
 
 @Serializable
-@SerialName("other")
 data class OtherTaskData(
     override val title: String,
     override val module: Module,
