@@ -6,7 +6,7 @@ Diese Komponente implementiert einen Constraint-Optimization-Solver (COP)
 unter Verwendung von Google OR-Tools, um Lernpläne zu erstellen.
 Der Service stellt eine REST-API bereit und er berücksichtigt Deadlines, Nachtruhe, geblockte Tage und Präferenzen.
 """
-# CI pipline test
+
 __author__ = "Nardi Hyseni"
 __copyright__ = "Copyright 2026, PSE Projektgruppe Organize Your Studies"
 __credits__ = ["Nardi Hyseni", "Dav Debler"]
@@ -176,8 +176,9 @@ class COPSolver:
             t_id = task['id']
             duration = task['duration']
             deadline = task.get('deadline', horizon)
+            start = task.get('start', 0)
 
-            min_start = max(0, current_slot)
+            min_start = max(0, current_slot, start)
 
             start_var = self.model.NewIntVar(min_start, horizon - duration, f'start_{t_id}')
             end_var = self.model.NewIntVar(min_start + duration, horizon, f'end_{t_id}')
@@ -253,8 +254,6 @@ async def optimize(data: dict = Body(...)):
     """
     Empfängt die Daten als JSON-Body (dafür sorgt 'Body(...)').
     """
-    # Die Zeile 'data = await request.json()' BRAUCHEN WIR NICHT MEHR!
-    # 'data' ist jetzt automatisch schon das fertige Dictionary.
 
     print(f"--> DEBUG: Neue Anfrage empfangen! ({len(data.get('tasks', []))} Tasks)")
 
@@ -271,7 +270,7 @@ async def optimize(data: dict = Body(...)):
         return []
 
 
-# --- 4. Server Starten ---
+
 if __name__ == '__main__':
-    # FastAPI braucht Uvicorn als Server
+
     uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)

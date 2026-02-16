@@ -186,7 +186,6 @@ class LearningAnalyticsProviderTest {
                 "calculateHeuristiksFromTask",
                 currentTask
         );
-
         assertTrue(result.isEmpty(), "Sollte leer sein, da man nicht von sich selbst kopieren darf");
     }
 }

@@ -1,5 +1,6 @@
 package de.pse.oys.planning;
 
+import com.github.dockerjava.api.model.TaskStatus;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
@@ -84,8 +85,8 @@ class PlanningServiceTest {
                 restTemplate
         );
 
-        // URL setzen
-        ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5000/solve");
+
+        ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5001/optimize");
 
         // --- 1. LEARNING PREFERENCES MOCKEN ---
 
@@ -111,6 +112,17 @@ class PlanningServiceTest {
         lenient().when(testTask.getLearningUnits()).thenReturn(new ArrayList<>());
         lenient().when(testTask.getSoftDeadline(anyInt()))
                 .thenReturn(LocalDate.of(2026, 1, 30).atTime(12, 0));
+
+        // --- 4. REPOSITORY BEHAVIOR DEFINIEREN ---
+        lenient().when(taskRepository.save(any(Task.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        lenient().when(taskRepository.saveAndFlush(any(Task.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // LearningPlanRepository: save() gibt Input zurück
+        lenient().when(learningPlanRepository.save(any(LearningPlan.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
     }
 
@@ -157,9 +169,9 @@ class PlanningServiceTest {
         assertFalse(request.getTasks().isEmpty());
 
 
-        assertTrue(request.getPreferredSlots().contains(TimeSlot.MORNING.toString()));
+        assertTrue(request.getPreference_time().contains(TimeSlot.MORNING.toString()));
 
-        verify(learningPlanRepository).save(any(LearningPlan.class));
+        verify(learningPlanRepository, times(1)).save(any(LearningPlan.class));
     }
 
     @Test
@@ -168,16 +180,19 @@ class PlanningServiceTest {
 
         lenient().when(testPreferences.getBreakDurationMinutes()).thenReturn(15);
 
+        ExamTask realTask = new ExamTask("Real Test Task", 120, LocalDate.of(2026, 3, 15));
+        ReflectionTestUtils.setField(realTask, "taskId", taskId);
 
+        realTask.isActive();
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(taskRepository.findAllByModuleUserUserId(eq(userId)))
-                .thenReturn(List.of(testTask));
-        when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask)); // Fürs Speichern
+                .thenReturn(List.of(realTask));
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(realTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
 
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
-        responseItem.setId(taskId.toString() + "_0");
+        responseItem.setId(taskId + "_0");
         responseItem.setStart(72);
         responseItem.setEnd(87);
 
@@ -203,11 +218,14 @@ class PlanningServiceTest {
                 "Der Request an Python muss die Pause beinhalten (mind. 15 Slots bei 75min)");
 
         ArgumentCaptor<LearningPlan> planCaptor = ArgumentCaptor.forClass(LearningPlan.class);
-        verify(learningPlanRepository).save(planCaptor.capture());
 
-        LearningUnit savedUnit = planCaptor.getValue().getUnits().get(0);
+        verify(learningPlanRepository, atLeast(1)).save(planCaptor.capture());
 
+        List<LearningPlan> capturedPlans = planCaptor.getAllValues();
+        LearningPlan finalPlan = capturedPlans.get(capturedPlans.size() - 1);
 
+        assertFalse(finalPlan.getUnits().isEmpty(), "Die Liste der Units darf nicht leer sein!");
+        LearningUnit savedUnit = finalPlan.getUnits().get(0);
         assertEquals(LocalDateTime.of(weekStart, LocalTime.of(6, 0)), savedUnit.getStartTime());
 
 
@@ -249,7 +267,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(unitIdToMove), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -280,7 +298,7 @@ class PlanningServiceTest {
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
 
-        boolean otherUnitBlocked = request.getFixedBlocks().stream()
+        boolean otherUnitBlocked = request.getFixed_blocks().stream()
                 .anyMatch(b -> b.getStart() == 144);
         assertTrue(otherUnitBlocked);
 
@@ -315,7 +333,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(unitIdToMove), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -348,7 +366,7 @@ class PlanningServiceTest {
 
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        boolean oldSlotBlocked = request.getFixedBlocks().stream()
+        boolean oldSlotBlocked = request.getFixed_blocks().stream()
                 .anyMatch(b -> b.getStart() == 120);
 
         assertTrue(oldSlotBlocked,
