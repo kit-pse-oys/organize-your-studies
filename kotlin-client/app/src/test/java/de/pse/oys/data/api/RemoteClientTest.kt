@@ -985,8 +985,8 @@ class RemoteClientTest {
             FreeTimeData(
                 title = "FreeTime 1",
                 date = LocalDate(2026, 1, 1),
-                start = LocalTime(0, 0, 0),
-                end = LocalTime(1, 0, 0),
+                startTime = LocalTime(0, 0, 0),
+                endTime = LocalTime(1, 0, 0),
                 weekly = false,
             ), Uuid.random()
         )
@@ -994,8 +994,8 @@ class RemoteClientTest {
             FreeTimeData(
                 title = "FreeTime 2",
                 date = LocalDate(2026, 1, 1),
-                start = LocalTime(1, 0, 0),
-                end = LocalTime(2, 0, 0),
+                startTime = LocalTime(1, 0, 0),
+                endTime = LocalTime(2, 0, 0),
                 weekly = true,
             ), Uuid.random()
         )
@@ -1084,8 +1084,8 @@ class RemoteClientTest {
                 FreeTimeData(
                     title = "FreeTime 1",
                     date = LocalDate(2026, 1, 1),
-                    start = LocalTime(0, 0, 0),
-                    end = LocalTime(1, 0, 0),
+                    startTime = LocalTime(0, 0, 0),
+                    endTime = LocalTime(1, 0, 0),
                     weekly = false,
                 )
             )
@@ -1128,8 +1128,8 @@ class RemoteClientTest {
                     FreeTimeData(
                         title = "FreeTime 1",
                         date = LocalDate(2026, 1, 1),
-                        start = LocalTime(0, 0, 0),
-                        end = LocalTime(1, 0, 0),
+                        startTime = LocalTime(0, 0, 0),
+                        endTime = LocalTime(1, 0, 0),
                         weekly = false,
                     ), uuid1
                 )

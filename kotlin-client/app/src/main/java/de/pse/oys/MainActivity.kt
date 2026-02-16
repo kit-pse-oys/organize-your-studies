@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         val model = ModelFacade()
 
         val loggedIn =
-            runBlocking { properties.hasSession.stateIn(lifecycleScope + Dispatchers.IO) }
+            runBlocking { properties.hasSession.stateIn(lifecycleScope + Dispatchers.IO).value }
 
         setContent {
             val darkmode by properties.darkmode.collectAsStateWithLifecycle(Darkmode.SYSTEM)
@@ -42,8 +42,6 @@ class MainActivity : ComponentActivity() {
                 Darkmode.DISABLED -> false
                 Darkmode.SYSTEM -> isSystemInDarkTheme()
             }
-
-            val loggedIn by loggedIn.collectAsStateWithLifecycle()
 
             OrganizeYourStudiesTheme(darkTheme = darkTheme) {
                 EntryPoint(

@@ -29,7 +29,7 @@ val Questions: List<Question> = listOf(
         R.string.amount_template
     ),
     question(
-        "time_before_deadline",
+        "time_before_deadlines",
         R.string.time_before_deadline,
         1..7,
         R.string.days_template

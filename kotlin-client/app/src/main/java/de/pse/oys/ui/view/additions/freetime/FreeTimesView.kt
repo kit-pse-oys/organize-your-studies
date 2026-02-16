@@ -111,7 +111,7 @@ private fun FreeTimeButton(freeTime: FreeTime, viewModel: IFreeTimesViewModel) {
                 } else {
                     Text(stringResource(id = R.string.freetime_on_date) + freeTime.data.date.toFormattedString())
                 }
-                Text(stringResource(id = R.string.at_time) + freeTime.data.start.toFormattedString() + " - " + freeTime.data.end.toFormattedString())
+                Text(stringResource(id = R.string.at_time) + freeTime.data.startTime.toFormattedString() + " - " + freeTime.data.endTime.toFormattedString())
             }
         }
     }

@@ -30,8 +30,8 @@ object TestUtils {
     fun createMockFreeTimeData() = FreeTimeData(
         title = TEST_TITLE,
         date = TEST_DATE,
-        start = TEST_TIME,
-        end = TEST_TIME,
+        startTime = TEST_TIME,
+        endTime = TEST_TIME,
         weekly = false
     )
 }

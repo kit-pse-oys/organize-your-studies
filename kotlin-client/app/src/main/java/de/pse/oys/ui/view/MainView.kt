@@ -386,8 +386,8 @@ class MainViewModel(
             val dayOfWeek = freeTime.date.dayOfWeek
             (id to (dayOfWeek to PlannedFreeTime(
                 freeTime.title,
-                freeTime.start,
-                freeTime.end
+                freeTime.startTime,
+                freeTime.endTime
             )))
         }.toMap()
         this._freeTimes = _freeTimes.map { (id, freeTime) -> freeTime.second to id }.toMap()
