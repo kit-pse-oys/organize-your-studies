@@ -267,7 +267,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(unitIdToMove), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -333,7 +333,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(unitIdToMove), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
