@@ -127,18 +127,20 @@ internal constructor(
                 }
 
                 refreshTokens {
-                    val refreshToken = oldTokens?.refreshToken!!
-                    val tokenInfo = client.post(serverUrl) {
-                        url {
-                            apiPath("users/refresh")
-                        }
+                    session.getSession()?.let { (_, refreshToken) ->
+                        val accessToken = client.post(serverUrl) {
+                            url {
+                                apiPath("users/refresh")
+                            }
 
-                        contentType(ContentType.Application.Json)
-                        setBody(Routes.Auth.RefreshToken(refreshToken))
+                            contentType(ContentType.Application.Json)
+                            setBody(Routes.Auth.RefreshToken(refreshToken))
 
-                        markAsRefreshTokenRequest()
-                    }.body<Routes.Auth.AccessToken>()
-                    BearerTokens(tokenInfo.accessToken, refreshToken)
+                            markAsRefreshTokenRequest()
+                        }.body<Routes.Auth.AccessToken>()
+                        session.setSession(Session(accessToken.accessToken, refreshToken))
+                        BearerTokens(accessToken.accessToken, refreshToken)
+                    }
                 }
             }
         }
@@ -146,7 +148,7 @@ internal constructor(
         install(ContentNegotiation) {
             json(Json(from = DefaultJson) {
                 explicitNulls = false
-                ignoreUnknownKeys = true
+//                ignoreUnknownKeys = true
             })
         }
 
