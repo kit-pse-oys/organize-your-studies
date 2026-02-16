@@ -391,6 +391,10 @@ class LoginViewModel(
 
     override var error: Boolean by mutableStateOf(false)
 
+    init {
+        api.logout()
+    }
+
     override fun login() {
         viewModelScope.launch {
             if (api.login(Credentials.UsernamePassword(username, password))

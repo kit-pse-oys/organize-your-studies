@@ -10,7 +10,7 @@ typealias FreeTime = Identified<FreeTimeData>
 data class FreeTimeData(
     val title: String,
     val date: LocalDate,
-    val start: LocalTime,
-    val end: LocalTime,
+    val startTime: LocalTime,
+    val endTime: LocalTime,
     val weekly: Boolean
 )

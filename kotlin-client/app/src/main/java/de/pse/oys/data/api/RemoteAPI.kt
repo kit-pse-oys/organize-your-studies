@@ -128,7 +128,7 @@ internal constructor(
 
                 refreshTokens {
                     session.getSession()?.let { (_, refreshToken) ->
-                        val accessToken = client.post(serverUrl) {
+                        val response = client.post(serverUrl) {
                             url {
                                 apiPath("users/refresh")
                             }
@@ -137,9 +137,13 @@ internal constructor(
                             setBody(Routes.Auth.RefreshToken(refreshToken))
 
                             markAsRefreshTokenRequest()
-                        }.body<Routes.Auth.AccessToken>()
-                        session.setSession(Session(accessToken.accessToken, refreshToken))
-                        BearerTokens(accessToken.accessToken, refreshToken)
+                        }
+                        
+                        if (response.status.isSuccess()) {
+                            val accessToken = response.body<Routes.Auth.AccessToken>()
+                            session.setSession(Session(accessToken.accessToken, refreshToken))
+                            BearerTokens(accessToken.accessToken, refreshToken)
+                        } else null
                     }
                 }
             }

@@ -235,8 +235,8 @@ abstract class BaseCreateFreeTimeViewModel(
         freeTime?.date ?: Clock.System.now()
             .toLocalDateTime(TimeZone.currentSystemDefault()).date
     )
-    override var start by mutableStateOf(freeTime?.start ?: LocalTime(0, 0))
-    override var end by mutableStateOf(freeTime?.end ?: LocalTime(0, 0))
+    override var start by mutableStateOf(freeTime?.startTime ?: LocalTime(0, 0))
+    override var end by mutableStateOf(freeTime?.endTime ?: LocalTime(0, 0))
     override var weekly by mutableStateOf(freeTime?.weekly ?: false)
 
     /**
