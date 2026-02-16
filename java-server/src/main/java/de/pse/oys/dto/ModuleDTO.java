@@ -1,5 +1,6 @@
 package de.pse.oys.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.pse.oys.domain.enums.ModulePriority;
 
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 public class ModuleDTO {
 
     ///** Die eindeutige Kennung des Moduls. */
+    @JsonIgnore
     private UUID id;
 
     /** Der Titel des Moduls. */
