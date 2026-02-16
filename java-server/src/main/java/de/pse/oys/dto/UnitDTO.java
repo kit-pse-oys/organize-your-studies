@@ -1,9 +1,8 @@
 package de.pse.oys.dto;
 
-import de.pse.oys.domain.Task;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 /**
  * Datentransferobjekt für eine einzelne Lerneinheit.
@@ -30,7 +29,7 @@ public class UnitDTO {
     private LocalTime end;
 
     /** Die zugehörige Aufgabe der Lerneinheit. */
-    private Task task;
+    private UUID task;
 
     /**
      * Standardkonstruktor für die Deserialisierung.
@@ -60,7 +59,7 @@ public class UnitDTO {
     public LocalTime getEnd() { return end; }
 
     /** Gibt den zugehörigen Task zurück. */
-    public Task getTask() { return task; }
+    public UUID getTaskId() { return task; }
 
 
     // Setter
@@ -84,5 +83,5 @@ public class UnitDTO {
     public void setEnd(LocalTime end) { this.end = end; }
 
     /** Setzt den zugehörigen Task. */
-    public void setTask(Task task) { this.task = task; }
+    public void setTask(UUID task) { this.task = task; }
 }

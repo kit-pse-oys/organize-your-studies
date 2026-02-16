@@ -3,6 +3,7 @@ package de.pse.oys.dto;
 import de.pse.oys.domain.enums.TaskCategory;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * DTO für "OTHER"-Tasks mit Start- und Endzeitpunkt (LocalDateTime).
@@ -24,18 +25,18 @@ public class OtherTaskDTO extends TaskDTO {
     /**
      * Erzeugt ein OtherTaskDTO.
      *
-     * @param title            Titel der Aufgabe
-     * @param moduleTitle      Titel des Moduls
-     * @param weeklyTimeLoad   Wöchentlicher Aufwand (Minuten)
-     * @param startTime        Startzeitpunkt
-     * @param endTime          Endzeitpunkt
+     * @param title          Titel der Aufgabe
+     * @param moduleId       Titel des Moduls
+     * @param weeklyTimeLoad Wöchentlicher Aufwand (Minuten)
+     * @param startTime      Startzeitpunkt
+     * @param endTime        Endzeitpunkt
      */
     public OtherTaskDTO(String title,
-                        String moduleTitle,
+                        UUID moduleId,
                         Integer weeklyTimeLoad,
                         LocalDateTime startTime,
                         LocalDateTime endTime) {
-        super(title, moduleTitle, TaskCategory.OTHER, weeklyTimeLoad);
+        super(title, moduleId, TaskCategory.OTHER, weeklyTimeLoad);
         this.startTime = startTime;
         this.endTime = endTime;
     }

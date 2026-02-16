@@ -63,7 +63,7 @@ public class ModuleController extends BaseController {
      * @return 200 bei Erfolg.
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteModule(@RequestBody ModuleDTO dto) {
+    public ResponseEntity<Void> deleteModule(@RequestBody WrapperDTO<Void> dto) {
         UUID userId = getAuthenticatedUserId();
         moduleService.deleteModule(userId, dto.getId());
         return ResponseEntity.ok().build();

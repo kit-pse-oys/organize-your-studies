@@ -3,6 +3,7 @@ package de.pse.oys.dto;
 import de.pse.oys.domain.enums.TaskCategory;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * DTO für Aufgaben mit wiederkehrenden Abgaben (SubmissionTask).
@@ -28,20 +29,20 @@ public class SubmissionTaskDTO extends TaskDTO {
     /**
      * Erstellt ein SubmissionTaskDTO.
      *
-     * @param title            Titel der Aufgabe
-     * @param moduleTitle      Titel des zugehörigen Moduls
-     * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
-     * @param firstDeadline    erste Deadline (Anchor)
-     * @param submissionCycle  Zyklus/Intervall in Wochen (1 = wöchentlich)
-     * @param endTime          Ende der wiederkehrenden Abgaben
+     * @param title           Titel der Aufgabe
+     * @param moduleId        Titel des zugehörigen Moduls
+     * @param weeklyTimeLoad  wöchentlicher Zeitaufwand (z.B. in Minuten)
+     * @param firstDeadline   erste Deadline (Anchor)
+     * @param submissionCycle Zyklus/Intervall in Wochen (1 = wöchentlich)
+     * @param endTime         Ende der wiederkehrenden Abgaben
      */
     public SubmissionTaskDTO(String title,
-                             String moduleTitle,
+                             UUID moduleId,
                              Integer weeklyTimeLoad,
                              LocalDateTime firstDeadline,
                              Integer submissionCycle,
                              LocalDateTime endTime) {
-        super(title, moduleTitle, TaskCategory.SUBMISSION, weeklyTimeLoad);
+        super(title, moduleId, TaskCategory.SUBMISSION, weeklyTimeLoad);
         this.firstDeadline = firstDeadline;
         this.submissionCycle = submissionCycle;
         this.endTime = endTime;
