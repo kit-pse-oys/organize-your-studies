@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.*;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -112,7 +111,7 @@ public class PlanningService {
         int currentSlot = calculateCurrentSlot(weekStart, now);
 
         LearningPreferences userPreferences = user.getPreferences();
-        List<Integer> blockedDays = calculateBlockedWeekDays(user, userPreferences);
+        List<Integer> blockedDays = calculateBlockedWeekDays(userPreferences);
         String preferredTimeSlots = mapPreferredTimeSlotsToString(userPreferences);
         List<FreeTime> freeTimes = user.getFreeTimes();
         List<FixedBlockDTO> fixedBlocksDTO = calculateFixedBlocksDTO(freeTimes, weekStart);
@@ -186,12 +185,11 @@ public class PlanningService {
         PlanningTaskDTO planningTaskDTO = new PlanningTaskDTO(chunkId, durationSlots, currentSlot, deadlineSlot,costs);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         planningTaskDTOS.add(planningTaskDTO);
-        int horizon = PLANNING_HORIZON_SLOTS;
 
         PlanningRequestDTO planningInput = new PlanningRequestDTO(
-                horizon,
+                PLANNING_HORIZON_SLOTS,
                 currentSlot,
-                calculateBlockedWeekDays(user, user.getPreferences()),
+                calculateBlockedWeekDays(user.getPreferences()),
                 mapPreferredTimeSlotsToString(user.getPreferences()),
                 fixedBlocksDTO,
                 planningTaskDTOS
@@ -223,8 +221,7 @@ public class PlanningService {
     private void applyPenaltyToCostMatrix(Task task, LearningUnit unit, LocalDate weekStart) {
         LocalDateTime startTime = unit.getStartTime();
         int penaltySlot = mapLocalDateTimeToSlot(startTime, weekStart);
-        int penaltyCost = RESCHEDULE_PENALTY_COST;
-        learningAnalyticsProvider.applyPenaltyToCostMatrix(task, penaltySlot, penaltyCost);
+        learningAnalyticsProvider.applyPenaltyToCostMatrix(task, penaltySlot, RESCHEDULE_PENALTY_COST);
     }
 
     /**
@@ -286,7 +283,7 @@ public class PlanningService {
                     planningMicroserviceUrl,
                     HttpMethod.POST,
                     requestEntity,
-                    new ParameterizedTypeReference<List<PlanningResponseDTO>>() {
+                    new ParameterizedTypeReference<>() {
                     }
             );
             return responseEntity.getBody();
@@ -598,12 +595,11 @@ public class PlanningService {
     /**
      * Berechnet die blockierten Wochentage basierend auf den Nutzerpräferenzen.
      *
-     * @param user            Der Nutzer.
      * @param userPreferences Die Lernpräferenzen des Nutzers.
      * @return Liste der blockierten Wochentage als Integer-Werte (0=Montag, 6=Sonntag).
      */
 
-    private List<Integer> calculateBlockedWeekDays(User user, LearningPreferences userPreferences) {
+    private List<Integer> calculateBlockedWeekDays(LearningPreferences userPreferences) {
         List<Integer> blockedDays = new ArrayList<>();
         Set<DayOfWeek> preferredDays = userPreferences.getPreferredDays();
 
@@ -611,7 +607,6 @@ public class PlanningService {
             if (!preferredDays.contains(day)) {
                 blockedDays.add(day.getValue() - 1);
             }
-            ;
         }
 
         return blockedDays;
@@ -629,8 +624,7 @@ public class PlanningService {
         LocalDateTime weekStartDateTime = LocalDateTime.of(weekStart, LocalTime.of(0, 0));
 
         long minutesBetween = ChronoUnit.MINUTES.between(weekStartDateTime, now);
-        int currentSlot = (int) (minutesBetween / SLOT_DURATION_MINUTES);
-        return currentSlot;
+        return (int) (minutesBetween / SLOT_DURATION_MINUTES);
     }
 
     /**
