@@ -80,7 +80,6 @@ class AuthServiceTest {
         // Assert
         assertEquals("access-token", response.getAccessToken());
         assertEquals("refresh-token", response.getRefreshToken());
-        assertEquals(username, response.getUsername());
         verify(user).setRefreshTokenHash(any());
         verify(userRepository).save(user);
     }
@@ -116,7 +115,6 @@ class AuthServiceTest {
         // Assert
         assertEquals("access-token", response.getAccessToken());
         assertEquals("refresh-token", response.getRefreshToken());
-        assertEquals(name, response.getUsername());
 
         // Prüfen, dass ein neuer User gespeichert wurde
         verify(userRepository).save(userCaptor.capture());
@@ -169,8 +167,6 @@ class AuthServiceTest {
         // Assert
         assertEquals(newAccessToken, response.getAccessToken());
         assertEquals(refreshToken, response.getRefreshToken());
-        assertEquals(userId, response.getUserId());
-        assertEquals(username, response.getUsername());
     }
 
 }

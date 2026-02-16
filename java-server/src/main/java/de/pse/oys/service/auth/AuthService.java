@@ -123,7 +123,7 @@ public class AuthService {
             userRepository.save(user);
 
             // 7. AuthResponseDTO zurückgeben.
-            return new AuthResponseDTO(accessToken, refreshToken, user.getId(), name);
+            return new AuthResponseDTO(accessToken, refreshToken);
 
         } else {
             // Nicht unterstützter Authentifizierungsanbieter.
@@ -158,7 +158,7 @@ public class AuthService {
         userRepository.save(user);
 
         // 5. AuthResponseDTO zurückgeben.
-        return new AuthResponseDTO(accessToken, refreshToken, user.getId(), username);
+        return new AuthResponseDTO(accessToken, refreshToken);
     }
 
     /**
@@ -192,9 +192,7 @@ public class AuthService {
 
         return new AuthResponseDTO(
                 newAccessToken,
-                refreshToken,
-                user.getId(),
-                user.getUsername()
+                refreshToken
         );
     }
 }

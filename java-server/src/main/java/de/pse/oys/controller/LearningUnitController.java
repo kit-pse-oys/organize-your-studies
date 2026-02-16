@@ -33,20 +33,6 @@ public class LearningUnitController extends BaseController {
         this.learningUnitService = learningUnitService;
     }
 
-//    /**
-//     * Aktualisiert eine spezifische Lerneinheit (z.B. Zeitraum).
-//     * @param control Die Steuerungsinformationen zur Einheit.
-//     * @return Der aktualisierte Gesamtplan als DTO.
-//     */
-//    @PostMapping("/moveAuto") //todo: das ist jetzt im planningservice, hier also rausnehmen
-//    public ResponseEntity<WrapperDTO<UnitDTO>> moveUnitAutomatically(@RequestBody UnitControlDTO control) {
-//        UUID userId = getAuthenticatedUserId();
-//        UUID unitId = control.getId();
-//        UnitDTO updatedUnit = learningUnitService.moveLearningUnitAutomatically(userId, unitId);
-//
-//        return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
-//    }
-
     /**
      * Verschiebt eine Lerneinheit manuell auf einen neuen Zeitraum.
      * @param control Die Steuerungsinformationen zur Einheit.

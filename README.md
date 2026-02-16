@@ -51,6 +51,8 @@ docker-compose.yml               # Docker Compose Setup File (Server + Microserv
 4. Verbinden Sie Ihr Android-Gerät oder starten Sie einen Emulator.
 5. Klicken Sie auf "Run" (grüner Pfeil) in Android Studio, um die App auf Ihrem Gerät/Emulator zu installieren und zu starten.
 
+Alternativ kann die beigefügte APK direkt installiert werden.
+
 ## Inbetriebnahme - Server, Microservice und Datenbank
 Das Backend besteht aus einem Java-Server, einem Python-Microservice und einer PostgreSQL-Datenbank. Diese Komponenten werden mittels Docker Compose orchestriert. Daher müssen Docker und Docker Compose auf dem Server installiert sein. Die Docker verwalten die Abhängigkeiten und die Laufzeitumgebung für alle drei Komponenten.
 1. Klonen Sie das Repository auf Ihren Server.
