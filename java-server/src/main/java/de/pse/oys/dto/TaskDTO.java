@@ -15,9 +15,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         visible = true // Erlaubt, dass das Feld auch im Enum-Feld landet
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ExamTaskDTO.class, name = "exam"),
-        @JsonSubTypes.Type(value = SubmissionTaskDTO.class, name = "submission"),
-        @JsonSubTypes.Type(value = OtherTaskDTO.class, name = "other")
+        @JsonSubTypes.Type(value = ExamTaskDTO.class, name = "EXAM"),
+        @JsonSubTypes.Type(value = SubmissionTaskDTO.class, name = "SUBMISSION"),
+        @JsonSubTypes.Type(value = OtherTaskDTO.class, name = "OTHER")
 })
 public abstract class TaskDTO {
 
