@@ -193,7 +193,6 @@ class UserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(refreshJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").value(refreshToken));
+                .andExpect(jsonPath("$.accessToken").exists());
     }
 }

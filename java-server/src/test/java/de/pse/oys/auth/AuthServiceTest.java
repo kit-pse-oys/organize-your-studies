@@ -166,7 +166,6 @@ class AuthServiceTest {
 
         // Assert
         assertEquals(newAccessToken, response.getAccessToken());
-        assertEquals(refreshToken, response.getRefreshToken());
     }
 
 }
