@@ -4,6 +4,8 @@ import java.time.DayOfWeek;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.pse.oys.domain.enums.TimeSlot;
 
@@ -31,6 +33,7 @@ import de.pse.oys.domain.enums.TimeSlot;
  * @author uhupo
  * @version 2.0
  */
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class QuestionnaireDTO {
 
     private static final String ERR_INVALID_QUESTIONNAIRE_DATA = "Ungültige Daten im Fragebogen festgestellt.";
@@ -123,6 +126,7 @@ public class QuestionnaireDTO {
      * @return Integer-Wert der maximalen Lerneinheitsdauer
      * @throws InvalidDtoException wenn kein gültiger Wert gefunden wurde
      */
+    @JsonIgnore
     public Integer getMaxUnitDuration() throws InvalidDtoException {
         return getSingleChoice(this.maxUnitDuration);
     }
@@ -131,6 +135,7 @@ public class QuestionnaireDTO {
      * Setzt die maximale Lerneinheitsdauer.
      * @param maxUnitDuration Integer-Wert der maximalen Lerneinheitsdauer
      */
+    @JsonIgnore
     public void setMaxUnitDuration(Integer maxUnitDuration) {
         if (this.maxUnitDuration == null) {
             this.maxUnitDuration = new java.util.HashMap<>();
@@ -143,6 +148,7 @@ public class QuestionnaireDTO {
      * @return Integer-Wert der minimalen Lerneinheitsdauer
      * @throws InvalidDtoException wenn kein gültiger Wert gefunden wurde
      */
+    @JsonIgnore
     public Integer getMinUnitDuration() throws InvalidDtoException {
         return getSingleChoice(this.minUnitDuration);
     }
@@ -151,6 +157,7 @@ public class QuestionnaireDTO {
      * Setzt die minimale Lerneinheitsdauer.
      * @param minUnitDuration Integer-Wert der minimalen Lerneinheitsdauer
      */
+    @JsonIgnore
     public void setMinUnitDuration(Integer minUnitDuration) {
         if (this.minUnitDuration == null) {
             this.minUnitDuration = new java.util.HashMap<>();
@@ -163,6 +170,7 @@ public class QuestionnaireDTO {
      * @return Integer-Wert der maximalen Tagesbelastung
      * @throws InvalidDtoException wenn kein gültiger Wert gefunden wurde
      */
+    @JsonIgnore
     public Integer getMaxDayLoad() throws InvalidDtoException {
         return getSingleChoice(this.maxDayLoad);
     }
@@ -171,6 +179,7 @@ public class QuestionnaireDTO {
      * Setzt die maximale Tagesbelastung.
      * @param maxDayLoad Integer-Wert der maximalen Tagesbelastung
      */
+    @JsonIgnore
     public void setMaxDayLoad(Integer maxDayLoad) {
         if (this.maxDayLoad == null) {
             this.maxDayLoad = new java.util.HashMap<>();
@@ -182,6 +191,7 @@ public class QuestionnaireDTO {
      * Gibt die vom Nutzer gewählte Zeitspanne vor Deadlines zurück.
      * @return Integer-Wert der Zeitspanne vor Deadlines
      */
+    @JsonIgnore
     public Integer getTimeBeforeDeadlines() {
         return getSingleChoice(this.timeBeforeDeadlines);
     }
@@ -190,6 +200,7 @@ public class QuestionnaireDTO {
      * Setzt die Zeitspanne vor Deadlines.
      * @param timeBeforeDeadlines Integer-Wert der Zeitspanne vor Deadlines
      */
+    @JsonIgnore
     public void setTimeBeforeDeadlines(Integer timeBeforeDeadlines) {
         if (this.timeBeforeDeadlines == null) {
             this.timeBeforeDeadlines = new java.util.HashMap<>();
@@ -202,6 +213,7 @@ public class QuestionnaireDTO {
      * @return Integer-Wert der bevorzugten Pausendauer
      * @throws IllegalStateException wenn kein gültiger Wert gefunden wurde
      */
+    @JsonIgnore
     public Integer getPreferredPauseDuration() throws IllegalStateException {
         return getSingleChoice(this.preferredPauseDuration);
     }
@@ -210,6 +222,7 @@ public class QuestionnaireDTO {
      * Setzt die bevorzugte Pausendauer.
      * @param preferredPauseDuration Integer-Wert der bevorzugten Pausendauer
      */
+    @JsonIgnore
     public void setPreferredPauseDuration(Integer preferredPauseDuration) {
         if (this.preferredPauseDuration == null) {
             this.preferredPauseDuration = new java.util.HashMap<>();
@@ -223,6 +236,7 @@ public class QuestionnaireDTO {
      * Gibt die vom Nutzer bevorzugten Lernzeiten als Set zurück.
      * @return Set der ausgewählten {@link TimeSlot}-Werte
      */
+    @JsonIgnore
     public Set<TimeSlot> getPreferredStudyTimes() {
         return getMultipleChoice(this.preferredStudyTimes);
     }
@@ -231,6 +245,7 @@ public class QuestionnaireDTO {
      * Setzt die bevorzugten Lernzeiten.
      * @param preferredStudyTimes Set der ausgewählten {@link TimeSlot}-Werte
      */
+    @JsonIgnore
     public void setPreferredStudyTimes(Set<TimeSlot> preferredStudyTimes) {
         if (this.preferredStudyTimes == null) {
             this.preferredStudyTimes = new java.util.EnumMap<>(TimeSlot.class);
@@ -242,6 +257,7 @@ public class QuestionnaireDTO {
      * Gibt die vom Nutzer bevorzugten Lerntage als Set zurück.
      * @return Set der ausgewählten {@link DayOfWeek}-Werte
      */
+    @JsonIgnore
     public Set<DayOfWeek> getPreferredStudyDays() {
         return getMultipleChoice(this.preferredStudyDays);
     }
@@ -250,6 +266,7 @@ public class QuestionnaireDTO {
      * Setzt die bevorzugten Lerntage.
      * @param preferredStudyDays Set der ausgewählten {@link DayOfWeek}-Werte
      */
+    @JsonIgnore
     public void setPreferredStudyDays(Set<DayOfWeek> preferredStudyDays) {
         if (this.preferredStudyDays == null) {
             this.preferredStudyDays = new java.util.EnumMap<>(DayOfWeek.class);

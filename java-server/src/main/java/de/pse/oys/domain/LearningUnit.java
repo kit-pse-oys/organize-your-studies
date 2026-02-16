@@ -143,7 +143,7 @@ public class LearningUnit {
         Task task = this.getTask();
         if (task != null) {
             dto.setTitle(task.getTitle());
-            dto.setTask(task);
+            dto.setTask(task.getTaskId());
 
             Module module = task.getModule();
             if (module != null) {
