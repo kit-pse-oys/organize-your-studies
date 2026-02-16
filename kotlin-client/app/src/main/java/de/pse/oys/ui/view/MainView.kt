@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
@@ -133,6 +134,7 @@ fun MainView(viewModel: IMainViewModel) {
                 }
             }
 
+            Checkbox(weeklyCalendar, { weeklyCalendar = it })
             if (weeklyCalendar) {
                 val events = viewModel.units.mapValues { (_, list) ->
                     list.map {

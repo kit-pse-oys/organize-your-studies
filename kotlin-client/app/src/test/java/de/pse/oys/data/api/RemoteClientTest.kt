@@ -1018,8 +1018,8 @@ class RemoteClientTest {
                             put("data", buildJsonObject {
                                 put("title", "FreeTime 1")
                                 put("date", "2026-01-01")
-                                put("start", "00:00:00")
-                                put("end", "01:00:00")
+                                put("startTime", "00:00:00")
+                                put("endTime", "01:00:00")
                                 put("weekly", false)
                             })
                         })
@@ -1028,8 +1028,8 @@ class RemoteClientTest {
                             put("data", buildJsonObject {
                                 put("title", "FreeTime 2")
                                 put("date", "2026-01-01")
-                                put("start", "01:00:00")
-                                put("end", "02:00:00")
+                                put("startTime", "01:00:00")
+                                put("endTime", "02:00:00")
                                 put("weekly", true)
                             })
                         })
@@ -1065,8 +1065,8 @@ class RemoteClientTest {
                 assertEquals(buildJsonObject {
                     put("title", "FreeTime 1")
                     put("date", "2026-01-01")
-                    put("start", "00:00")
-                    put("end", "01:00")
+                    put("startTime", "00:00")
+                    put("endTime", "01:00")
                     put("weekly", false)
                 }, json)
 
@@ -1115,8 +1115,8 @@ class RemoteClientTest {
                     put("data", buildJsonObject {
                         put("title", "FreeTime 1")
                         put("date", "2026-01-01")
-                        put("start", "00:00")
-                        put("end", "01:00")
+                        put("startTime", "00:00")
+                        put("endTime", "01:00")
                         put("weekly", false)
                     })
                 }, json)
