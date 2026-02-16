@@ -140,9 +140,9 @@ internal constructor(
                         }
                         
                         if (response.status.isSuccess()) {
-                            val accessToken = response.body<Routes.Auth.AccessToken>()
-                            session.setSession(Session(accessToken.accessToken, refreshToken))
-                            BearerTokens(accessToken.accessToken, refreshToken)
+                            val accessToken = response.body<Routes.Auth.AccessToken>().accessToken
+                            session.setSession(Session(accessToken, refreshToken))
+                            BearerTokens(accessToken, refreshToken)
                         } else null
                     }
                 }
