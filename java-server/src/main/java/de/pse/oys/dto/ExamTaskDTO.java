@@ -1,6 +1,7 @@
 package de.pse.oys.dto;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import de.pse.oys.domain.enums.TaskCategory;
 
@@ -21,16 +22,16 @@ public class ExamTaskDTO extends TaskDTO {
     /**
      * Erstellt ein ExamTaskDTO.
      *
-     * @param title            Titel der Aufgabe
-     * @param moduleTitle      Titel des zugehörigen Moduls
-     * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
-     * @param examDate         Datum der Prüfung
+     * @param title          Titel der Aufgabe
+     * @param moduleId       Titel des zugehörigen Moduls
+     * @param weeklyTimeLoad wöchentlicher Zeitaufwand (z.B. in Minuten)
+     * @param examDate       Datum der Prüfung
      */
     public ExamTaskDTO(String title,
-                       String moduleTitle,
+                       UUID moduleId,
                        Integer weeklyTimeLoad,
                        LocalDate examDate) {
-        super(title, moduleTitle, TaskCategory.EXAM, weeklyTimeLoad);
+        super(title, moduleId, TaskCategory.EXAM, weeklyTimeLoad);
         this.examDate = examDate;
     }
 

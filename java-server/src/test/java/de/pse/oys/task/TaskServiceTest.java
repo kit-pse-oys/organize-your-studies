@@ -46,6 +46,8 @@ class TaskServiceTest {
 
     private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID TASK_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    private static final UUID OLD_MODULE_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
+    private static final UUID NEW_MODULE_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
 
     private static final String OLD_MODULE_TITLE = "Old Module";
     private static final String NEW_MODULE_TITLE = "New Module";
@@ -105,7 +107,6 @@ class TaskServiceTest {
             TaskDTO dto = wrapper.getData();
 
             assertThat(dto.getTitle()).isEqualTo("Exam");
-            assertThat(dto.getModuleTitle()).isEqualTo(OLD_MODULE_TITLE);
             assertThat(dto.getCategory()).isEqualTo(TaskCategory.EXAM);
             assertThat(dto.getWeeklyTimeLoad()).isEqualTo(WEEKLY_LOAD);
 
@@ -137,7 +138,7 @@ class TaskServiceTest {
             when(userRepository.existsById(USER_ID)).thenReturn(true);
 
             Module module = new Module(NEW_MODULE_TITLE, anyPriority());
-            when(moduleRepository.findByUser_UserIdAndTitle(USER_ID, NEW_MODULE_TITLE))
+            when(moduleRepository.findByModuleIdAndUser_UserId(NEW_MODULE_ID, USER_ID))
                     .thenReturn(Optional.of(module));
 
             UUID generatedId = UUID.randomUUID();
@@ -147,7 +148,7 @@ class TaskServiceTest {
 
             when(taskRepository.save(any(Task.class))).thenReturn(savedMock);
 
-            OtherTaskDTO dto = validOtherDto(NEW_MODULE_TITLE);
+            OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
 
             UUID createdId = sut.createTask(USER_ID, dto);
 
@@ -186,7 +187,7 @@ class TaskServiceTest {
             when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
 
             // DTO hat Category EXAM -> soll failen
-            ExamTaskDTO dto = validExamDto(OLD_MODULE_TITLE);
+            ExamTaskDTO dto = validExamDto(OLD_MODULE_ID);
 
             assertThatThrownBy(() -> sut.updateTask(USER_ID, TASK_ID, dto))
                     .isInstanceOf(ValidationException.class);
@@ -212,17 +213,16 @@ class TaskServiceTest {
             oldModule.addTask(existing);
 
             when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
-            when(moduleRepository.findByUser_UserIdAndTitle(USER_ID, NEW_MODULE_TITLE)).thenReturn(Optional.of(newModule));
+            when(moduleRepository.findByModuleIdAndUser_UserId(NEW_MODULE_ID, USER_ID)).thenReturn(Optional.of(newModule));
             when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_TITLE);
+            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
             dto.setTitle("Updated Submission");
             dto.setWeeklyTimeLoad(200);
 
             TaskDTO updated = sut.updateTask(USER_ID, TASK_ID, dto);
 
             assertThat(updated.getTitle()).isEqualTo("Updated Submission");
-            assertThat(updated.getModuleTitle()).isEqualTo(NEW_MODULE_TITLE);
             assertThat(updated.getWeeklyTimeLoad()).isEqualTo(200);
 
             assertThat(oldModule.getTasks()).doesNotContain(existing);
@@ -241,7 +241,7 @@ class TaskServiceTest {
 
             when(taskRepository.existsById(TASK_ID)).thenReturn(true);
 
-            OtherTaskDTO dto = validOtherDto(OLD_MODULE_TITLE);
+            OtherTaskDTO dto = validOtherDto(OLD_MODULE_ID);
 
             assertThatThrownBy(() -> sut.updateTask(USER_ID, TASK_ID, dto))
                     .isInstanceOf(AccessDeniedException.class);
@@ -296,10 +296,10 @@ class TaskServiceTest {
         return ModulePriority.values()[0];
     }
 
-    private static OtherTaskDTO validOtherDto(String moduleTitle) {
+    private static OtherTaskDTO validOtherDto(UUID moduleId) {
         OtherTaskDTO dto = new OtherTaskDTO();
         dto.setTitle("Other Title");
-        dto.setModuleTitle(moduleTitle);
+        dto.setModule(moduleId);
         dto.setCategory(TaskCategory.OTHER);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
         dto.setStartTime(OTHER_START);
@@ -307,10 +307,10 @@ class TaskServiceTest {
         return dto;
     }
 
-    private static SubmissionTaskDTO validSubmissionDto(String moduleTitle) {
+    private static SubmissionTaskDTO validSubmissionDto(UUID moduleId) {
         SubmissionTaskDTO dto = new SubmissionTaskDTO();
         dto.setTitle("Submission Title");
-        dto.setModuleTitle(moduleTitle);
+        dto.setModule(moduleId);
         dto.setCategory(TaskCategory.SUBMISSION);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
 
@@ -322,10 +322,10 @@ class TaskServiceTest {
         return dto;
     }
 
-    private static ExamTaskDTO validExamDto(String moduleTitle) {
+    private static ExamTaskDTO validExamDto(UUID moduleId) {
         ExamTaskDTO dto = new ExamTaskDTO();
         dto.setTitle("Exam Title");
-        dto.setModuleTitle(moduleTitle);
+        dto.setModule(moduleId);
         dto.setCategory(TaskCategory.EXAM);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
         dto.setExamDate(EXAM_DATE);

@@ -81,7 +81,7 @@ public class TaskService {
         Objects.requireNonNull(userId, "userId");
         validateData(dto);
         requireUserExists(userId);
-        Module module = requireOwnedModule(userId, dto.getModuleTitle());
+        Module module = requireOwnedModule(userId, dto.getModuleId());
         Task task = mapToEntity(dto);
         module.addTask(task);
         Task saved = taskRepository.save(task);
@@ -116,7 +116,7 @@ public class TaskService {
             throw new ValidationException(MSG_CATEGORY_CHANGE_FORBIDDEN);
         }
 
-        Module newModule = requireOwnedModule(userId, dto.getModuleTitle());
+        Module newModule = requireOwnedModule(userId, dto.getModuleId());
         Module oldModule = task.getModule();
 
         // Falls Modulwechsel: Collection im alten Modul aktualisieren und neues Modul setzen
@@ -187,7 +187,7 @@ public class TaskService {
     private void validateData(TaskDTO dto) {
         if (dto == null
                 || isBlank(dto.getTitle())
-                || isBlank(dto.getModuleTitle())
+                || dto.getModuleId() == null
                 || dto.getCategory() == null
                 || dto.getWeeklyTimeLoad() == null) {
             throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
@@ -280,8 +280,8 @@ public class TaskService {
      * Lädt ein Modul anhand (userId, moduleTitle) oder wirft eine Exception,
      * wenn es nicht existiert/ dem User nicht gehört.
      */
-    private Module requireOwnedModule(UUID userId, String moduleTitle) {
-        return moduleRepository.findByUser_UserIdAndTitle(userId, moduleTitle)
+    private Module requireOwnedModule(UUID userId, UUID moduleId) {
+        return moduleRepository.findByModuleIdAndUser_UserId(moduleId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(MSG_MODULE_NOT_FOUND));
 
     }
@@ -356,7 +356,7 @@ public class TaskService {
      */
     private static void fillBase(TaskDTO dto, Task task) {
         dto.setTitle(task.getTitle());
-        dto.setModuleTitle(task.getModule() != null ? task.getModule().getTitle() : null);
+        dto.setModule(task.getModule() != null ? task.getModule().getModuleId() : null);
         dto.setCategory(task.getCategory());
         dto.setWeeklyTimeLoad(task.getWeeklyDurationMinutes());
     }

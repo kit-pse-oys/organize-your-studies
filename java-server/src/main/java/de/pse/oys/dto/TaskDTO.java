@@ -4,6 +4,8 @@ import de.pse.oys.domain.enums.TaskCategory;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 
 /**
  * Gemeinsame Basis für Task-DTOs.
@@ -22,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class TaskDTO {
 
     private String title;
-    private String moduleTitle;
+    private UUID module;
     private TaskCategory category;
     private Integer weeklyTimeLoad;
 
@@ -36,16 +38,16 @@ public abstract class TaskDTO {
      * Erstellt ein TaskDTO mit gemeinsamen Basisfeldern.
      *
      * @param title            Titel der Aufgabe
-     * @param moduleTitle      Titel des zugehörigen Moduls
+     * @param module      Titel des zugehörigen Moduls
      * @param category         Kategorie der Aufgabe
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
      */
     protected TaskDTO(String title,
-                      String moduleTitle,
+                      UUID module,
                       TaskCategory category,
                       Integer weeklyTimeLoad) {
         this.title = title;
-        this.moduleTitle = moduleTitle;
+        this.module = module;
         this.category = category;
         this.weeklyTimeLoad = weeklyTimeLoad;
     }
@@ -69,21 +71,21 @@ public abstract class TaskDTO {
     }
 
     /**
-     * Liefert den Titel des zugehörigen Moduls.
+     * Liefert die UUID des zugehörigen Moduls.
      *
-     * @return Modultitel
+     * @return die UUID des Moduls
      */
-    public String getModuleTitle() {
-        return moduleTitle;
+    public UUID getModuleId() {
+        return module;
     }
 
     /**
      * Setzt den Titel des zugehörigen Moduls.
      *
-     * @param moduleTitle Modultitel
+     * @param module Modultitel
      */
-    public void setModuleTitle(String moduleTitle) {
-        this.moduleTitle = moduleTitle;
+    public void setModule(UUID module) {
+        this.module = module;
     }
 
     /**
