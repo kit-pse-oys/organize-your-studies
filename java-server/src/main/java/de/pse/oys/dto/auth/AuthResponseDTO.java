@@ -1,11 +1,14 @@
 package de.pse.oys.dto.auth;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * Datentransferobjekt für die Antwort nach einer erfolgreichen Authentifizierung.
  * Enthält die Sitzungstoken sowie die Identifikationsdaten des angemeldeten Nutzers.
  * @author utgid
  * @version 1.0
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AuthResponseDTO {
 
     /** Der Access-Token für die Autorisierung der API-Anfragen. */
@@ -13,6 +16,7 @@ public class AuthResponseDTO {
 
     /** Der Refresh-Token zum Erneuern des Access-Tokens. */
     private String refreshToken;
+
     /**
      * Standardkonstruktor für die Deserialisierung.
      */
