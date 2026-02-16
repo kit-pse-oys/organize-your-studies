@@ -24,6 +24,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
 
+    /**
+     * Stellt den JwtProvider bereit, der für die Validierung und Extraktion von Informationen aus dem JWT verantwortlich ist.
+     * @param jwtProvider der JWT Provider, der die Logik zur Token-Validierung und -Extraktion implementiert.
+     */
     public JwtFilter(JwtProvider jwtProvider) {
         this.jwtProvider = jwtProvider;
     }
@@ -51,10 +55,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                throw new BadCredentialsException("Invalid token");
+                sendUnauthorizedResponse(response, "Invalid JWT token");
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Standard 401 unauthorized Statuscode
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"" + message + "\"}");
+        response.getWriter().flush();
     }
 }
