@@ -1,5 +1,6 @@
 package de.pse.oys.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.pse.oys.domain.enums.TaskCategory;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -24,7 +25,8 @@ import java.util.UUID;
 public abstract class TaskDTO {
 
     private String title;
-    private UUID module;
+    @JsonProperty("module")
+    private UUID moduleId;
     private TaskCategory category;
     private Integer weeklyTimeLoad;
 
@@ -38,16 +40,16 @@ public abstract class TaskDTO {
      * Erstellt ein TaskDTO mit gemeinsamen Basisfeldern.
      *
      * @param title            Titel der Aufgabe
-     * @param module      Id des zugehörigen Moduls
+     * @param moduleId      Id des zugehörigen Moduls
      * @param category         Kategorie der Aufgabe
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
      */
     protected TaskDTO(String title,
-                      UUID module,
+                      UUID moduleId,
                       TaskCategory category,
                       Integer weeklyTimeLoad) {
         this.title = title;
-        this.module = module;
+        this.moduleId = moduleId;
         this.category = category;
         this.weeklyTimeLoad = weeklyTimeLoad;
     }
@@ -76,16 +78,16 @@ public abstract class TaskDTO {
      * @return die UUID des Moduls
      */
     public UUID getModuleId() {
-        return module;
+        return moduleId;
     }
 
     /**
      * Setzt die Id des zugehörigen Moduls.
      *
-     * @param module ModulId
+     * @param moduleId ModulId
      */
-    public void setModule(UUID module) {
-        this.module = module;
+    public void setModuleId(UUID moduleId) {
+        this.moduleId = moduleId;
     }
 
     /**

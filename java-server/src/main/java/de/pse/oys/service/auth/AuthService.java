@@ -191,8 +191,7 @@ public class AuthService {
         String newAccessToken = jwtProvider.createAccessToken(user);
 
         return new AuthResponseDTO(
-                newAccessToken,
-                refreshToken
+                newAccessToken
         );
     }
 }
