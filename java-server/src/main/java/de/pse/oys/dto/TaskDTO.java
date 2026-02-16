@@ -38,7 +38,7 @@ public abstract class TaskDTO {
      * Erstellt ein TaskDTO mit gemeinsamen Basisfeldern.
      *
      * @param title            Titel der Aufgabe
-     * @param module      Titel des zugehörigen Moduls
+     * @param module      Id des zugehörigen Moduls
      * @param category         Kategorie der Aufgabe
      * @param weeklyTimeLoad   wöchentlicher Zeitaufwand (z.B. in Minuten)
      */
@@ -80,9 +80,9 @@ public abstract class TaskDTO {
     }
 
     /**
-     * Setzt den Titel des zugehörigen Moduls.
+     * Setzt die Id des zugehörigen Moduls.
      *
-     * @param module Modultitel
+     * @param module ModulId
      */
     public void setModule(UUID module) {
         this.module = module;
