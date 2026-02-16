@@ -2,16 +2,23 @@ package de.pse.oys.ui.view.additions.freetime
 
 import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
-import de.pse.oys.ui.view.TestUtils.TEST_DATE_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TIME
-import de.pse.oys.ui.view.TestUtils.TEST_TIME_FUTURE
+import de.pse.oys.ui.view.TestUtils.TEST_TIME_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockFreeTimeData
 import de.pse.oys.ui.view.TestUtils.randomUuid
+import io.ktor.http.HttpStatusCode
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -47,16 +54,47 @@ class EditFreeTimeViewModelTest {
         viewModel.title = newTitle
         assertEquals(newTitle, viewModel.title)
 
-        viewModel.date = TEST_DATE_FUTURE
-        assertEquals(TEST_DATE_FUTURE, viewModel.date)
+        viewModel.date = TEST_DATE_ALTERNATIVE
+        assertEquals(TEST_DATE_ALTERNATIVE, viewModel.date)
 
-        viewModel.start = TEST_TIME_FUTURE
-        assertEquals(TEST_TIME_FUTURE, viewModel.start)
+        viewModel.start = TEST_TIME_ALTERNATIVE
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.start)
 
-        viewModel.end = TEST_TIME_FUTURE
-        assertEquals(TEST_TIME_FUTURE, viewModel.end)
+        viewModel.end = TEST_TIME_ALTERNATIVE
+        assertEquals(TEST_TIME_ALTERNATIVE, viewModel.end)
 
         viewModel.weekly = true
         assertTrue(viewModel.weekly)
+    }
+
+    @Test
+    fun `submit in EditViewModel should call update api and navigate to main`() = runTest {
+        val testId = randomUuid()
+        val testData = createMockFreeTimeData()
+        val target = Identified(testData, testId)
+        val editViewModel = EditFreeTimeViewModel(api, model, target, navController)
+
+        coEvery { api.updateFreeTime(any()) } returns Response(Unit, HttpStatusCode.OK.value)
+        val newTitle = "New Title"
+        editViewModel.title = newTitle
+        editViewModel.submit()
+        coVerify {
+            api.updateFreeTime(match {
+                it.id == testId && it.data.title == newTitle
+            })
+        }
+        verify { navController.main() }
+    }
+
+    @Test
+    fun `delete in EditViewModel should call api delete and navigate to main`() = runTest {
+        val testId = randomUuid()
+        val target = Identified(createMockFreeTimeData(), testId)
+        val editViewModel = EditFreeTimeViewModel(api, model, target, navController)
+
+        coEvery { api.deleteFreeTime(testId) } returns Response(Unit, HttpStatusCode.OK.value)
+        editViewModel.delete()
+        coVerify { api.deleteFreeTime(testId) }
+        verify { navController.main() }
     }
 }

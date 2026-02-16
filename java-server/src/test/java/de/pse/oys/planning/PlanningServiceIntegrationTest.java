@@ -9,6 +9,7 @@ import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.planning.PlanningService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ import java.util.Set;
 @SpringBootTest
 @Transactional
 @Testcontainers
+@Disabled("Integration Test - läuft nur lokal mit manuellem Python Service")
 public class PlanningServiceIntegrationTest {
 
     @Container
@@ -51,8 +53,8 @@ public class PlanningServiceIntegrationTest {
         @org.springframework.context.annotation.Primary
         public RestTemplate restTemplate(RestTemplateBuilder builder) {
             return builder
-                    .setConnectTimeout(Duration.ofSeconds(2)) // Max 2 Sek warten auf Verbindung
-                    .setReadTimeout(Duration.ofSeconds(10))   // Max 10 Sek warten auf Antwort (Solver braucht Zeit!)
+                    .setConnectTimeout(Duration.ofSeconds(2))
+                    .setReadTimeout(Duration.ofSeconds(10))
                     .build();
         }
     }
@@ -118,7 +120,7 @@ public class PlanningServiceIntegrationTest {
 
     @Test
     void testGenerateWeeklyPlan_EndToEnd() {
-        LocalDate weekStart = LocalDate.of(2026, 2, 9);
+        LocalDate weekStart = LocalDate.of(2026, 2, 16);
         System.out.println("Starte Anfrage an Microservice...");
 
         try {

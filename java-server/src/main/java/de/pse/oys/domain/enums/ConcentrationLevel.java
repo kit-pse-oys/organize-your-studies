@@ -3,6 +3,7 @@ package de.pse.oys.domain.enums;
 /**
  * Definiert die Stufen der Konzentrationsfähigkeit während einer Lerneinheit.
  * Diese subjektive Metrik hilft dem System, die Effektivität von Lernphasen zu bewerten.
+ *
  * @author utgid
  * @version 1.0
  */

@@ -153,7 +153,7 @@ public class PlanningService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(unitIdToReschedule,
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId,
                 weekStart).orElse(null);
         if (plan == null) {
             throw new IllegalArgumentException("Learning Plan not found for the specified week");
@@ -177,7 +177,7 @@ public class PlanningService {
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
         int unitDurationMinutes = (int) ChronoUnit.MINUTES.between(unitToReschedule.getStartTime(),
-                unitToReschedule.getEndTime());
+                unitToReschedule.getEndTime() ) + user.getPreferences().getBreakDurationMinutes();
         int durationSlots = (int) Math.ceil(unitDurationMinutes / (double) SLOT_DURATION_MINUTES);
         String chunkId = parentTask.getTaskId().toString() + RESCHEDULE_SUFFIX;
         LocalDateTime softDeadline = parentTask.getSoftDeadline(user.getPreferences().getDeadlineBufferDays());

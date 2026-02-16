@@ -2,6 +2,7 @@ package de.pse.oys.domain;
 
 import de.pse.oys.domain.enums.ModulePriority;
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.UUID;
  * Repräsentiert ein Studienmodul (z. B. eine Vorlesung), das vom Nutzer verwaltet wird.
  * Ein Modul dient als Container für verschiedene Aufgaben (Tasks) und definiert
  * grundlegende Eigenschaften wie Farbe und Priorität.
+ *
  * @author utgid
  * @version 1.0
  */
@@ -40,8 +42,12 @@ public class Module {
     @Column(name = "priority", nullable = false)
     private ModulePriority priority;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // Wir nennen die Spalte explizit user_id
+    /**
+     * Besitzer des Moduls.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     /**
@@ -68,11 +74,11 @@ public class Module {
         this.priority = priority;
     }
 
-
     /**
      * Fügt eine neue Aufgabe zu diesem Modul hinzu und stellt die
      * bidirektionale Konsistenz sicher.
-     * * @param task Die hinzuzufügende Aufgabe.
+     *
+     * @param task Die hinzuzufügende Aufgabe.
      */
     public void addTask(Task task) {
         if (task != null && !this.tasks.contains(task)) {
@@ -82,14 +88,14 @@ public class Module {
     }
 
     /**
-     * Entfernt eine Aufgabe aus diesem Modul und löst die
-     * bidirektionale Verknüpfung auf.
-     * * @param task Die zu entfernende Aufgabe.
+     * Entfernt eine Aufgabe aus der Collection.
+     * Das echte Löschen aus der Datenbank passiert im Taskservice.
+     *
+     * @param task Die zu entfernende Aufgabe.
      */
     public void deleteTask(Task task) {
-        if (task != null && this.tasks.contains(task)) {
+        if (task != null) {
             this.tasks.remove(task);
-            task.setModule(null);
         }
     }
 
@@ -108,6 +114,11 @@ public class Module {
     /** @return Die Priorität des Moduls. */
     public ModulePriority getPriority() {
         return priority;
+    }
+
+    /** @return Der Besitzer (User) des Moduls. */
+    public User getUser() {
+        return user;
     }
 
     /** @return Die Liste der zugehörigen Aufgaben. */
@@ -147,10 +158,7 @@ public class Module {
         this.priority = priority;
     }
 
-    public User getUser() {
-        return user;
-    }
-
+    /** Setzt den Besitzer des Moduls. */
     public void setUser(User user) {
         this.user = user;
     }

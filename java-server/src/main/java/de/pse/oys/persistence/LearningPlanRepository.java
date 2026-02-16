@@ -1,70 +1,40 @@
 package de.pse.oys.persistence;
 
+import de.pse.oys.domain.LearningPlan;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import de.pse.oys.domain.LearningPlan;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
- * LearningPlanRepository – Repository-Schnittstelle für LearningPlan-Entitäten.
+ * Repository für {@link LearningPlan}-Entitäten.
+ *
+ * @author uqvfm
+ * @version 1.1
  */
 @Repository
 public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID> {
 
     /**
-     * Findet den neuesten LearningPlan für einen bestimmten Benutzer mit einem bestimmten Status.
-     * @param userId die ID des Benutzers
-     * @param status der Status des Lernplans
-     * @return Optional des neuesten LearningPlans mit dem angegebenen Status
-     */
-    @Query(value = """
-            SELECT * FROM learning_plans
-            WHERE userid = :uid AND status = cast(:status as plan_status)
-            ORDER BY validity_week_start DESC
-            LIMIT 1
-            """, nativeQuery = true)
-    Optional<LearningPlan> findByUserIdAndStatus(@Param("uid") UUID userId,
-                                                 @Param("status") String status);
-
-    /**
-     * Findet einen LearningPlan für einen bestimmten Benutzer und eine bestimmte Startwoche.
-     * @param userId die ID des Benutzers
-     * @param weekStart das Startdatum der Woche
-     * @return Optional des LearningPlans für den angegebenen Benutzer und die Woche
-     */
-    @Query(value = """
-            SELECT * FROM learning_plans
-            WHERE userid = :uid AND week_start = :weekStart
-            LIMIT 1
-            """, nativeQuery = true)
-    Optional<LearningPlan> findByUserIdAndWeekStart(@Param("uid") UUID userId, @Param("weekStart") LocalDate weekStart);
-
-    /**
-     * Lädt einen LearningPlan nur dann, wenn er dem angegebenen User gehört.
-     * <p>
-     * Diese Methode dient als Ownership-Check ohne direkten User-Bezug in der Entity:
-     * Der Plan wird im User-Scope geladen (planid + userid).
-     * </p>
+     * Lädt einen Lernplan nur dann, wenn er dem angegebenen User gehört.
      *
      * @param planId ID des Lernplans
      * @param userId ID des Users
-     * @return Optional des Plans, falls vorhanden und dem User zugeordnet
+     * @return Optional mit der gefundenen LearningPlan oder leer, wenn keine gefunden wurde.
      */
-    @Query(value = """
-        SELECT * FROM learning_plans
-        WHERE planid = :planId AND userid = :userId
-        LIMIT 1
-        """, nativeQuery = true)
-    Optional<LearningPlan> findByIdAndUserId(@Param("planId") UUID planId,
-                                             @Param("userId") UUID userId);
+    Optional<LearningPlan> findByPlanIdAndUserId(UUID planId, UUID userId);
 
+    /**
+     * Findet den Lernplan eines Users für eine konkrete Startwoche.
+     *
+     * @param userId    ID des Users
+     * @param weekStart Startdatum der Woche (Montag der Planwoche)
+     * @return Optional mit dem gefundenen LearningPlan oder leer, wenn keine gefunden wurde.
+     */
+    Optional<LearningPlan> findByUserIdAndWeekStart(UUID userId, LocalDate weekStart);
 
     /**
      * Löscht alle Lernpläne eines Nutzers, deren Wochenstart vor einem bestimmten Datum liegt.
@@ -73,11 +43,4 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
      */
     @Transactional
     void deleteByUserIdAndWeekStartBefore(UUID userId, LocalDate date);
-
-
-
 }
-
-
-
-

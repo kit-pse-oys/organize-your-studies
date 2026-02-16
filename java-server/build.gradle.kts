@@ -22,16 +22,17 @@ dependencies {
     // Web & REST (JSON via Jackson)
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    implementation("org.apache.commons:commons-lang3:3.14.0")
+
     // Datenbank (PostgreSQL & JPA/Hibernate)
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     runtimeOnly("org.postgresql:postgresql")
 
-    // Testcontainers für Integrationstests mit PostgreSQL
     testImplementation("org.testcontainers:testcontainers:2.0.2")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql:1.20.6")
-    
+
     // Spring Security für Password-Hashing / Token-Hashing
     implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.security:spring-security-test")

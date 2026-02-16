@@ -1,8 +1,8 @@
 package de.pse.oys.planning;
 
+import com.github.dockerjava.api.model.TaskStatus;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.TaskCategory;
-import de.pse.oys.domain.enums.TaskStatus;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
@@ -85,7 +85,7 @@ class PlanningServiceTest {
                 restTemplate
         );
 
-        // URL setzen
+
         ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5001/optimize");
 
         // --- 1. LEARNING PREFERENCES MOCKEN ---
@@ -105,6 +105,7 @@ class PlanningServiceTest {
 
         // --- 3. TASK MOCKEN ---
 
+        lenient().when(testTask.isActive()).thenReturn(true);
         lenient().when(testTask.getTaskId()).thenReturn(taskId);
         lenient().when(testTask.getWeeklyDurationMinutes()).thenReturn(120);
         lenient().when(testTask.getCategory()).thenReturn(TaskCategory.EXAM);
@@ -135,7 +136,8 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class))).thenReturn(List.of(testTask));
+        when(taskRepository.findAllByModuleUserUserId(eq(userId)))
+                .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
@@ -178,22 +180,28 @@ class PlanningServiceTest {
 
         lenient().when(testPreferences.getBreakDurationMinutes()).thenReturn(15);
 
-        ExamTask realTask = new ExamTask("Real Test Task", 120, LocalDate.of(2026, 1, 30));
+        ExamTask realTask = new ExamTask("Real Test Task", 120, LocalDate.of(2026, 3, 15));
         ReflectionTestUtils.setField(realTask, "taskId", taskId);
 
+        realTask.isActive();
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserIdAndStatus(eq(userId), any(TaskStatus.class)))
+        when(taskRepository.findAllByModuleUserUserId(eq(userId)))
                 .thenReturn(List.of(realTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(realTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
+
+
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
-        responseItem.setId(taskId.toString() + "_0");
+        responseItem.setId(taskId + "_0");
         responseItem.setStart(72);
         responseItem.setEnd(87);
 
         when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(), any(ParameterizedTypeReference.class)))
                 .thenReturn(ResponseEntity.ok(List.of(responseItem)));
+
+
         planningService.generateWeeklyPlan(userId, weekStart);
+
 
         verify(restTemplate).exchange(
                 anyString(),
@@ -202,6 +210,7 @@ class PlanningServiceTest {
                 any(ParameterizedTypeReference.class)
         );
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
+
 
         PlanningTaskDTO sentTask = request.getTasks().get(0);
 
@@ -218,7 +227,10 @@ class PlanningServiceTest {
         assertFalse(finalPlan.getUnits().isEmpty(), "Die Liste der Units darf nicht leer sein!");
         LearningUnit savedUnit = finalPlan.getUnits().get(0);
         assertEquals(LocalDateTime.of(weekStart, LocalTime.of(6, 0)), savedUnit.getStartTime());
+
+
         LocalDateTime expectedEnd = LocalDateTime.of(weekStart, LocalTime.of(7, 0));
+
         assertEquals(expectedEnd, savedUnit.getEndTime(),
                 "In der DB darf die Pause NICHT enthalten sein. Ende muss 07:00 sein, nicht 07:15.");
     }

@@ -180,10 +180,9 @@ public class LearningUnitService {
     private LearningPlan findPlanByUnitAndUser(UUID userId, UUID unitId) {
         // Wir suchen in allen Plänen des Users nach der entsprechenden Unit
         return learningPlanRepository.findAll().stream()
-                .filter(p -> p.getUser().getId().equals(userId))
+                .filter(p -> p.getUserId().equals(userId))
                 .filter(p -> p.getUnits().stream().anyMatch(u -> u.getUnitId().equals(unitId)))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(MSG_PLAN_NOT_FOUND_FOR_UNIT));
     }
-
 }
