@@ -259,12 +259,12 @@ class RemoteClientTest {
 
     @Test
     fun updateQuestionnaire() {
-        val answer1 = Answer("answer1")
-        val answer2 = Answer("answer2")
-        val answer3 = Answer("answer3")
-        val question1 = Question("question1", true, listOf(answer1, answer2, answer3))
-        val question2 = Question("question2", false, listOf(answer1, answer2, answer3))
-        val question3 = Question("question3", true, listOf(answer1, answer2, answer3))
+        val answer1 = Answer("answer1", {""})
+        val answer2 = Answer("answer2", {""})
+        val answer3 = Answer("answer3", {""})
+        val question1 = Question("question1", {""}, true, listOf(answer1, answer2, answer3))
+        val question2 = Question("question2", {""}, false, listOf(answer1, answer2, answer3))
+        val question3 = Question("question3", {""}, true, listOf(answer1, answer2, answer3))
         val questions = QuestionState(questions = listOf(question1, question2, question3))
         questions.select(question1, answer2)
         questions.select(question1, answer3)
@@ -559,16 +559,14 @@ class RemoteClientTest {
                 )
 
                 respond(
-                    buildJsonObject {
-                        put("MONDAY", buildJsonArray {
-                            add(buildJsonObject {
-                                put("id", step1.toHexDashString())
-                                put("data", buildJsonObject {
-                                    put("task", task1.toHexDashString())
-                                    put("date", "2026-01-01")
-                                    put("start", "00:00:00")
-                                    put("end", "01:00:00")
-                                })
+                    buildJsonArray {
+                        add(buildJsonObject {
+                            put("id", step1.toHexDashString())
+                            put("data", buildJsonObject {
+                                put("task", task1.toHexDashString())
+                                put("date", "2026-01-01")
+                                put("start", "00:00:00")
+                                put("end", "01:00:00")
                             })
                         })
                     }.toString(),
@@ -880,7 +878,7 @@ class RemoteClientTest {
 
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
-                    put("category", "exam")
+                    put("category", "EXAM")
                     put("title", "Task 1")
                     put("module", uuid2.toHexDashString())
                     put("weeklyTimeLoad", 2)
@@ -930,7 +928,7 @@ class RemoteClientTest {
                 assertEquals(buildJsonObject {
                     put("id", uuid1.toHexDashString())
                     put("data", buildJsonObject {
-                        put("category", "exam")
+                        put("category", "EXAM")
                         put("title", "Task 1")
                         put("module", uuid2.toHexDashString())
                         put("weeklyTimeLoad", 2)
