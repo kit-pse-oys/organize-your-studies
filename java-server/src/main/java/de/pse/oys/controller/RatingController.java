@@ -19,7 +19,7 @@ import java.util.UUID;
  * Planungen durch den Algorithmus zu optimieren.
  */
 @RestController
-@RequestMapping("/plan/units/ratings")
+@RequestMapping("/api/v1/plan/units/ratings")
 public class RatingController extends BaseController {
 
     private final RatingService ratingService;
