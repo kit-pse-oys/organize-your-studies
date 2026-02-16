@@ -356,7 +356,7 @@ public class TaskService {
      */
     private static void fillBase(TaskDTO dto, Task task) {
         dto.setTitle(task.getTitle());
-        dto.setModule(task.getModule() != null ? task.getModule().getModuleId() : null);
+        dto.setModuleId(task.getModule() != null ? task.getModule().getModuleId() : null);
         dto.setCategory(task.getCategory());
         dto.setWeeklyTimeLoad(task.getWeeklyDurationMinutes());
     }

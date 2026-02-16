@@ -299,7 +299,7 @@ class TaskServiceTest {
     private static OtherTaskDTO validOtherDto(UUID moduleId) {
         OtherTaskDTO dto = new OtherTaskDTO();
         dto.setTitle("Other Title");
-        dto.setModule(moduleId);
+        dto.setModuleId(moduleId);
         dto.setCategory(TaskCategory.OTHER);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
         dto.setStartTime(OTHER_START);
@@ -310,7 +310,7 @@ class TaskServiceTest {
     private static SubmissionTaskDTO validSubmissionDto(UUID moduleId) {
         SubmissionTaskDTO dto = new SubmissionTaskDTO();
         dto.setTitle("Submission Title");
-        dto.setModule(moduleId);
+        dto.setModuleId(moduleId);
         dto.setCategory(TaskCategory.SUBMISSION);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
 
@@ -325,7 +325,7 @@ class TaskServiceTest {
     private static ExamTaskDTO validExamDto(UUID moduleId) {
         ExamTaskDTO dto = new ExamTaskDTO();
         dto.setTitle("Exam Title");
-        dto.setModule(moduleId);
+        dto.setModuleId(moduleId);
         dto.setCategory(TaskCategory.EXAM);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
         dto.setExamDate(EXAM_DATE);

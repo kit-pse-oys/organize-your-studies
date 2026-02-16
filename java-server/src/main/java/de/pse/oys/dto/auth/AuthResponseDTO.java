@@ -1,7 +1,5 @@
 package de.pse.oys.dto.auth;
 
-import java.util.UUID;
-
 /**
  * Datentransferobjekt für die Antwort nach einer erfolgreichen Authentifizierung.
  * Enthält die Sitzungstoken sowie die Identifikationsdaten des angemeldeten Nutzers.
@@ -31,6 +29,15 @@ public class AuthResponseDTO {
     public AuthResponseDTO(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+    }
+
+    /**
+     * Konstruktor für Fälle, in denen nur ein Access-Token zurückgegeben wird (z.B. bei Token-Refresh).
+     *
+     * @param accessToken der ausgestellte Access-Token
+     */
+    public AuthResponseDTO(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     // Getter
