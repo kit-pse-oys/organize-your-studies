@@ -32,10 +32,12 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.properties.Darkmode
 import de.pse.oys.data.properties.Properties
 import de.pse.oys.ui.navigation.accountSettings
 import de.pse.oys.ui.navigation.editQuestionnaire
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.navigation.myFreeTimes
 import de.pse.oys.ui.navigation.myModules
 import de.pse.oys.ui.navigation.myTasks
@@ -49,6 +51,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 
 /**
  * View for the menu screen with buttons to navigate to different views.
@@ -199,6 +202,7 @@ interface IMenuViewModel {
 class MenuViewModel(
     private val properties: Properties,
     private val api: RemoteAPI,
+    private val model: ModelFacade,
     private val navController: NavController
 ) : ViewModel(),
     IMenuViewModel {
@@ -238,6 +242,11 @@ class MenuViewModel(
     override fun updatePlan() {
         viewModelScope.launch {
             api.updatePlan().defaultHandleError(navController) { error = true }
+            model.steps = null
+
+            withContext(Dispatchers.Main.immediate) {
+                navController.main()
+            }
         }
     }
 }

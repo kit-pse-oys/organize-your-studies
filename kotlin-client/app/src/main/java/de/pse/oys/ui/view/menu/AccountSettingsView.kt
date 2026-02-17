@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.login
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
@@ -122,6 +123,7 @@ interface IAccountSettingsViewModel {
  */
 class AccountSettingsViewModel(
     private val api: RemoteAPI,
+    private val model: ModelFacade,
     context: Context,
     private val navController: NavController
 ) : ViewModel(),
@@ -130,10 +132,18 @@ class AccountSettingsViewModel(
 
     private val credentialManager = CredentialManager.create(context)
 
+    private fun resetModel() {
+        model.modules = null
+        model.tasks = null
+        model.freeTimes = null
+        model.steps = null
+    }
+
     override fun logout() {
         viewModelScope.launch {
             api.logout()
             credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            resetModel()
 
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
@@ -145,6 +155,7 @@ class AccountSettingsViewModel(
         viewModelScope.launch {
             api.deleteAccount().defaultHandleError(navController) { error = true }?.let {
                 credentialManager.clearCredentialState(ClearCredentialStateRequest())
+                resetModel()
 
                 withContext(Dispatchers.Main.immediate) {
                     navController.login(dontGoBack = Main)

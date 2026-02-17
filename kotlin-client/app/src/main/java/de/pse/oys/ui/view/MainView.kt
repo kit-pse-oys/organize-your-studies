@@ -413,9 +413,7 @@ class MainViewModel(
             updateUnits(model.steps!!)
         } else {
             viewModelScope.launch {
-                model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let {
-                    updateUnits(it)
-                }
+                reloadUnits()
             }
         }
 
@@ -430,6 +428,12 @@ class MainViewModel(
         }
     }
 
+    private suspend fun reloadUnits() {
+        model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let {
+            updateUnits(it)
+        }
+    }
+
     override fun moveUnitToday(
         unit: PlannedUnit,
         newStart: LocalTime
@@ -437,6 +441,9 @@ class MainViewModel(
         val uuid = _units[unit] ?: return
         viewModelScope.launch {
             api.moveUnit(uuid, today.atTime(newStart))
+                .defaultHandleError(navController) { error = true }?.let {
+                    reloadUnits()
+                }
         }
     }
 
@@ -450,6 +457,9 @@ class MainViewModel(
             today + (DateTimePeriod(days = (newDay.isoDayNumber - today.dayOfWeek.isoDayNumber + 7) % 7) as DatePeriod)
         viewModelScope.launch {
             api.moveUnit(uuid, date.atTime(newStart))
+                .defaultHandleError(navController) { error = true }?.let {
+                    reloadUnits()
+                }
         }
     }
 
@@ -457,6 +467,9 @@ class MainViewModel(
         val uuid = _units[unit] ?: return
         viewModelScope.launch {
             api.moveUnitAutomatically(uuid)
+                .defaultHandleError(navController) { error = true }?.let {
+                    reloadUnits()
+                }
         }
     }
 
@@ -466,6 +479,7 @@ class MainViewModel(
             Clock.System.now() - unit.start.atDate(today).toInstant(TimeZone.currentSystemDefault())
         viewModelScope.launch {
             api.markUnitFinished(uuid, actualDuration)
+                .defaultHandleError(navController) { error = true }
         }
     }
 
