@@ -3,6 +3,7 @@ package de.pse.oys.freeTime;
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.User;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
@@ -168,7 +169,7 @@ class FreeTimeServiceTest {
             UUID freeTimeId = UUID.randomUUID();
 
             SingleFreeTime existing = new SingleFreeTime(
-                    userId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(userId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -230,7 +231,7 @@ class FreeTimeServiceTest {
             UUID freeTimeId = UUID.randomUUID();
 
             SingleFreeTime existing = new SingleFreeTime(
-                    otherUserId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(otherUserId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -241,7 +242,7 @@ class FreeTimeServiceTest {
                     LocalDate.of(2026, 2, 1), LocalTime.of(12, 0), LocalTime.of(13, 0), false)))
                     .isInstanceOf(AccessDeniedException.class);
 
-            verify(freeTimeRepository, never()).findAllByUserId(any());
+            verify(freeTimeRepository, never()).findAllByUser_UserId(any());
             verify(freeTimeRepository, never()).save(any());
         }
 
@@ -252,7 +253,7 @@ class FreeTimeServiceTest {
 
             // existing: Single
             SingleFreeTime existing = new SingleFreeTime(
-                    userId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(userId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -266,7 +267,7 @@ class FreeTimeServiceTest {
             assertThatThrownBy(() -> sut.updateFreeTime(userId, freeTimeId, input))
                     .isInstanceOf(ValidationException.class);
 
-            verify(freeTimeRepository, never()).findAllByUserId(any());
+            verify(freeTimeRepository, never()).findAllByUser_UserId(any());
             verify(freeTimeRepository, never()).save(any());
         }
 
@@ -276,7 +277,7 @@ class FreeTimeServiceTest {
             UUID freeTimeId = UUID.randomUUID();
 
             SingleFreeTime existing = new SingleFreeTime(
-                    userId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(userId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -304,7 +305,7 @@ class FreeTimeServiceTest {
             UUID freeTimeId = UUID.randomUUID();
 
             SingleFreeTime existing = new SingleFreeTime(
-                    userId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(userId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -337,7 +338,7 @@ class FreeTimeServiceTest {
             UUID freeTimeId = UUID.randomUUID();
 
             SingleFreeTime existing = new SingleFreeTime(
-                    otherUserId, "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
+                    user(otherUserId), "Old", LocalTime.of(10, 0), LocalTime.of(11, 0), LocalDate.of(2026, 1, 31)
             );
             forceSetId(existing, freeTimeId);
 
@@ -360,7 +361,7 @@ class FreeTimeServiceTest {
     }
 
     private void givenNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
-        when(freeTimeRepository.findAllByUserId(eq(userId)))
+        when(freeTimeRepository.findAllByUser_UserId(eq(userId)))
                 .thenReturn(List.of());
     }
 
@@ -373,7 +374,7 @@ class FreeTimeServiceTest {
         when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
         when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
 
-        when(freeTimeRepository.findAllByUserId(eq(userId)))
+        when(freeTimeRepository.findAllByUser_UserId(eq(userId)))
                 .thenReturn(List.of(overlapping));
     }
 
@@ -392,6 +393,12 @@ class FreeTimeServiceTest {
      */
     private static void forceSetId(FreeTime entity, UUID id) {
         setField(entity, "freeTimeId", id);
+    }
+
+    private static User user(UUID id) {
+        User u = mock(User.class);
+        when(u.getId()).thenReturn(id);
+        return u;
     }
 
     private static void setField(Object target, String fieldName, Object value) {
