@@ -6,6 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
@@ -20,15 +21,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("integration")
 @AutoConfigureMockMvc
 public abstract class BaseIntegrationTest {
-    static final PostgreSQLContainer<?> postgres;
 
-    static {
-        postgres = new PostgreSQLContainer<>("postgres:15")
-                .withDatabaseName("studydb")
-                .withUsername("admin")
-                .withPassword("geheim");
-        postgres.start();
-    }
+    @Container // JUnit 5 verwaltet den Start/Stopp
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("studydb")
+            .withUsername("admin")
+            .withPassword("geheim");
+
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
