@@ -128,7 +128,7 @@ public class FreeTimeService {
         Objects.requireNonNull(userId, "userId");
         requireUserExists(userId);
 
-        return freeTimeRepository.findAllByUserId(userId).stream()
+        return freeTimeRepository.findAllByUser_UserId(userId).stream()
                 .map(freeTime -> new WrapperDTO<>(getId(freeTime), toDto(freeTime)))
                 .toList();
     }
@@ -160,9 +160,11 @@ public class FreeTimeService {
      * @return Domain-Entität (Recurring oder Single)
      */
     protected FreeTime toEntity(UUID userId, FreeTimeDTO dto) {
+        var user = userRepository.getReferenceById(userId);
+
         if (dto.isWeekly()) {
             return new RecurringFreeTime(
-                    userId,
+                    user,
                     dto.getTitle(),
                     dto.getStartTime(),
                     dto.getEndTime(),
@@ -171,13 +173,14 @@ public class FreeTimeService {
         }
 
         return new SingleFreeTime(
-                userId,
+                user,
                 dto.getTitle(),
                 dto.getStartTime(),
                 dto.getEndTime(),
                 dto.getDate()
         );
     }
+
 
     // -------------------------
     // Helpers
@@ -206,7 +209,7 @@ public class FreeTimeService {
                                java.time.LocalTime endTime,
                                UUID ignoreId) {
 
-        List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
+        List<FreeTime> candidates = freeTimeRepository.findAllByUser_UserId(userId);
 
         for (FreeTime ft : candidates) {
             if (ft == null) continue;

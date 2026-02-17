@@ -25,7 +25,7 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
      * @param userId ID des Users
      * @return Optional mit der gefundenen LearningPlan oder leer, wenn keine gefunden wurde.
      */
-    Optional<LearningPlan> findByPlanIdAndUserId(UUID planId, UUID userId);
+    Optional<LearningPlan> findByPlanIdAndUser_UserId(UUID planId, UUID userId);
 
     /**
      * Findet den Lernplan eines Users für eine konkrete Startwoche.
@@ -34,13 +34,14 @@ public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID
      * @param weekStart Startdatum der Woche (Montag der Planwoche)
      * @return Optional mit dem gefundenen LearningPlan oder leer, wenn keine gefunden wurde.
      */
-    Optional<LearningPlan> findByUserIdAndWeekStart(UUID userId, LocalDate weekStart);
+    Optional<LearningPlan> findByUser_UserIdAndWeekStart(UUID userId, LocalDate weekStart);
 
     /**
      * Löscht alle Lernpläne eines Nutzers, deren Wochenstart vor einem bestimmten Datum liegt.
+     *
      * @param userId Die ID des Nutzers.
-     * @param date Der zeitliche Stichtag.
+     * @param date   Der zeitliche Stichtag.
      */
     @Transactional
-    void deleteByUserIdAndWeekStartBefore(UUID userId, LocalDate date);
+    void deleteByUser_UserIdAndWeekStartBefore(UUID userId, LocalDate date);
 }

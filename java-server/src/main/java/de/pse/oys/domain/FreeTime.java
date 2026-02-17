@@ -27,9 +27,14 @@ public abstract class FreeTime {
     @Column(name = "slotid", updatable = false)
     private UUID freeTimeId;
 
-    /** Zugehörige User-ID dieses Freizeitblocks. */
-    @Column(name = "userid", nullable = false)
-    private UUID userId;
+    /**
+     * Zugehöriger Nutzer dieses Freizeitblocks.
+     * Wird über die Fremdschlüsselspalte {@code user_id} persistiert.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private User user;
 
     /** Kurze Beschreibung oder Name der Freizeitaktivität. */
     @Column(name = "title", nullable = false)
@@ -52,13 +57,13 @@ public abstract class FreeTime {
     /**
      * Erzeugt einen neuen Freizeitblock.
      *
-     * @param userId    ID des Nutzers.
+     * @param user      Nutzer, dem der Freizeitblock zugeordnet ist.
      * @param title     Name/Beschreibung (z. B. "Fußballtraining").
      * @param startTime Beginn der Freizeit.
      * @param endTime   Ende der Freizeit.
      */
-    protected FreeTime(UUID userId, String title, LocalTime startTime, LocalTime endTime) {
-        this.userId = userId;
+    protected FreeTime(User user, String title, LocalTime startTime, LocalTime endTime) {
+        this.user = user;
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -122,7 +127,6 @@ public abstract class FreeTime {
         return startTime != null && endTime != null && startTime.isBefore(endTime);
     }
 
-
     /**
      * Prüft, ob dieser Freizeitblock wöchentlich wiederkehrend ist.
      *
@@ -141,9 +145,18 @@ public abstract class FreeTime {
         return freeTimeId;
     }
 
-    /** @return Die User-ID dieses Freizeitblocks. */
+    /**
+     * @return Die User-ID dieses Freizeitblocks.
+     */
     public UUID getUserId() {
-        return userId;
+        return (user != null) ? user.getId() : null;
+    }
+
+    /**
+     * @return Den zugehörigen Nutzer (lazy geladen).
+     */
+    public User getUser() {
+        return user;
     }
 
     /** @return Die Beschreibung der Freizeit. */
@@ -162,6 +175,15 @@ public abstract class FreeTime {
     }
 
     // Setter
+
+    /**
+     * Setzt den Nutzer dieses Freizeitblocks.
+     *
+     * @param user der zu setzende Nutzer
+     */
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     /**
      * @param title Die neue Beschreibung.

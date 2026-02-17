@@ -23,7 +23,7 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
      * @param userId ID des Users
      * @return Liste der Freizeitblöcke des Users
      */
-    List<FreeTime> findAllByUserId(UUID userId);
+    List<FreeTime> findAllByUser_UserId(UUID userId);
 
     /**
      * Prüft, ob der angegebene User mindestens einen Freizeitblock besitzt.
@@ -31,7 +31,7 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
      * @param userId ID des Users
      * @return {@code true}, wenn mindestens ein Freizeitblock existiert, sonst {@code false}
      */
-    boolean existsByUserId(UUID userId);
+    boolean existsByUser_UserId(UUID userId);
 
     /**
      * Prüft, ob es für einen User bereits einen Freizeitblock gibt, der sich mit einem
@@ -44,10 +44,11 @@ public interface FreeTimeRepository extends JpaRepository<FreeTime, UUID> {
      * @param startTime Start des zu prüfenden Zeitraums
      * @return {@code true}, wenn eine Überschneidung existiert, sonst {@code false}
      */
-    boolean existsByUserIdAndFreeTimeIdNotAndStartTimeLessThanAndEndTimeGreaterThan(
+    boolean existsByUser_UserIdAndFreeTimeIdNotAndStartTimeLessThanAndEndTimeGreaterThan(
             UUID userId,
             UUID ignoreId,
             LocalTime endTime,
             LocalTime startTime
     );
+
 }

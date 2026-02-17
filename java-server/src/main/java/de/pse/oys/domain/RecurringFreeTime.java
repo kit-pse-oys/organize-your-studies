@@ -38,14 +38,14 @@ public class RecurringFreeTime extends FreeTime {
      * Erzeugt eine Instanz für eine wiederkehrende Freizeitbeschränkung.
      * Der Typ wird dabei automatisch auf WEEKLY gesetzt.
      *
-     * @param userId ID des Nutzers.
+     * @param user  der Nutzer.
      * @param title Bezeichnung der Freizeit (z. B. "Wöchentliches Training").
      * @param start Beginn der Freizeit als Uhrzeit.
      * @param end   Ende der Freizeit (Uhrzeit).
      * @param day   Der Wochentag, an dem die Wiederholung stattfindet.
      */
-    public RecurringFreeTime(UUID userId, String title, LocalTime start, LocalTime end, DayOfWeek day) {
-        super(userId, title, start, end);
+    public RecurringFreeTime(User user, String title, LocalTime start, LocalTime end, DayOfWeek day) {
+        super(user, title, start, end);
         this.dayOfWeek = day;
     }
 

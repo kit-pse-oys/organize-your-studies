@@ -152,7 +152,7 @@ public class PlanningService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId,
+        LearningPlan plan = learningPlanRepository.findByUser_UserIdAndWeekStart(userId,
                 weekStart).orElse(null);
         if (plan == null) {
             throw new IllegalArgumentException("Learning Plan not found for the specified week");
@@ -348,7 +348,7 @@ public class PlanningService {
         LocalDate cutoffDate = LocalDate.now().minusWeeks(3);
 
         // Lösche alle Pläne des Users, deren Woche vor dem Stichtag begann
-        learningPlanRepository.deleteByUserIdAndWeekStartBefore(userId, cutoffDate);
+        learningPlanRepository.deleteByUser_UserIdAndWeekStartBefore(userId, cutoffDate);
     }
 
     /**

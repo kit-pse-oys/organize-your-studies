@@ -18,11 +18,14 @@ import java.util.stream.Collectors;
 public class LearningPlan {
 
     /**
-     * ID des Nutzers, dem dieser Lernplan zugeordnet ist.
+     * Zugehöriger Nutzer dieses Lernplans.
+     * Wird über die Fremdschlüsselspalte {@code user_id} persistiert.
      * Wird nach der Erstellung nicht mehr geändert (readOnly).
      */
-    @Column(name = "userid", nullable = false, updatable = false)
-    private UUID userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private User user;
 
     /** Eindeutige Kennung des Plans (planid). */
     @Id
@@ -105,11 +108,26 @@ public class LearningPlan {
 
     /** @return Nutzer-ID. */
     public UUID getUserId() {
-        return userId;
+        return (user != null) ? user.getId() : null;
+    }
+
+    /**
+     * @return Den zugehörigen Nutzer (lazy geladen).
+     */
+    public User getUser() {
+        return user;
+    }
+
+    /**
+     * Setzt den Nutzer dieses Lernplans.
+     *
+     * @param user der zu setzende Nutzer
+     */
+    public void setUser(User user) {
+        this.user = user;
     }
 
     /** @param userId die UUID des Users, dem der Lernplan zugeordnet werden soll. */
     public void setUserId(UUID userId) {
-        this.userId = userId;
     }
 }

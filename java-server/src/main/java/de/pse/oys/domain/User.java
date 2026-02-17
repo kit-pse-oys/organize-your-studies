@@ -11,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -69,13 +68,11 @@ public abstract class User {
     private List<Module> modules;
 
     /** Liste der definierten Freizeiten und Zeitrestriktionen. */
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FreeTime> freeTimes;
 
     /** Liste der generierten wochenbasierten Lernpläne. */
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LearningPlan> learningPlans;
 
     /**
@@ -105,6 +102,7 @@ public abstract class User {
      */
     public void createNewLearningPlan(LocalDate start, LocalDate end) {
         LearningPlan plan = new LearningPlan(start, end);
+        plan.setUser(this);
         this.learningPlans.add(plan);
     }
 
@@ -161,6 +159,7 @@ public abstract class User {
      */
     public void addFreeTime(FreeTime freeTime) {
         if (freeTime != null) {
+            freeTime.setUser(this);
             this.freeTimes.add(freeTime);
         }
     }

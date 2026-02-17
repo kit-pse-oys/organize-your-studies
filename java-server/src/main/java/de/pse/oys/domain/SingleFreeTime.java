@@ -29,14 +29,14 @@ public class SingleFreeTime extends FreeTime {
     /**
      * Erzeugt eine Instanz für ein einmaliges Freizeitereignis.
      *
-     * @param userId ID des Nutzers.
+     * @param user  der Nutzers.
      * @param title Bezeichnung des Ereignisses (z. B. "Arzttermin").
      * @param start Beginn der Freizeit (Uhrzeit).
      * @param end   Ende der Freizeit (Uhrzeit).
      * @param date  Das konkrete Datum des Ereignisses.
      */
-    public SingleFreeTime(UUID userId, String title, LocalTime start, LocalTime end, LocalDate date) {
-        super(userId, title, start, end);
+    public SingleFreeTime(User user, String title, LocalTime start, LocalTime end, LocalDate date) {
+        super(user, title, start, end);
         this.date = date;
     }
 
