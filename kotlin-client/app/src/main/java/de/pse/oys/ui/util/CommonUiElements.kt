@@ -236,7 +236,6 @@ fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
  * Creates a slider for [Rating] with 5 options.
  * @param currentRating the current [Rating] to be displayed.
  * @param labels the labels to be displayed for the slider options.
- * @param enabled whether the slider is enabled or not.
  * @param onRatingChange the function to be called when the slider is changed.
  * @param activeColor the color of the slider when it is active.
  */
@@ -244,7 +243,6 @@ fun DateSelectionRow(label: String, dateText: String, onClick: () -> Unit) {
 fun RatingSlider(
     currentRating: Rating,
     labels: List<String>,
-    enabled: Boolean,
     onRatingChange: (Rating) -> Unit,
     activeColor: Color = Blue
 ) {
@@ -266,7 +264,6 @@ fun RatingSlider(
             },
             valueRange = 0f..maxRange,
             steps = steps,
-            enabled = enabled,
             colors = SliderDefaults.colors(
                 thumbColor = activeColor,
                 activeTrackColor = activeColor,
@@ -284,7 +281,7 @@ fun RatingSlider(
             text = labels.getOrElse(currentRating.ordinal) { "" },
             style = typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = if (enabled) activeColor else Color.DarkGray,
+            color = activeColor,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
         )
         Row(
