@@ -41,8 +41,10 @@ import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ViewHeader
-import io.ktor.http.HttpStatusCode
+import de.pse.oys.ui.util.toFormattedString
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlin.uuid.Uuid
 
 /**
@@ -120,14 +122,21 @@ private fun RatingSelectionItem(
             contentColor = Color.Black
         )
     ) {
-        Text(
-            text = target.name,
-            style = typography.titleLarge.copy(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp, horizontal = 2.dp)
+        ) {
+            Text(
+                text = target.name,
+                style = typography.titleLarge.copy(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            Text("${target.day.toFormattedString()} | ${target.start.toFormattedString()} - ${target.end.toFormattedString()}")
+        }
     }
 }
 
@@ -136,7 +145,13 @@ private fun RatingSelectionItem(
  * @param name the name of the rating target.
  * @param color the color of the module associated with the rating target.
  */
-data class RatingTarget(val name: String, val color: Color)
+data class RatingTarget(
+    val name: String,
+    val color: Color,
+    val day: LocalDate,
+    val start: LocalTime,
+    val end: LocalTime
+)
 
 /**
  * Interface for the view model of the [AvailableRatingsView].
@@ -175,14 +190,23 @@ class AvailableRatingsViewModel(
         require(model.steps != null)
 
         viewModelScope.launch {
-            model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let { units ->
-                api.queryRateable().defaultHandleError(navController) { error = true }?.let { rateable ->
-                    _available = rateable.associateBy { uuid ->
-                        val step = units.values.firstOrNull { it.values.any { it.task.id == uuid } }?.get(uuid) ?: error("Task not found")
-                        RatingTarget(step.task.data.title, step.task.data.module.data.color)
-                    }
+            model.ensureUnits(api).defaultHandleError(navController) { error = true }
+                ?.let { units ->
+                    api.queryRateable().defaultHandleError(navController) { error = true }
+                        ?.let { rateable ->
+                            _available = rateable.associateBy { uuid ->
+                                val step = units.values.firstOrNull { uuid in it.keys }?.get(uuid)
+                                    ?: error("Unit not found")
+                                RatingTarget(
+                                    step.task.data.title,
+                                    step.task.data.module.data.color,
+                                    step.date,
+                                    step.start,
+                                    step.end
+                                )
+                            }
+                        }
                 }
-            }
         }
     }
 

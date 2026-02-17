@@ -474,10 +474,10 @@ class RemoteClientTest {
                 val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
                 assertEquals(buildJsonObject {
                     put("id", step1.toHexDashString())
-                    put("ratings", buildJsonObject {
+                    put("data", buildJsonObject {
                         put("goalCompletion", "HIGH")
-                        put("duration", "LOWEST")
-                        put("motivation", "MEDIUM")
+                        put("perceivedDuration", "LOWEST")
+                        put("concentration", "MEDIUM")
                     })
                 }, json)
 
@@ -486,8 +486,8 @@ class RemoteClientTest {
             val response = client.rateUnit(
                 step1, UnitRatings(
                     goalCompletion = Rating.HIGH,
-                    duration = Rating.LOWEST,
-                    motivation = Rating.MEDIUM
+                    perceivedDuration = Rating.LOWEST,
+                    concentration = Rating.MEDIUM
                 )
             )
             assertEquals(200, response.status)

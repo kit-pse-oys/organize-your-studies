@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UnitRatings(
     val goalCompletion: Rating,
-    val duration: Rating,
-    val motivation: Rating,
+    val perceivedDuration: Rating,
+    val concentration: Rating,
 )
 
 @Serializable

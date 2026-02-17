@@ -3,6 +3,7 @@ package de.pse.oys.data.api
 import de.pse.oys.data.QuestionState
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
+import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.UnitRatings
@@ -306,7 +307,7 @@ internal constructor(
             }
 
             contentType(ContentType.Application.Json)
-            setBody(Routes.Unit(unit, ratings = ratings))
+            setBody(Identified(ratings, unit))
         }.statusResponse()
     }
 
