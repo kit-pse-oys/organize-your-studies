@@ -43,8 +43,8 @@ data class RemoteSubmissionTaskData(
     override val module: Uuid,
     override val weeklyTimeLoad: Int,
     val firstDate: LocalDateTime,
+    @SerialName("end") val endDate: LocalDateTime,
     val cycle: Int,
-    //val end: LocalDateTime, //todo!
 ) : RemoteTaskData()
 
 @Serializable
@@ -53,6 +53,6 @@ data class RemoteOtherTaskData(
     override val title: String,
     override val module: Uuid,
     override val weeklyTimeLoad: Int,
-    val start: LocalDate, //todo: start und end in LocalDateTime übergeben.
-    val end: LocalDate,
+    val start: LocalDateTime,
+    val end: LocalDateTime,
 ): RemoteTaskData()
