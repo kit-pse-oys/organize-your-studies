@@ -36,7 +36,7 @@ import de.pse.oys.data.facade.Module
 import de.pse.oys.ui.navigation.editModule
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 
 /**
  * View for displaying a list of existing modules.
@@ -51,7 +51,10 @@ fun ModulesView(viewModel: IModulesViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(stringResource(id = R.string.my_modules_button))
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(id = R.string.my_modules_button)
+            )
             if (viewModel.modules.isEmpty()) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -125,6 +128,11 @@ interface IModulesViewModel {
      * @param module the [Module] to be selected.
      */
     fun select(module: Module)
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -147,5 +155,9 @@ class ModulesViewModel(
         if (modules.contains(module)) {
             navController.editModule(module)
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

@@ -54,7 +54,7 @@ import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.theme.MediumBlue
 import de.pse.oys.ui.util.SubmitButton
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -117,7 +117,10 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                     .verticalScroll(scroll),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ViewHeader(stringResource(R.string.questionnaire_header))
+                ViewHeaderWithBackOption(
+                    viewModel::navigateBack,
+                    stringResource(R.string.questionnaire_header)
+                )
                 Questions.forEachIndexed { i, question ->
                     Card(
                         Modifier
@@ -155,7 +158,8 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                                             label = {
                                                 Text(
                                                     text = answer.localisation(),
-                                                    textAlign = TextAlign.Center
+                                                    textAlign = TextAlign.Center,
+                                                    color = if (selected) Color.White else Color.DarkGray
                                                 )
                                             },
                                             colors = FilterChipDefaults.filterChipColors(
@@ -219,6 +223,11 @@ interface IQuestionnaireViewModel {
      * Submits the questionnaire and navigates to the main screen.
      */
     fun submitQuestionnaire()
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -300,6 +309,14 @@ class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) 
     override fun navigateToMain() {
         navController.main(dontGoBack = Questionnaire(true))
     }
+
+    override fun navigateBack() {
+        if (!showWelcome) {
+            showWelcome = true
+        } else {
+            navController.popBackStack()
+        }
+    }
 }
 
 /**
@@ -324,6 +341,10 @@ class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
 
     override fun navigateToMain() {
         navController.main()
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }
 

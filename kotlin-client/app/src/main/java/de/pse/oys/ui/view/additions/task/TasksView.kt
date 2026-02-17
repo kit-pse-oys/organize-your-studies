@@ -39,7 +39,7 @@ import de.pse.oys.data.facade.Task
 import de.pse.oys.ui.navigation.editTask
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 
 /**
  * View for displaying a list of tasks.
@@ -54,7 +54,10 @@ fun TasksView(viewModel: ITasksViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(text = stringResource(id = R.string.my_tasks_button))
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(id = R.string.my_tasks_button)
+            )
             if (viewModel.tasks.isEmpty()) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -141,6 +144,11 @@ interface ITasksViewModel {
      * @param task the [Task] to be selected.
      */
     fun select(task: Task)
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -163,5 +171,9 @@ class TasksViewModel(
         if (tasks.contains(task)) {
             navController.editTask(task)
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

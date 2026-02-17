@@ -1,6 +1,5 @@
 package de.pse.oys.ui.view.menu
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,7 +43,7 @@ import de.pse.oys.ui.navigation.myTasks
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.MediumBlue
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -72,68 +71,64 @@ fun MenuView(viewModel: IMenuViewModel) {
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         val darkmode by viewModel.darkmode.collectAsStateWithLifecycle()
-
-        Box(
-            Modifier
+        Column(
+            modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(), contentAlignment = Alignment.TopCenter
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ViewHeader(stringResource(R.string.menu_header))
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth(0.95f)) {
-                    Darkmode.entries.forEachIndexed { i, value ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = i,
-                                count = Darkmode.entries.size
-                            ),
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = Blue,
-                                activeContentColor = Color.White,
-                                inactiveContainerColor = Color.Transparent,
-                                inactiveContentColor = MaterialTheme.colorScheme.onSurface,
-                                inactiveBorderColor = MediumBlue
-                            ),
-                            onClick = { viewModel.setDarkmode(value) },
-                            selected = value == darkmode,
-                            label = {
-                                Text(
-                                    value.label(),
-                                    maxLines = 1,
-                                    style = typography.bodySmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        )
-                    }
+            ViewHeaderWithBackOption(viewModel::navigateBack, stringResource(R.string.menu_header))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth(0.95f)) {
+                Darkmode.entries.forEachIndexed { i, value ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = i,
+                            count = Darkmode.entries.size
+                        ),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = Blue,
+                            activeContentColor = Color.White,
+                            inactiveContainerColor = Color.Transparent,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                            inactiveBorderColor = MediumBlue
+                        ),
+                        onClick = { viewModel.setDarkmode(value) },
+                        selected = value == darkmode,
+                        label = {
+                            Text(
+                                value.label(),
+                                maxLines = 1,
+                                style = typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    )
                 }
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.my_modules_button),
-                    onClick = viewModel::navigateToModules
-                )
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.my_tasks_button),
-                    onClick = viewModel::navigateToTasks
-                )
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.my_free_times_button),
-                    onClick = viewModel::navigateToFreeTimes
-                )
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.edit_questionnaire_button),
-                    onClick = viewModel::navigateToEditQuestionnaire
-                )
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.account_settings_button),
-                    onClick = viewModel::navigateToAccountSettings
-                )
-                SimpleMenuAndAdditionsButton(
-                    stringResource(R.string.update_plan_button),
-                    onClick = viewModel::updatePlan
-                )
             }
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.my_modules_button),
+                onClick = viewModel::navigateToModules
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.my_tasks_button),
+                onClick = viewModel::navigateToTasks
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.my_free_times_button),
+                onClick = viewModel::navigateToFreeTimes
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.edit_questionnaire_button),
+                onClick = viewModel::navigateToEditQuestionnaire
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.account_settings_button),
+                onClick = viewModel::navigateToAccountSettings
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.update_plan_button),
+                onClick = viewModel::updatePlan
+            )
         }
     }
 }
@@ -191,6 +186,11 @@ interface IMenuViewModel {
      * Updates the plan of the user.
      */
     fun updatePlan()
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -248,5 +248,9 @@ class MenuViewModel(
                 navController.main()
             }
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

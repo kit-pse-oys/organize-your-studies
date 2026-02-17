@@ -40,7 +40,7 @@ import de.pse.oys.data.ensureUnits
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.theme.LightBlue
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import de.pse.oys.ui.util.toFormattedString
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -72,7 +72,10 @@ fun AvailableRatingsView(viewModel: IAvailableRatingsViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(stringResource(id = R.string.rate_units_header))
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(R.string.rate_units_header)
+            )
             if (viewModel.available.isEmpty()) {
                 Box(
                     contentAlignment = Alignment.Center
@@ -166,6 +169,11 @@ interface IAvailableRatingsViewModel {
      * @param rating the [RatingTarget] to be selected.
      */
     fun selectRating(rating: RatingTarget)
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -213,5 +221,9 @@ class AvailableRatingsViewModel(
     override fun selectRating(rating: RatingTarget) {
         val uuid = _available[rating] ?: return
         navController.rating(uuid)
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

@@ -44,7 +44,7 @@ import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.RatingSlider
 import de.pse.oys.ui.util.SubmitButton
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -75,7 +75,10 @@ fun RatingView(viewModel: IRatingViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(stringResource(id = R.string.rate_unit_header))
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(R.string.rate_unit_header)
+            )
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -205,6 +208,11 @@ interface IRatingViewModel {
      * Submits that the unit was missed.
      */
     fun submitMissed()
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -262,5 +270,9 @@ class RatingViewModel(
                 }
             }
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }
