@@ -141,7 +141,7 @@ public class LearningUnit {
         UnitDTO dto = new UnitDTO();
 
         if (task != null) {
-            dto.setTaskId(task.getTaskId());
+            dto.setTask(task.getTaskId());
         }
         if (startTime != null) {
             dto.setDate(startTime.toLocalDate());
