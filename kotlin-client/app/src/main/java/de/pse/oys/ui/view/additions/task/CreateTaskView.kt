@@ -77,6 +77,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
@@ -141,6 +142,10 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 TaskType.SUBMISSION -> {
                     InputLabel(text = stringResource(id = R.string.enter_submission_date))
                     SubmissionDateSelection(viewModel)
+                    DateSelectionRow(
+                        stringResource(id = R.string.select_end_date),
+                        viewModel.end.toFormattedString()
+                    ) { showEndDatePicker = true }
                     SubmissionCycleSelection(viewModel)
                 }
 
@@ -596,10 +601,17 @@ abstract class BaseCreateTaskViewModel(
                 module,
                 weeklyTimeLoad,
                 submissionDate,
+                end.atTime(submissionDate.time),
                 submissionCycle
             )
 
-            TaskType.OTHER -> RemoteOtherTaskData(title, module, weeklyTimeLoad, start, end)
+            TaskType.OTHER -> RemoteOtherTaskData(
+                title,
+                module,
+                weeklyTimeLoad,
+                start.atTime(0, 0),
+                end.atTime(23, 59, 59)
+            )
         }
     }
 
@@ -613,6 +625,7 @@ abstract class BaseCreateTaskViewModel(
                 module,
                 weeklyTimeLoad,
                 submissionDate,
+                end,
                 submissionCycle
             )
 
