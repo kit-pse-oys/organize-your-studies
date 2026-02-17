@@ -73,9 +73,9 @@ fun EntryPoint(
     NavHost(navController = navController, startDestination = if (startWithLogin) Login else Main) {
         composable<Main> { MainView(viewModel { MainViewModel(api, model, navController) }) }
         composable<Login> { LoginView(viewModel { LoginViewModel(api, context, navController) }) }
-        composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, navController) }) }
+        composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, model, navController) }) }
         composable<AccountSettings> {
-            AccountSettingsView(viewModel { AccountSettingsViewModel(api, context, navController) })
+            AccountSettingsView(viewModel { AccountSettingsViewModel(api, model, context, navController) })
         }
         composable<Questionnaire> { backEntry ->
             val firstTime = backEntry.toRoute<Questionnaire>().firstTime

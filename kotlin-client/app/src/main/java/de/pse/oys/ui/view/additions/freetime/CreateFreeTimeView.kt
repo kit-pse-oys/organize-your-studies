@@ -247,6 +247,7 @@ abstract class BaseCreateFreeTimeViewModel(
     protected fun registerNewFreeTime(id: Uuid, freeTime: FreeTimeData?) {
         val freeTimes = model.freeTimes.orEmpty().toMutableMap()
         model.freeTimes = freeTimes
+        model.steps = null
         if (freeTime != null) {
             freeTimes[id] = freeTime
         } else {

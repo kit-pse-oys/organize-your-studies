@@ -245,6 +245,8 @@ abstract class BaseCreateModuleViewModel(
     protected fun registerNewModule(id: Uuid, module: ModuleData?) {
         val modules = model.modules.orEmpty().toMutableMap()
         model.modules = modules
+        model.tasks = null
+        model.steps = null
         if (module != null) {
             modules[id] = module
         } else {

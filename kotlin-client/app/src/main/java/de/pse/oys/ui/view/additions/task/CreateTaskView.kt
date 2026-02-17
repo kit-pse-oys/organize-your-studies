@@ -586,6 +586,7 @@ abstract class BaseCreateTaskViewModel(
     protected fun registerNewTask(id: Uuid, task: TaskData?) {
         val tasks = model.tasks.orEmpty().toMutableMap()
         model.tasks = tasks
+        model.steps = null
         if (task != null) {
             tasks[id] = task
         } else {
