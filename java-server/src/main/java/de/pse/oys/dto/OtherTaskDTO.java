@@ -1,5 +1,6 @@
 package de.pse.oys.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.pse.oys.domain.enums.TaskCategory;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,9 @@ import java.util.UUID;
  */
 public class OtherTaskDTO extends TaskDTO {
 
+    @JsonProperty("start")
     private LocalDateTime startTime;
+    @JsonProperty("end")
     private LocalDateTime endTime;
 
     /**
