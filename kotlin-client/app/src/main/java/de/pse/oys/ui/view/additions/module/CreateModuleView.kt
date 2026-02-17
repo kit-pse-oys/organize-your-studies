@@ -1,12 +1,10 @@
 package de.pse.oys.ui.view.additions.module
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -34,7 +32,6 @@ import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
-import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.ModuleData
@@ -43,12 +40,11 @@ import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.ColorPicker
-import de.pse.oys.ui.util.DeleteButton
 import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
-import de.pse.oys.ui.util.ViewHeaderBig
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -75,52 +71,44 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (viewModel.showDelete) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                    DeleteButton { confirmDelete = true }
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ViewHeaderBig(
-                    if (viewModel.showDelete) stringResource(R.string.edit_module) else stringResource(
-                        id = R.string.new_module
-                    )
-                )
-                InputLabel(text = stringResource(id = R.string.enter_title))
-                SingleLineInput(viewModel.title) { viewModel.title = it }
-                InputLabel(stringResource(id = R.string.enter_description))
-                SingleLineInput(viewModel.description) { viewModel.description = it }
-                InputLabel(stringResource(id = R.string.select_priority))
-                PriorityChips(
-                    current = viewModel.priority,
-                    onSelect = { viewModel.priority = it })
-                InputLabel(stringResource(id = R.string.select_color))
-                ColorPicker(onColorChanged = { viewModel.color = it })
-                Spacer(modifier = Modifier.weight(1f))
-                SubmitButton(
-                    if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
-                        id = R.string.add_module_button
-                    ),
-                    submitButtonActive
-                ) { viewModel.submit() }
-            }
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                if (viewModel.showDelete) stringResource(R.string.edit_module) else stringResource(
+                    id = R.string.new_module
+                ),
+                viewModel.showDelete,
+                { if (viewModel.showDelete) confirmDelete = true })
+            InputLabel(text = stringResource(id = R.string.enter_title))
+            SingleLineInput(viewModel.title) { viewModel.title = it }
+            InputLabel(stringResource(id = R.string.enter_description))
+            SingleLineInput(viewModel.description) { viewModel.description = it }
+            InputLabel(stringResource(id = R.string.select_priority))
+            PriorityChips(
+                current = viewModel.priority,
+                onSelect = { viewModel.priority = it })
+            InputLabel(stringResource(id = R.string.select_color))
+            Spacer(modifier = Modifier.padding(10.dp))
+            ColorPicker(onColorChanged = { viewModel.color = it })
+            Spacer(modifier = Modifier.weight(1f))
+            SubmitButton(
+                if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
+                    id = R.string.add_module_button
+                ),
+                submitButtonActive
+            ) { viewModel.submit() }
+        }
 
-            if (confirmDelete) {
-                DeleteElementDialog(
-                    onDismiss = { confirmDelete = false },
-                    onConfirm = viewModel::delete
-                )
-            }
+        if (confirmDelete) {
+            DeleteElementDialog(
+                onDismiss = { confirmDelete = false },
+                onConfirm = viewModel::delete
+            )
         }
     }
 }
@@ -217,6 +205,11 @@ interface ICreateModuleViewModel {
      * Deletes the module from the server and navigates to the main screen.
      */
     fun delete()
+
+    /**
+     * Navigates back to the previous screen.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -285,6 +278,10 @@ class CreateModuleViewModel(
     override fun delete() {
         error("Can't delete Module before creating it")
     }
+
+    override fun navigateBack() {
+        navController.popBackStack()
+    }
 }
 
 /**
@@ -307,11 +304,12 @@ class EditModuleViewModel(
     override fun submit() {
         viewModelScope.launch {
             val data = ModuleData(title, description, priority, color)
-            api.updateModule(Module(data, uuid)).defaultHandleError(navController) { error = true }?.let {
-                withContext(Dispatchers.Main.immediate) {
-                    registerNewModule(uuid, data)
+            api.updateModule(Module(data, uuid)).defaultHandleError(navController) { error = true }
+                ?.let {
+                    withContext(Dispatchers.Main.immediate) {
+                        registerNewModule(uuid, data)
+                    }
                 }
-            }
         }
     }
 
@@ -323,5 +321,9 @@ class EditModuleViewModel(
                 }
             }
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

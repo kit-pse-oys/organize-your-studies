@@ -21,9 +21,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -66,26 +66,59 @@ fun ViewHeader(
 ) {
     Text(
         text = text,
-        style = typography.titleLarge,
+        style = typography.headlineSmall,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
     )
 }
 
 /**
- * Creates big header for views.
- * @param text the header to be displayed.
+ * Creates a back button in the form of an arrow.
+ * @param onClick the function to be called when the button is clicked.
  */
 @Composable
-fun ViewHeaderBig(
+fun BackButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(12.dp)
+            .size(56.dp),
+        shape = CircleShape
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.outline_arrow_back_24),
+            contentDescription = null,
+            modifier = Modifier.size(34.dp),
+            tint = Blue
+        )
+    }
+}
+
+@Composable
+fun ViewHeaderWithBackOption(
+    onBack: () -> Unit,
     text: String,
+    showDelete: Boolean = false,
+    onDelete: () -> Unit = {}
 ) {
-    Text(
-        text = text,
-        style = typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        BackButton {
+            onBack()
+        }
+        Box(modifier = Modifier.align(Alignment.Center)) {
+            ViewHeader(text)
+        }
+        if (showDelete) {
+            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                DeleteButton {
+                    onDelete()
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -120,7 +153,7 @@ fun SingleLineInput(
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
             focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Gray
+            unfocusedTextColor = Color.DarkGray
         ),
         singleLine = true
     )
@@ -345,7 +378,7 @@ fun SubmitButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
  */
 @Composable
 fun DeleteButton(onClick: () -> Unit) {
-    OutlinedIconButton(
+    IconButton(
         onClick = onClick,
         modifier = Modifier
             .padding(12.dp)
@@ -356,6 +389,7 @@ fun DeleteButton(onClick: () -> Unit) {
             painter = painterResource(id = R.drawable.outline_delete_24),
             contentDescription = null,
             modifier = Modifier.size(34.dp),
+            tint = Blue
         )
     }
 }

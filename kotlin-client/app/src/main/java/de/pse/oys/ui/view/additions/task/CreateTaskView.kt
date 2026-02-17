@@ -1,7 +1,6 @@
 package de.pse.oys.ui.view.additions.task
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +51,6 @@ import de.pse.oys.data.api.RemoteTask
 import de.pse.oys.data.api.RemoteTaskData
 import de.pse.oys.data.defaultHandleError
 import de.pse.oys.data.facade.ExamTaskData
-import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Module
 import de.pse.oys.data.facade.OtherTaskData
@@ -63,14 +61,13 @@ import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.util.DateSelectionRow
-import de.pse.oys.ui.util.DeleteButton
 import de.pse.oys.ui.util.DeleteElementDialog
 import de.pse.oys.ui.util.InputLabel
 import de.pse.oys.ui.util.LocalDatePickerDialog
 import de.pse.oys.ui.util.LocalTimePickerDialog
 import de.pse.oys.ui.util.SingleLineInput
 import de.pse.oys.ui.util.SubmitButton
-import de.pse.oys.ui.util.ViewHeaderBig
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import de.pse.oys.ui.util.toFormattedString
 import de.pse.oys.ui.util.toFormattedTimeString
 import kotlinx.coroutines.Dispatchers
@@ -112,119 +109,108 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (viewModel.showDelete) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                    DeleteButton { confirmDelete = true }
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                if (viewModel.showDelete) stringResource(R.string.edit_task) else stringResource(id = R.string.new_task),
+                viewModel.showDelete,
+                { if (viewModel.showDelete) confirmDelete = true })
+            InputLabel(text = stringResource(id = R.string.enter_title))
+            SingleLineInput(viewModel.title) { viewModel.title = it }
+            ModuleSelection(viewModel)
+            TimeLoadSelection(viewModel)
+            InputLabel(text = stringResource(id = R.string.select_task_type))
+            TaskTypeChips(
+                current = viewModel.type,
+                onSelect = { viewModel.type = it }
+            )
+
+            when (viewModel.type) {
+                TaskType.EXAM -> {
+                    DateSelectionRow(
+                        stringResource(id = R.string.enter_exam_date),
+                        viewModel.examDate.toFormattedString()
+                    ) { showExamDatePicker = true }
+                }
+
+                TaskType.SUBMISSION -> {
+                    InputLabel(text = stringResource(id = R.string.enter_submission_date))
+                    SubmissionDateSelection(viewModel)
+                    SubmissionCycleSelection(viewModel)
+                }
+
+                TaskType.OTHER -> {
+                    InputLabel(text = stringResource(id = R.string.select_time_period))
+                    DateSelectionRow(
+                        stringResource(id = R.string.select_start_date),
+                        viewModel.start.toFormattedString()
+                    ) {
+                        showStartDatePicker = true
+                    }
+                    DateSelectionRow(
+                        stringResource(id = R.string.select_end_date),
+                        viewModel.end.toFormattedString()
+                    ) { showEndDatePicker = true }
                 }
             }
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ViewHeaderBig(
-                    if (viewModel.showDelete) stringResource(R.string.edit_task) else stringResource(
-                        id = R.string.new_task
-                    )
-                )
-                InputLabel(text = stringResource(id = R.string.enter_title))
-                SingleLineInput(viewModel.title) { viewModel.title = it }
-                ModuleSelection(viewModel)
-                TimeLoadSelection(viewModel)
-                InputLabel(text = stringResource(id = R.string.select_task_type))
-                TaskTypeChips(
-                    current = viewModel.type,
-                    onSelect = { viewModel.type = it }
-                )
 
-                when (viewModel.type) {
-                    TaskType.EXAM -> {
-                        DateSelectionRow(
-                            stringResource(id = R.string.enter_exam_date),
-                            viewModel.examDate.toFormattedString()
-                        ) { showExamDatePicker = true }
-                    }
+            Spacer(modifier = Modifier.weight(1f))
+            SubmitButton(
+                if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
+                    id = R.string.add_task_button
+                ),
+                submitButtonActive
+            ) { viewModel.submit() }
 
-                    TaskType.SUBMISSION -> {
-                        InputLabel(text = stringResource(id = R.string.enter_submission_date))
-                        SubmissionDateSelection(viewModel)
-                        SubmissionCycleSelection(viewModel)
-                    }
-
-                    TaskType.OTHER -> {
-                        InputLabel(text = stringResource(id = R.string.select_time_period))
-                        DateSelectionRow(
-                            stringResource(id = R.string.select_start_date),
-                            viewModel.start.toFormattedString()
-                        ) {
-                            showStartDatePicker = true
+            if (showExamDatePicker) {
+                LocalDatePickerDialog(
+                    currentDate = viewModel.examDate,
+                    onDateSelected = { selectedDate ->
+                        if (selectedDate != null) {
+                            viewModel.examDate = selectedDate
                         }
-                        DateSelectionRow(
-                            stringResource(id = R.string.select_end_date),
-                            viewModel.end.toFormattedString()
-                        ) { showEndDatePicker = true }
-                    }
-                }
+                        showExamDatePicker = false
+                    },
+                    onDismiss = { showExamDatePicker = false }
+                )
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
-                SubmitButton(
-                    if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
-                        id = R.string.add_task_button
-                    ),
-                    submitButtonActive
-                ) { viewModel.submit() }
+            if (showStartDatePicker) {
+                LocalDatePickerDialog(
+                    currentDate = viewModel.start,
+                    onDateSelected = { selectedDate ->
+                        if (selectedDate != null) {
+                            viewModel.start = selectedDate
+                        }
+                        showStartDatePicker = false
+                    },
+                    onDismiss = { showStartDatePicker = false }
+                )
+            }
 
-                if (showExamDatePicker) {
-                    LocalDatePickerDialog(
-                        currentDate = viewModel.examDate,
-                        onDateSelected = { selectedDate ->
-                            if (selectedDate != null) {
-                                viewModel.examDate = selectedDate
-                            }
-                            showExamDatePicker = false
-                        },
-                        onDismiss = { showExamDatePicker = false }
-                    )
-                }
+            if (showEndDatePicker) {
+                LocalDatePickerDialog(
+                    currentDate = viewModel.end,
+                    onDateSelected = { selectedDate ->
+                        if (selectedDate != null && selectedDate >= viewModel.start) {
+                            viewModel.end = selectedDate
+                        }
+                        showEndDatePicker = false
+                    },
+                    onDismiss = { showEndDatePicker = false }
+                )
+            }
 
-                if (showStartDatePicker) {
-                    LocalDatePickerDialog(
-                        currentDate = viewModel.start,
-                        onDateSelected = { selectedDate ->
-                            if (selectedDate != null) {
-                                viewModel.start = selectedDate
-                            }
-                            showStartDatePicker = false
-                        },
-                        onDismiss = { showStartDatePicker = false }
-                    )
-                }
-
-                if (showEndDatePicker) {
-                    LocalDatePickerDialog(
-                        currentDate = viewModel.end,
-                        onDateSelected = { selectedDate ->
-                            if (selectedDate != null && selectedDate >= viewModel.start) {
-                                viewModel.end = selectedDate
-                            }
-                            showEndDatePicker = false
-                        },
-                        onDismiss = { showEndDatePicker = false }
-                    )
-                }
-
-                if (confirmDelete) {
-                    DeleteElementDialog(
-                        onDismiss = { confirmDelete = false },
-                        onConfirm = viewModel::delete
-                    )
-                }
+            if (confirmDelete) {
+                DeleteElementDialog(
+                    onDismiss = { confirmDelete = false },
+                    onConfirm = viewModel::delete
+                )
             }
         }
     }
@@ -527,6 +513,11 @@ interface ICreateTaskViewModel {
      * Deletes the task from the server and navigates to the main screen.
      */
     fun delete()
+
+    /**
+     * Navigates back to the previous screen.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -657,6 +648,10 @@ class CreateTaskViewModel(
     override fun delete() {
         error("Can't delete Task before creating it")
     }
+
+    override fun navigateBack() {
+        navController.popBackStack()
+    }
 }
 
 /**
@@ -696,5 +691,9 @@ class EditTaskViewModel(
                 }
             }
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

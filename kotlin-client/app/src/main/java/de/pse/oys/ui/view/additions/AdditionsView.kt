@@ -15,7 +15,7 @@ import de.pse.oys.ui.navigation.createFreeTime
 import de.pse.oys.ui.navigation.createModule
 import de.pse.oys.ui.navigation.createTask
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 
 /**
  * View for the additions menu with buttons to add a new module, task or freetime.
@@ -30,7 +30,10 @@ fun AdditionsView(viewModel: IAdditionsViewModel) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(text = stringResource(id = R.string.additions_header))
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(id = R.string.additions_header)
+            )
             SimpleMenuAndAdditionsButton(
                 label = stringResource(id = R.string.new_module),
                 onClick = { viewModel.navigateToCreateModule() }
@@ -65,6 +68,11 @@ interface IAdditionsViewModel {
      * Navigate to the CreateFreeTimeView.
      */
     fun navigateToCreateFreeTime()
+
+    /**
+     * Navigate back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -84,5 +92,9 @@ class AdditionsViewModel(private val navController: NavController) : ViewModel()
 
     override fun navigateToCreateFreeTime() {
         navController.createFreeTime()
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }

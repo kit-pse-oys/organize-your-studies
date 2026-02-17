@@ -134,4 +134,7 @@
     <string name="minutes_template" translatable="false">%1$d min</string>
     <string name="amount_template" translatable="false">%1$d</string>
     <string name="days_template">%1$d days</string>
+    <string name="planer_switch_weekly">Weekly Plan</string>
+    <string name="planer_switch_daily">Daily Plan</string>
+    <string name="no_upcomig_units_available">You don\'t have any units tomorrow.</string>
 </resources>

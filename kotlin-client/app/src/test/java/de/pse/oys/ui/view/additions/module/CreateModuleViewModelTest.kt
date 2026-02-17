@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.Response
-import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
@@ -64,7 +63,6 @@ class CreateModuleViewModelTest {
     fun `registerNewModule should update model and navigate`() {
         val testId = Uuid.random()
         val testData = createMockModuleData()
-        val testModule = Identified(testData, testId)
 
         val modulesMap = mutableMapOf<Uuid, ModuleData>()
         every { model.modules } returns modulesMap
@@ -78,13 +76,13 @@ class CreateModuleViewModelTest {
 
             override fun delete() {}
 
-            fun testRegister(m: Identified<ModuleData>) {
-                registerNewModule(m)
+            fun testRegister(m: ModuleData = testData) {
+                registerNewModule(randomUuid(), m)
                 submit()
             }
         }
 
-        testVM.testRegister(testModule)
+        testVM.testRegister(ModuleData(TEST_TITLE, TEST_DESC, TEST_PRIORITY, TEST_COLOR))
         assertEquals(testData, modulesMap[testId])
         verify { navController.main() }
     }

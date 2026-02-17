@@ -2,6 +2,7 @@ package de.pse.oys.ui.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
@@ -82,6 +83,12 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
+/**
+ * View for the main page.
+ * Shows the plan with units and free times for the current day or the whole week.
+ * Allows the user to go to menu, additions or unit rating and shows upcoming units.
+ * @param viewModel the [IMainViewModel] for this view.
+ */
 @Composable
 fun MainView(viewModel: IMainViewModel) {
     var weeklyCalendar by remember { mutableStateOf(false) }
@@ -134,7 +141,12 @@ fun MainView(viewModel: IMainViewModel) {
                 }
             }
 
-            Checkbox(weeklyCalendar, { weeklyCalendar = it })
+            PlanerSwitch(
+                isWeekly = weeklyCalendar,
+                onToggle = { weeklyCalendar = it },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
             if (weeklyCalendar) {
                 val events = viewModel.units.mapValues { (_, list) ->
                     list.map {
@@ -182,24 +194,40 @@ fun MainView(viewModel: IMainViewModel) {
                 RateUnitsButton(onClick = { viewModel.navigateToUnitRating() })
             }
 
-            Text(
-                stringResource(R.string.upcoming_units_header),
-                modifier = Modifier
-                    .padding(start = 30.dp)
-                    .padding(top = 10.dp, bottom = 6.dp),
-                style = typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            LazyColumn(
-                Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                items(viewModel.unitsTomorrow) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        UpcomingUnitField(it.title, it.start.toString(), it.end.toString())
+            if (!weeklyCalendar) {
+                Text(
+                    stringResource(R.string.upcoming_units_header),
+                    modifier = Modifier
+                        .padding(start = 30.dp)
+                        .padding(top = 10.dp, bottom = 6.dp),
+                    style = typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                LazyColumn(
+                    Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (viewModel.unitsTomorrow.isEmpty()) {
+                        item {
+                            Text(
+                                stringResource(R.string.no_upcomig_units_available),
+                                style = typography.bodySmall,
+                                color = Color.Gray,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 30.dp)
+                            )
+                        }
+                    } else {
+                        items(viewModel.unitsTomorrow) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                UpcomingUnitField(it.title, it.start.toString(), it.end.toString())
+                            }
+                        }
                     }
                 }
             }
@@ -207,6 +235,79 @@ fun MainView(viewModel: IMainViewModel) {
     }
 }
 
+/**
+ * Switch between weekly and daily planer.
+ * @param isWeekly whether the weekly planer should be used.
+ * @param onToggle the function to be called when the switch is toggled.
+ * @param modifier the modifier to be applied to the switch.
+ */
+@Composable
+private fun PlanerSwitch(
+    isWeekly: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val gradient = Brush.linearGradient(listOf(Blue, MediumBlue))
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth(0.45f)
+            .padding(vertical = 12.dp)
+            .height(28.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(LightBlue)
+            .border(1.dp, Blue, RoundedCornerShape(24.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight()
+                .padding(2.dp)
+                .align(if (isWeekly) Alignment.CenterEnd else Alignment.CenterStart)
+                .clip(RoundedCornerShape(20.dp))
+                .background(gradient)
+        )
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable { onToggle(false) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.planer_switch_daily),
+                    color = if (!isWeekly) Color.White else Blue,
+                    fontWeight = FontWeight.Bold,
+                    style = typography.bodySmall
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .clickable { onToggle(true) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.planer_switch_weekly),
+                    color = if (isWeekly) Color.White else Blue,
+                    fontWeight = FontWeight.Bold,
+                    style = typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Button for user to go to unit rating.
+ * @param onClick the function to be called when the button is clicked.
+ */
 @Composable
 private fun RateUnitsButton(onClick: () -> Unit) {
     val gradientColors = listOf(Blue, MediumBlue)
@@ -239,6 +340,12 @@ private fun RateUnitsButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * Field for displaying an upcoming unit.
+ * @param title the title of the unit.
+ * @param start the start time of the unit.
+ * @param end the end time of the unit.
+ */
 @Composable
 private fun UpcomingUnitField(title: String, start: String, end: String) {
     Box(
@@ -276,6 +383,14 @@ private fun UpcomingUnitField(title: String, start: String, end: String) {
     }
 }
 
+/**
+ * Represents a planned event.
+ * @param title the title of the event.
+ * @param description the description of the event.
+ * @param color the color of the event.
+ * @param start the start time of the event.
+ * @param end the end time of the event.
+ */
 private class PlannedEvent(
     private val title: String,
     private val description: String?,
@@ -314,6 +429,9 @@ private class PlannedEvent(
     }
 }
 
+/**
+ * Data class representing a planned unit with its parameters.
+ */
 data class PlannedUnit(
     val title: String,
     val description: String,
@@ -322,12 +440,19 @@ data class PlannedUnit(
     val end: LocalTime,
 )
 
+/**
+ * Data class representing a planned free time with its parameters.
+ */
 data class PlannedFreeTime(
     val title: String,
     val start: LocalTime,
     val end: LocalTime,
 )
 
+/**
+ * Interface for the view model of the [MainView].
+ * @property error whether an error occurred.
+ */
 interface IMainViewModel {
     var error: Boolean
 
@@ -347,6 +472,12 @@ interface IMainViewModel {
     fun navigateToUnitRating()
 }
 
+/**
+ * View model for the [MainView].
+ * @param api the [RemoteAPI] for this view.
+ * @param model the [ModelFacade] for this view.
+ * @param navController the [NavController] for this view.
+ */
 class MainViewModel(
     private val api: RemoteAPI,
     private val model: ModelFacade,

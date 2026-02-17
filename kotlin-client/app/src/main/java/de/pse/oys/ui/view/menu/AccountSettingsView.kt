@@ -31,7 +31,7 @@ import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.login
 import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
-import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.ViewHeaderWithBackOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,15 +56,20 @@ fun AccountSettingsView(viewModel: IAccountSettingsViewModel) {
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         var confirmDelete by remember { mutableStateOf(false) }
-
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ViewHeader(stringResource(R.string.manage_account_header))
-            SimpleMenuAndAdditionsButton(stringResource(R.string.logout_button), viewModel::logout)
+            ViewHeaderWithBackOption(
+                viewModel::navigateBack,
+                stringResource(id = R.string.account_settings_button)
+            )
+            SimpleMenuAndAdditionsButton(
+                stringResource(R.string.logout_button),
+                viewModel::logout
+            )
             SimpleMenuAndAdditionsButton(
                 stringResource(R.string.delete_account_button)
             ) { confirmDelete = true }
@@ -114,6 +119,11 @@ interface IAccountSettingsViewModel {
      * Deletes the user's account and navigates to the login screen.
      */
     fun deleteAccount()
+
+    /**
+     * Navigates back to the previous view.
+     */
+    fun navigateBack()
 }
 
 /**
@@ -162,5 +172,9 @@ class AccountSettingsViewModel(
                 }
             }
         }
+    }
+
+    override fun navigateBack() {
+        navController.popBackStack()
     }
 }
