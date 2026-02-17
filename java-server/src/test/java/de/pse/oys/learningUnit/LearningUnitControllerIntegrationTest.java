@@ -92,7 +92,7 @@ class LearningUnitControllerIntegrationTest {
         LocalDate start = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
         LocalDate end = start.plusDays(6);
         LearningPlan plan = new LearningPlan(start, end); // Hier wird der neue Konstruktor genutzt
-        plan.setUserId(testUser.getId());
+        plan.setUser(testUser);
         plan.setUnits(new ArrayList<>());
 
         // 5. LearningUnit anlegen (Neuer Konstruktor: task, startTime, endTime)
