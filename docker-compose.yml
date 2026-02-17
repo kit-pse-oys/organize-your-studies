@@ -31,6 +31,7 @@ services:
       - SERVER_SSL_KEY_STORE_PASSWORD=${SERVER_SSL_KEY_STORE_PASSWORD}
       - SERVER_SSL_KEY_STORE_TYPE=${SERVER_SSL_KEY_STORE_TYPE}
       - SERVER_PORT=${SERVER_PORT}
+      - MICROSERVICE_PLANNING_URL=http://oys-python-microservice:5001/optimize
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
       - python-microservice # Wartet, bis der Python-Microservice-Container gestartet ist
