@@ -1,7 +1,9 @@
 package de.pse.oys.freeTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.pse.oys.domain.LearningPreferences;
 import de.pse.oys.domain.LocalUser;
+import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.auth.AuthType;
 import de.pse.oys.dto.auth.LoginDTO;
@@ -26,8 +28,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -64,6 +68,19 @@ class FreeTimeControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         LocalUser testUser = new LocalUser("freeUser", passwordEncoder.encode(rawPassword));
+        userRepository.save(testUser);
+
+        LearningPreferences prefs = new LearningPreferences(
+                30,                          // minUnitDurationMinutes
+                90,                          // maxUnitDurationMinutes
+                8,                           // maxDailyWorkloadHours
+                15,                          // breakDurationMinutes
+                1,                           // deadlineBufferDays
+                Set.of(TimeSlot.MORNING),     // preferredTimeSlots
+                Set.of(DayOfWeek.values())   // preferredDays
+        );
+
+        testUser.setPreferences(prefs); // Präferenzen dem User zuweisen
         userRepository.save(testUser);
     }
 
