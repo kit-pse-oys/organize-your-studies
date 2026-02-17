@@ -3,6 +3,7 @@ package de.pse.oys.controller;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.FreeTimeService;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,13 +28,15 @@ import java.util.UUID;
 public class FreeTimeController extends BaseController {
 
     private final FreeTimeService freeTimeService;
+    private final PlanningService planningService;
 
     /**
      * Erzeugt eine neue Instanz des FreeTimeControllers.
      * @param freeTimeService Der Service für die Freizeitverwaltung.
      */
-    public FreeTimeController(FreeTimeService freeTimeService) {
+    public FreeTimeController(FreeTimeService freeTimeService, PlanningService planningService) {
         this.freeTimeService = freeTimeService;
+        this.planningService = planningService;
     }
 
 
@@ -58,6 +61,7 @@ public class FreeTimeController extends BaseController {
     public ResponseEntity<Map<String, String>> createFreeTime(@RequestBody FreeTimeDTO dto) {
         UUID userId = getAuthenticatedUserId();
         UUID created = freeTimeService.createFreeTime(userId, dto);
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok(Map.of("id", created.toString()));
 
     }
@@ -75,6 +79,7 @@ public class FreeTimeController extends BaseController {
         UUID freeTimeId = wrapperDTO.getId();
         UUID userId = getAuthenticatedUserId();
         freeTimeService.updateFreeTime(userId, freeTimeId, dto);
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok().build();
 
     }
@@ -89,6 +94,7 @@ public class FreeTimeController extends BaseController {
     public ResponseEntity<Void> deleteFreeTime(@RequestBody WrapperDTO<Void> wrapperDTO) {
         UUID userId = getAuthenticatedUserId();
         freeTimeService.deleteFreeTime(userId, wrapperDTO.getId());
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.noContent().build();
     }
 }

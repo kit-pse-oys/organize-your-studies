@@ -1,11 +1,17 @@
 package de.pse.oys.controller;
 
-import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.TaskDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.TaskService;
-import org.springframework.http.HttpStatus;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -22,12 +28,14 @@ import java.util.UUID;
 public class TaskController extends BaseController {
 
     private final TaskService taskService;
+    private final PlanningService planningService;
 
     /**
      * Erzeugt eine neue Instanz des TaskControllers.
      * @param taskService Der Service für die Aufgabenlogik.
      */
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, PlanningService planningService) {
+        this.planningService = planningService;
         this.taskService = taskService;
     }
 
@@ -52,6 +60,7 @@ public class TaskController extends BaseController {
     public ResponseEntity<Map<String, UUID>> createTask(@RequestBody TaskDTO dto) {
         UUID userId = getAuthenticatedUserId();
         UUID taskId = taskService.createTask(userId, dto);
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok(Map.of("id", taskId));
     }
 
@@ -64,6 +73,7 @@ public class TaskController extends BaseController {
     public ResponseEntity<Void> updateTask(@RequestBody WrapperDTO<TaskDTO> wrapper) {
         UUID userId = getAuthenticatedUserId();
         taskService.updateTask(userId, wrapper.getId(), wrapper.getData());
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok().build();
 
     }
@@ -78,6 +88,7 @@ public class TaskController extends BaseController {
     public ResponseEntity<Void> deleteTask(@RequestBody WrapperDTO<Void> wrapper) {
         UUID userId = getAuthenticatedUserId();
         taskService.deleteTask(userId, wrapper.getId());
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.noContent().build();
     }
 }

@@ -3,6 +3,7 @@ package de.pse.oys.controller;
 import de.pse.oys.dto.ModuleDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.ModuleService;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +22,15 @@ import java.util.UUID;
 public class ModuleController extends BaseController {
 
     private final ModuleService moduleService;
+    private final PlanningService planningService;
 
     /**
      * Erzeugt eine neue Instanz des ModuleControllers.
      * @param moduleService Der Service für die Modulverwaltung.
      */
-    public ModuleController(ModuleService moduleService) {
+    public ModuleController(ModuleService moduleService, PlanningService planningService) {
         this.moduleService = moduleService;
+        this.planningService = planningService;
     }
 
     /**
@@ -54,6 +57,7 @@ public class ModuleController extends BaseController {
         ModuleDTO data = wrapper.getData();
         data.setId(wrapper.getId());
         moduleService.updateModule(userId, data);
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok().build();
     }
 
@@ -66,6 +70,7 @@ public class ModuleController extends BaseController {
     public ResponseEntity<Void> deleteModule(@RequestBody WrapperDTO<Void> dto) {
         UUID userId = getAuthenticatedUserId();
         moduleService.deleteModule(userId, dto.getId());
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok().build();
     }
 

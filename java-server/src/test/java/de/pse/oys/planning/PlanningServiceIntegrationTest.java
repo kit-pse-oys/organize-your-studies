@@ -120,11 +120,10 @@ public class PlanningServiceIntegrationTest {
 
     @Test
     void testGenerateWeeklyPlan_EndToEnd() {
-        LocalDate weekStart = LocalDate.of(2026, 2, 16);
         System.out.println("Starte Anfrage an Microservice...");
 
         try {
-            planningService.generateWeeklyPlan(savedUser.getId(), weekStart);
+            planningService.generateWeeklyPlan(savedUser.getId());
         } catch (Exception e) {
             org.junit.jupiter.api.Assertions.fail("Microservice Fehler: " + e.getMessage());
         }

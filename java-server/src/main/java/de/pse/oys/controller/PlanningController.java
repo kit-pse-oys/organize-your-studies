@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 /**
@@ -43,8 +40,7 @@ public class PlanningController extends BaseController {
     @PutMapping
     public ResponseEntity<Void> generateWeeklyPlan() {
         UUID userId = getAuthenticatedUserId();
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        planningService.generateWeeklyPlan(userId, weekStart);
+        planningService.generateWeeklyPlan(userId);
         return ResponseEntity.ok().build();
     }
 
@@ -57,8 +53,7 @@ public class PlanningController extends BaseController {
     public ResponseEntity<WrapperDTO<UnitDTO>> rescheduleUnit(@RequestParam WrapperDTO<Void> wrapperDTO) {
         UUID userId = getAuthenticatedUserId();
         UUID unitId = wrapperDTO.getId();
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        UnitDTO updatedUnit = planningService.rescheduleUnit(userId, weekStart, unitId);
+        UnitDTO updatedUnit = planningService.rescheduleUnit(userId, unitId);
         return ResponseEntity.ok(new WrapperDTO<>(unitId, updatedUnit));
     }
 }

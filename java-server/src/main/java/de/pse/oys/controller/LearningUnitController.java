@@ -36,7 +36,6 @@ public class LearningUnitController extends BaseController {
     /**
      * Verschiebt eine Lerneinheit manuell auf einen neuen Zeitraum.
      * @param control Die Steuerungsinformationen zur Einheit.
-     * @return Der aktualisierte Gesamtplan.
      */
     @PostMapping("/move")
     public ResponseEntity<Void> moveLearningUnitManually(@RequestBody UnitControlDTO control) {
