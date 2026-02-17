@@ -32,7 +32,7 @@ public abstract class Task {
     private String title;
 
     /** Wöchentlicher Aufwand in Minuten. */
-    @Column(name = "weekly_effort_minutes", nullable = false)
+    @Column(name = "weeklyTimeLoad", nullable = false)
     private int weeklyDurationMinutes;
 
     /**
