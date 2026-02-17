@@ -22,11 +22,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 public abstract class BaseIntegrationTest {
 
-    @Container // JUnit 5 verwaltet den Start/Stopp
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("studydb")
-            .withUsername("admin")
-            .withPassword("geheim");
+    static final PostgreSQLContainer<?> postgres;
+
+    static {
+        postgres = new PostgreSQLContainer<>("postgres:15")
+                .withDatabaseName("studydb")
+                .withUsername("admin")
+                .withPassword("geheim");
+        postgres.start(); // Manueller Start
+    }
 
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
