@@ -11,7 +11,7 @@ import java.util.UUID;
  */
 public class ModuleDTO {
 
-    ///** Die eindeutige Kennung des Moduls. */
+    /** Die eindeutige Kennung des Moduls. */
     @JsonIgnore
     private UUID id;
 
