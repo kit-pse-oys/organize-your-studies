@@ -1,5 +1,6 @@
 package de.pse.oys.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.pse.oys.domain.enums.TaskCategory;
 
 import java.time.LocalDateTime;
@@ -11,12 +12,15 @@ import java.util.UUID;
 public class SubmissionTaskDTO extends TaskDTO {
 
     /** Erste Deadline (Anchor), an der sich die Wiederholung ausrichtet. */
+    @JsonProperty("firstDate")
     private LocalDateTime firstDeadline;
 
     /** Rhythmus in Wochen (1 = wöchentlich, 2 = alle 2 Wochen, ...). */
+    @JsonProperty("cycle")
     private Integer submissionCycle;
 
     /** Zeitpunkt, ab dem die Aufgabe komplett vorbei ist (keine Deadlines mehr). */
+    @JsonProperty("end")
     private LocalDateTime endTime;
 
     /**

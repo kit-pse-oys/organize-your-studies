@@ -62,7 +62,7 @@ class RatingViewModelTest {
         coVerify {
             api.rateUnit(testTarget, withArg {
                 assertEquals(Rating.LOW, it.goalCompletion)
-                assertEquals(Rating.MEDIUM, it.duration)
+                assertEquals(Rating.MEDIUM, it.perceivedDuration)
             })
         }
         verify { navController.availableRatings(any()) }

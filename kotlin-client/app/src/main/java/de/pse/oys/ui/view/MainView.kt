@@ -45,8 +45,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
@@ -503,7 +506,9 @@ class MainViewModel(
             _units.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
         this.unitsToday = this.units[today.dayOfWeek] ?: listOf()
         this.unitsTomorrow =
-            this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)] ?: listOf()
+            this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)]?.let {
+                it.sortedBy { it.start }
+            } ?: listOf()
     }
 
     private var _freeTimes: Map<PlannedFreeTime, Uuid> = mapOf()

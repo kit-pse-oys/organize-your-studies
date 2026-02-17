@@ -69,7 +69,6 @@ fun RatingView(viewModel: IRatingViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
-        var selectedMissed by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -93,12 +92,11 @@ fun RatingView(viewModel: IRatingViewModel) {
                             .fillMaxWidth()
                             .padding(horizontal = 10.dp)
                             .padding(bottom = 10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = if (!selectedMissed) Color.LightGray else LightBlue),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.5.dp, if (!selectedMissed) Color.Gray else Blue),
-                        onClick = {
-                            selectedMissed = !selectedMissed
-                        }) {
+                        border = BorderStroke(1.5.dp, Blue),
+                        onClick = viewModel::submitMissed
+                    ) {
                         Text(
                             stringResource(id = R.string.unit_missed_button),
                             style = MaterialTheme.typography.titleMedium,
@@ -113,7 +111,6 @@ fun RatingView(viewModel: IRatingViewModel) {
                             question = stringResource(id = aspect.textRes),
                             currentRating = viewModel.getRating(aspect),
                             labels = aspect.labelsRes.map { stringResource(id = it) },
-                            selectedMissed = selectedMissed,
                             onRatingChange = { newRating ->
                                 viewModel.updateRating(aspect, newRating)
                             }
@@ -121,7 +118,10 @@ fun RatingView(viewModel: IRatingViewModel) {
                     }
                 }
             }
-            SubmitButton(stringResource(id = R.string.save_rating)) { viewModel.submitRating() }
+            SubmitButton(
+                stringResource(id = R.string.save_rating),
+                onClick = viewModel::submitRating
+            )
         }
     }
 }
@@ -141,7 +141,6 @@ private fun RatingQuestion(
     question: String,
     currentRating: Rating,
     labels: List<String>,
-    selectedMissed: Boolean,
     onRatingChange: (Rating) -> Unit
 ) {
     Column(
@@ -149,12 +148,12 @@ private fun RatingQuestion(
             .padding(horizontal = 10.dp)
             .padding(bottom = 10.dp)
             .background(
-                color = if (selectedMissed) Color.LightGray else LightBlue,
+                color = LightBlue,
                 shape = RoundedCornerShape(16.dp)
             )
             .border(
                 width = 1.5.dp,
-                color = if (selectedMissed) Color.Gray else Blue,
+                color = Blue,
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(16.dp)
@@ -176,7 +175,6 @@ private fun RatingQuestion(
         RatingSlider(
             currentRating = currentRating,
             labels = labels,
-            enabled = !selectedMissed,
             onRatingChange = onRatingChange
         )
     }
@@ -256,17 +254,21 @@ class RatingViewModel(
     override fun submitRating() {
         viewModelScope.launch {
             api.rateUnit(target, UnitRatings(completion, duration, motivation))
-                .defaultHandleError(navController) { error = true }
-
-            withContext(Dispatchers.Main.immediate) {
-                navController.availableRatings(dontGoBack = AvailableRatings)
-            }
+                .defaultHandleError(navController) { error = true }?.let {
+                    withContext(Dispatchers.Main.immediate) {
+                        navController.availableRatings(dontGoBack = AvailableRatings)
+                    }
+                }
         }
     }
 
     override fun submitMissed() {
         viewModelScope.launch {
-            api.rateUnitMissed(target).defaultHandleError(navController) { error = true }
+            api.rateUnitMissed(target).defaultHandleError(navController) { error = true }?.let {
+                withContext(Dispatchers.Main.immediate) {
+                    navController.availableRatings(dontGoBack = AvailableRatings)
+                }
+            }
         }
     }
 

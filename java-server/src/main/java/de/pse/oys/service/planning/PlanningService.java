@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,12 +98,12 @@ public class PlanningService {
      * JSON-Format und sendet sie an den Python-Solver. Das Ergebnis wird als neuer Wochen-
      * plan gespeichert. Wirft eine EntityNotFoundException, falls der User nicht existiert.
      *
-     * @param userId    Die ID des Benutzers.
-     * @param weekStart Das Startdatum der Woche.
+     * @param userId Die ID des Benutzers.
      * @throws IllegalArgumentException wenn der Benutzer nicht gefunden wird.
      */
     @Transactional
-    public void generateWeeklyPlan(UUID userId, LocalDate weekStart) {
+    public void generateWeeklyPlan(UUID userId) {
+        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
@@ -141,13 +142,13 @@ public class PlanningService {
      * Reschedult eine einzelne Lerneinheit innerhalb eines bestehenden Lernplans.
      *
      * @param userId             Die ID des Benutzers.
-     * @param weekStart          Das Startdatum der Woche.
      * @param unitIdToReschedule Die ID der Lerneinheit, die neu terminiert werden soll.
      * @throws IllegalArgumentException wenn der Benutzer, Lernplan oder Lerneinheit nicht gefunden wird.
      */
 
     @Transactional
-    public UnitDTO rescheduleUnit(UUID userId, LocalDate weekStart, UUID unitIdToReschedule) {
+    public UnitDTO rescheduleUnit(UUID userId, UUID unitIdToReschedule) {
+        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");

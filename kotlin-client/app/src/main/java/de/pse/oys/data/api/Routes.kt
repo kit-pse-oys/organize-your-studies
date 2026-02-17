@@ -19,8 +19,7 @@ object Routes {
     data class Unit(
         val id: Uuid,
         val actualDuration: Int? = null,
-        val newTime: LocalDateTime? = null,
-        val ratings: UnitRatings? = null
+        val newTime: LocalDateTime? = null
     )
 
     @Serializable

@@ -140,16 +140,8 @@ public class LearningUnit {
     public UnitDTO toDTO() {
         UnitDTO dto = new UnitDTO();
 
-        Task task = this.getTask();
         if (task != null) {
-            dto.setTitle(task.getTitle());
             dto.setTask(task.getTaskId());
-
-            Module module = task.getModule();
-            if (module != null) {
-                dto.setDescription(module.getDescription());
-                dto.setColor(module.getColorHexCode());
-            }
         }
         if (startTime != null) {
             dto.setDate(startTime.toLocalDate());
