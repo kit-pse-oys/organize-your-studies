@@ -1,6 +1,7 @@
 package de.pse.oys.questionnaire;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.pse.oys.BaseIntegrationTest;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.TimeSlot;
@@ -46,28 +47,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author uhupo
  * @version 1.0
  */
-@Testcontainers
-@SpringBootTest
-@ActiveProfiles("integration")
-@AutoConfigureMockMvc
-class QuestionnaireControllerIntegrationTest {
+class QuestionnaireControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String QUESTIONNAIRE_BASE = "/api/v1/questionnaire";
     private static final String SUBMIT = QUESTIONNAIRE_BASE;
-
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:15")
-                    .withDatabaseName("oys")
-                    .withUsername("oys")
-                    .withPassword("oys");
-
-    @DynamicPropertySource
-    static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -87,6 +70,7 @@ class QuestionnaireControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         // Testuser anlegen
+        userRepository.deleteAll();
         String hashedPassword = passwordEncoder.encode(rawPassword);
         testUser = new LocalUser("nilsiberUser", hashedPassword);
         userRepository.save(testUser);
