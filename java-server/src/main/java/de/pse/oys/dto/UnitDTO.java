@@ -20,7 +20,7 @@ public class UnitDTO {
     private LocalTime end;
 
     /** Die zugehörige Aufgabe der Lerneinheit. */
-    private UUID task;
+    private UUID taskId;
 
     /**
      * Standardkonstruktor für die Deserialisierung.
@@ -43,7 +43,7 @@ public class UnitDTO {
     /** Gibt den zugehörigen Task zurück.
      * @return Die UUID der zugehörigen Aufgabe.
      */
-    public UUID getTaskId() { return task; }
+    public UUID getTaskId() { return taskId; }
 
 
     // Setter
@@ -58,5 +58,5 @@ public class UnitDTO {
     public void setEnd(LocalTime end) { this.end = end; }
 
     /** Setzt den zugehörigen Task. */
-    public void setTask(UUID task) { this.task = task; }
+    public void setTaskId(UUID taskId) { this.taskId = taskId; }
 }
