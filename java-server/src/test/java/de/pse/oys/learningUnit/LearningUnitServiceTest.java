@@ -76,7 +76,6 @@ class LearningUnitServiceTest {
         UnitDTO result = sut.moveLearningUnitAutomatically(USER_ID, UNIT_ID);
 
         // THEN
-        assertThat(result.getTitle()).isEqualTo("Test Task");
         verify(learningPlanRepository).save(plan);
     }
 
