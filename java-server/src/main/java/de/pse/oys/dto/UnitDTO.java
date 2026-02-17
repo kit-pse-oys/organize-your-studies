@@ -10,15 +10,6 @@ import java.util.UUID;
  */
 public class UnitDTO {
 
-    /** Der Titel der Lerneinheit. */
-    private String title;
-
-    /** Eine detaillierte Beschreibung der Einheit. */
-    private String description;
-
-    /** Der hexadezimale Farbcode zur Darstellung im UI. */
-    private String color;
-
     /** Das Datum der Einheit im Format YYYY-MM-DD. */
     private LocalDate date;
 
@@ -28,7 +19,7 @@ public class UnitDTO {
     /** Die Endzeit der Einheit im Format HH:mm. */
     private LocalTime end;
 
-    /** Die zugehörige Aufgabe der Lerneinheit. */
+    /** Die Id der zugehörigen Aufgabe der Lerneinheit. */
     private UUID task;
 
     /**
@@ -40,15 +31,6 @@ public class UnitDTO {
 
     // Getter
 
-    /** @return Der Titel der Einheit. */
-    public String getTitle() { return title; }
-
-    /** @return Die Beschreibung der Einheit. */
-    public String getDescription() { return description; }
-
-    /** @return Der Farbcode (HEX). */
-    public String getColor() { return color; }
-
     /** @return Das Datum der Durchführung. */
     public LocalDate getDate() { return date; }
 
@@ -58,20 +40,13 @@ public class UnitDTO {
     /** @return Die Enduhrzeit. */
     public LocalTime getEnd() { return end; }
 
-    /** Gibt den zugehörigen Task zurück. */
-    public UUID getTaskId() { return task; }
+    /** Gibt den zugehörigen Task zurück.
+     * @return Die UUID der zugehörigen Aufgabe.
+     */
+    public UUID getTask() { return task; }
 
 
     // Setter
-
-    /** @param title Der Titel der Einheit. */
-    public void setTitle(String title) { this.title = title; }
-
-    /** @param description Die Beschreibung der Einheit. */
-    public void setDescription(String description) { this.description = description; }
-
-    /** @param color Der Farbcode als String. */
-    public void setColor(String color) { this.color = color; }
 
     /** @param date Das Datum (LocalDate). */
     public void setDate(LocalDate date) { this.date = date; }
