@@ -1,6 +1,5 @@
 package de.pse.oys.planning;
 
-import com.github.dockerjava.api.model.TaskStatus;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
@@ -132,8 +131,6 @@ class PlanningServiceTest {
     /** Testet, ob der wöchentliche Plan korrekt generiert wird und die richtige Anfrage an den Solver gesendet wird.
      */
     void generateWeeklyPlan_ShouldSendCorrectRequest() {
-        LocalDate weekStart = LocalDate.of(2026, 1, 26);
-
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(taskRepository.findAllByModuleUserUserId(eq(userId)))
@@ -152,7 +149,7 @@ class PlanningServiceTest {
                 .thenReturn(ResponseEntity.ok(List.of(responseItem)));
 
 
-        planningService.generateWeeklyPlan(userId, weekStart);
+        planningService.generateWeeklyPlan(userId);
 
 
         verify(restTemplate).exchange(
@@ -176,11 +173,12 @@ class PlanningServiceTest {
 
     @Test
     void generateWeeklyPlan_ShouldAddPaddingToRequest_AndRemoveItFromPersistence() {
-        LocalDate weekStart = LocalDate.of(2026, 1, 26);
+        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
 
         lenient().when(testPreferences.getBreakDurationMinutes()).thenReturn(15);
 
-        ExamTask realTask = new ExamTask("Real Test Task", 120, LocalDate.of(2026, 3, 15));
+        LocalDate futureExamDate = weekStart.plusWeeks(4);
+        ExamTask realTask = new ExamTask("Real Test Task", 120, futureExamDate);
         ReflectionTestUtils.setField(realTask, "taskId", taskId);
 
         realTask.isActive();
@@ -200,7 +198,7 @@ class PlanningServiceTest {
                 .thenReturn(ResponseEntity.ok(List.of(responseItem)));
 
 
-        planningService.generateWeeklyPlan(userId, weekStart);
+        planningService.generateWeeklyPlan(userId);
 
 
         verify(restTemplate).exchange(
@@ -240,7 +238,7 @@ class PlanningServiceTest {
     /** Testet die Verschiebung einer Lerneinheit und überprüft, ob die Anfrage an den Solver korrekt ist.
      */
     void rescheduleUnit_ShouldWorkWithMocks() {
-        LocalDate weekStart = LocalDate.of(2026, 1, 26);
+        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         UUID unitIdToMove = UUID.randomUUID();
         UUID otherUnitId = UUID.randomUUID();
 
@@ -285,7 +283,7 @@ class PlanningServiceTest {
         )).thenReturn(ResponseEntity.ok(List.of(response)));
 
 
-        planningService.rescheduleUnit(userId, weekStart, unitIdToMove);
+        planningService.rescheduleUnit(userId, unitIdToMove);
 
 
         verify(restTemplate).exchange(
@@ -311,7 +309,7 @@ class PlanningServiceTest {
 
     @Test
     void rescheduleUnit_ShouldForceMoveAndLearnPreferences() {
-        LocalDate weekStart = LocalDate.of(2026, 1, 26);
+        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         UUID unitIdToMove = UUID.randomUUID();
 
 
@@ -351,7 +349,7 @@ class PlanningServiceTest {
         )).thenReturn(ResponseEntity.ok(List.of(response)));
 
 
-        planningService.rescheduleUnit(userId, weekStart, unitIdToMove);
+        planningService.rescheduleUnit(userId, unitIdToMove);
 
 
         verify(learningAnalyticsProvider).applyPenaltyToCostMatrix(eq(taskMock), eq(120), eq(10));

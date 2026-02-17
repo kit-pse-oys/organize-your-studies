@@ -6,15 +6,12 @@ import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
-import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,7 +26,6 @@ import java.util.UUID;
 public class LearningUnitService {
 
     private static final String MSG_REQUIRED_FIELDS_MISSING = "Pflichtfelder fehlen.";
-    private static final String MSG_TIME_FIELDS_REQUIRED = "Datum, Start und Ende müssen gesetzt sein.";
     private static final String MSG_INVALID_RANGE = "Die Startzeit muss vor der Endzeit liegen.";
     private static final String MSG_UNIT_NOT_FOUND = "LearningUnit existiert nicht.";
     private static final String MSG_ACTUAL_DURATION_INVALID = "Die tatsächliche Dauer muss >= 0 sein.";
@@ -47,37 +43,6 @@ public class LearningUnitService {
     public LearningUnitService(LearningUnitRepository learningUnitRepository, LearningPlanRepository learningPlanRepository) {
         this.learningPlanRepository = learningPlanRepository;
         this.learningUnitRepository = learningUnitRepository;
-    }
-
-    /**
-     * Aktualisiert das Zeitfenster einer Unit anhand des UnitDTO.
-     *
-     * @param userId User-Id
-     * @param unitId Unit-Id
-     * @return aktualisierter Plan als DTO
-     */
-    public UnitDTO moveLearningUnitAutomatically(UUID userId, UUID unitId) throws ValidationException, AccessDeniedException, ResourceNotFoundException {
-        if (userId == null || unitId == null ) {
-            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
-        }
-
-        LearningPlan plan = findPlanByUnitAndUser(userId, unitId);
-        LearningUnit unit = findUnitOrThrow(plan, unitId);
-
-        LocalDateTime unitStartTime = unit.getStartTime();
-        LocalDateTime unitEndTime = unit.getEndTime();
-
-        LocalDate date = unitStartTime.toLocalDate();
-        LocalTime start = unitStartTime.toLocalTime();
-        LocalTime end = unitEndTime.toLocalTime();
-
-        if (date == null || start == null || end == null) {
-            throw new ValidationException(MSG_TIME_FIELDS_REQUIRED);
-        }
-        moveUnitInternal(plan, unit, LocalDateTime.of(date, start), LocalDateTime.of(date, end));
-
-        learningPlanRepository.save(plan);
-        return unit.toDTO();
     }
 
     /**
@@ -125,12 +90,19 @@ public class LearningUnitService {
         learningPlanRepository.save(plan);
     }
 
+    /**
+     * Holt alle Units eines Users.
+     *
+     * @param userId User-Id
+     * @return Liste aller Units des Users als DTOs
+     */
     public List<WrapperDTO<UnitDTO>> getLearningUnitsByUserId(UUID userId) throws ResourceNotFoundException {
         Objects.requireNonNull(userId, "userId");
         //requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
                 .map(unit -> new WrapperDTO<>(unit.getUnitId(), unit.toDTO())).toList();
     }
+
     // -------------------------------------------------------------------------
     // intern
     // -------------------------------------------------------------------------

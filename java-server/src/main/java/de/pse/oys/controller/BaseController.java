@@ -1,6 +1,7 @@
 package de.pse.oys.controller;
 
 import de.pse.oys.security.UserPrincipal;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.UUID;
 
@@ -20,5 +21,14 @@ public abstract class BaseController {
         UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         return principal.getUserId();
+    }
+
+    /**
+     * Hilfsmethode, um nach Änderungen an einer Lerneinheit oder ähnlichem den Plan neu zu berechnen.
+     * @param userId Die UUID des Nutzers, für den der Plan aktualisiert werden soll.
+     * @param planningService Der Service, der die Planungslogik enthält.
+     */
+    protected void updatePlanAfterChange(UUID userId, PlanningService planningService) {
+        planningService.generateWeeklyPlan(userId); // null = aktueller Zeitraum
     }
 }

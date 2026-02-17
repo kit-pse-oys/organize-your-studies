@@ -2,6 +2,7 @@ package de.pse.oys.controller;
 
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.service.QuestionnaireService;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -23,12 +24,14 @@ import java.util.UUID;
 public class QuestionnaireController extends BaseController {
 
     private final QuestionnaireService questionnaireService;
+    private final PlanningService planningService;
 
     /**
      * Erzeugt eine neue Instanz des QuestionnaireControllers.
      * @param questionnaireService Der Service für die Fragebogen-Logik.
      */
-    public QuestionnaireController(QuestionnaireService questionnaireService) {
+    public QuestionnaireController(QuestionnaireService questionnaireService, PlanningService planningService) {
+        this.planningService = planningService;
         this.questionnaireService = questionnaireService;
     }
 
@@ -43,6 +46,7 @@ public class QuestionnaireController extends BaseController {
     public ResponseEntity<Void> submitQuestionnaire(@RequestBody QuestionnaireDTO dto) {
         UUID userId = getAuthenticatedUserId();
         questionnaireService.submitQuestionnaire(userId, dto);
+        updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok().build();
     }
 

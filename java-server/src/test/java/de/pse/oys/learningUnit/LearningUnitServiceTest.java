@@ -8,9 +8,14 @@ import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.domain.enums.UserType;
 import de.pse.oys.dto.UnitDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.service.LearningUnitService;
+import de.pse.oys.service.exception.ResourceNotFoundException;
+import de.pse.oys.service.exception.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +42,9 @@ class LearningUnitServiceTest {
 
     @Mock
     private LearningPlanRepository learningPlanRepository;
+
+    @Mock
+    private LearningUnitRepository learningUnitRepository;
 
     @InjectMocks
     private LearningUnitService sut;
@@ -66,21 +75,64 @@ class LearningUnitServiceTest {
         setField(plan, "units", new ArrayList<>(List.of(unit)));
     }
 
-
     @Test
-    void moveUnitAutomatically_ReturnsCorrectWrapperData() {
+    @DisplayName("Verschiebt eine Lerneinheit erfolgreich auf einen neuen Startzeitpunkt")
+    void moveLearningUnitManually_Success() {
         // GIVEN
+        LocalDateTime newStart = LocalDateTime.of(2026, 1, 2, 14, 0);
+        // Dauer der Original-Unit war 1 Stunde (10:00 - 11:00)
+        LocalDateTime expectedEnd = newStart.plusHours(1);
+
         when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
 
         // WHEN
-        UnitDTO result = sut.moveLearningUnitAutomatically(USER_ID, UNIT_ID);
+        sut.moveLearningUnitManually(USER_ID, UNIT_ID, newStart);
 
         // THEN
-        assertThat(result.getTitle()).isEqualTo("Test Task");
+        assertThat(unit.getStartTime()).isEqualTo(newStart);
+        assertThat(unit.getEndTime()).isEqualTo(expectedEnd);
         verify(learningPlanRepository).save(plan);
     }
 
     @Test
+    @DisplayName("Wirft ValidationException, wenn die verschobene Einheit mit einer anderen überlappt")
+    void moveLearningUnitManually_ThrowsOnOverlap() {
+        // GIVEN
+        // Eine zweite Einheit im Plan erstellen, die von 14:00 bis 15:00 geht
+        LearningUnit secondUnit = unitWithTaskAndModule(
+                "Other Task",
+                LocalDateTime.of(2026, 1, 1, 14, 0),
+                LocalDateTime.of(2026, 1, 1, 15, 0)
+        );
+        setField(secondUnit, "unitId", UUID.randomUUID());
+        ((List<LearningUnit>) plan.getUnits()).add(secondUnit);
+
+        when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
+
+        // Versuch, die erste Einheit genau auf den Zeitraum der zweiten zu schieben
+        LocalDateTime overlappingStart = LocalDateTime.of(2026, 1, 1, 14, 30);
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> sut.moveLearningUnitManually(USER_ID, UNIT_ID, overlappingStart))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Die Einheit überschneidet sich");
+    }
+
+    // -------------------------------------------------------------------------
+    // finishUnitEarly
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Wirft ValidationException bei negativer tatsächlicher Dauer")
+    void finishUnitEarly_ThrowsOnNegativeDuration() {
+        // WHEN & THEN
+        assertThatThrownBy(() -> sut.finishUnitEarly(USER_ID, UNIT_ID, -5))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Dauer muss >= 0 sein");
+    }
+
+    @Test
+    @DisplayName("Markiert die Einheit als vorzeitig abgeschlossen und speichert die tatsächliche Dauer")
     void finishUnitEarly_UpdatesStatus() {
         // GIVEN
         when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
@@ -91,6 +143,43 @@ class LearningUnitServiceTest {
         // THEN
         assertThat(unit.getStatus().equals(UnitStatus.COMPLETED)).isTrue();
         verify(learningPlanRepository).save(plan);
+    }
+
+    // -------------------------------------------------------------------------
+    // getLearningUnitsByUserId
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Liefert alle Lerneinheiten eines Users als gemappte WrapperDTOs zurück")
+    void getLearningUnitsByUserId_ReturnsMappedDtos() {
+        // GIVEN
+        when(learningUnitRepository.findAllByTask_Module_User_UserId(USER_ID)).thenReturn(List.of(unit));
+
+        // WHEN
+        List<WrapperDTO<UnitDTO>> result = sut.getLearningUnitsByUserId(USER_ID);
+
+        // THEN
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(UNIT_ID);
+        assertThat(result.get(0).getData()).isNotNull();
+        // Hier wird indirekt die toDTO() Methode der Entity getestet
+    }
+
+    // -------------------------------------------------------------------------
+    // Security / Ownership
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Wirft ResourceNotFoundException, wenn die Unit nicht zum User gehört")
+    void findPlanByUnitAndUser_ThrowsWhenNotFound() {
+        // GIVEN
+        UUID strangerId = UUID.randomUUID();
+        when(learningPlanRepository.findAll()).thenReturn(List.of(plan)); // Plan gehört USER_ID
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> sut.finishUnitEarly(strangerId, UNIT_ID, 30))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Kein passender Lernplan");
     }
 
     // --- Hilfsmethoden ---
