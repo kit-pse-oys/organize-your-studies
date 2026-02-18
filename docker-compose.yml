@@ -12,6 +12,10 @@ services:
       - POSTGRES_DB=${DB_NAME:-oys_db}
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - TZ=Europe/Berlin
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     networks:
       - oys-network
 
@@ -35,6 +39,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+      - TZ=Europe/Berlin
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
       - python-microservice # Wartet, bis der Python-Microservice-Container gestartet ist
@@ -42,12 +47,19 @@ services:
       - oys-network
     volumes:
       - /etc/letsencrypt/live/organizeyourstudies.tech/keystore.p12:/etc/letsencrypt/keystore.p12:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       # Pfad zum SSL-Keystore, nur lesbar und Mapping in den Container
 
   python-microservice:
     build: ./python-microservice
     container_name: oys-python-microservice
     # Keine Ports nach außen, da nur der Java-Server zugreift
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     networks:
       - oys-network
 
