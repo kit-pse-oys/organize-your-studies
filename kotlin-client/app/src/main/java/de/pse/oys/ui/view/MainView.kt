@@ -591,6 +591,7 @@ class MainViewModel(
     }
 
     private suspend fun reloadUnits() {
+        model.steps = null
         model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let {
             updateUnits(it)
         }
