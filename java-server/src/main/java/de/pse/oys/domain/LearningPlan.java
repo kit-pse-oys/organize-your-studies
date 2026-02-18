@@ -45,15 +45,13 @@ public class LearningPlan {
      * Liste der im Plan enthaltenen Lerneinheiten.
      * Realisiert über die Verbindungstabelle 'plan_units'.
      */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true) //FIXME Fehler beim löschen von Modulen und Task da units gelöscht werden müssen
     @JoinTable(
             name = "plan_units",
             joinColumns = @JoinColumn(name = "planid"),
-            inverseJoinColumns = @JoinColumn(
-                    name = "unitid",
-                    foreignKey = @ForeignKey(foreignKeyDefinition = "FOREIGN KEY (unitid) REFERENCES learning_units(unitid) ON DELETE CASCADE")
-            )
+            inverseJoinColumns = @JoinColumn(name = "unitid")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<LearningUnit> units = new ArrayList<>();
 
     /**
