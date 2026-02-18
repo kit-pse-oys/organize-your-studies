@@ -356,15 +356,18 @@ public class PlanningService {
      * @param user      Der Nutzer, dem der Lernplan zugeordnet werden soll.
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration, User user) {
-        LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
-        plan.setUserId(user.getId());
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(user.getId(), weekStart)
+                .orElseGet(() -> {
+                    LearningPlan newPlan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
+                    newPlan.setUserId(user.getId());
+                    return newPlan;
+                });
 
         List<LearningUnit> newLearningUnits = new ArrayList<>();
 
         for (PlanningResponseDTO result : results) {
             String id = result.getId();
-            String originalTaskIdStr = id.split(ID_SEPERATOR)[0];
-            UUID originalTaskId = UUID.fromString(originalTaskIdStr);
+            UUID originalTaskId = UUID.fromString(id.split(ID_SEPERATOR)[0]);
 
             Task task = taskRepository.findById(originalTaskId).orElse(null);
             if (task != null) {
@@ -388,7 +391,6 @@ public class PlanningService {
 
             }
         }
-        plan.setUserId(user.getId());
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
         cleanUpOldPlans(user.getId());
