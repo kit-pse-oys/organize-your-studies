@@ -117,13 +117,8 @@ public class PlanningService {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
 
-        try {
-            clearPlannedUnitsForReplanning(userId, weekStart);
-        } catch (NullPointerException e) {
-            throw new RuntimeException("null Problem beim Löschen alter Einheiten");
-        } catch (Exception e) {
-            throw new RuntimeException("clear Problem");
-        }
+        clearPlannedUnitsForReplanning(userId, weekStart);
+
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
