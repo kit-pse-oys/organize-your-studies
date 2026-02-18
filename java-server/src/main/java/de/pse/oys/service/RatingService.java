@@ -107,6 +107,7 @@ public class RatingService {
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
                 .filter(unit -> unit.getRating() == null)
                 .filter(unit -> unit.getStatus() != UnitStatus.MISSED)
+                .filter(LearningUnit::hasPassed)
                 .map(LearningUnit::getUnitId)
                 .toList();
     }
