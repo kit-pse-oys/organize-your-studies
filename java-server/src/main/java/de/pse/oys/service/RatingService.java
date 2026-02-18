@@ -64,6 +64,7 @@ public class RatingService {
         ConcentrationLevel concentration = ratingDTO.getConcentration();
 
         UnitRating unitRating = new UnitRating(concentration, perceivedDuration, goalCompletion);
+        learningUnit.markAsCompleted();
         learningUnit.setRating(unitRating);
 
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,
