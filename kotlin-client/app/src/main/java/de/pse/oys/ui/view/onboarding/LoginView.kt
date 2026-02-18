@@ -150,8 +150,9 @@ private fun UsernameTextField(
     username: String,
     onUsernameChanged: (String) -> Unit
 ) {
+    val minLength = 4
     val maxLength = 20
-    val tooLong = username.length > maxLength
+    val invalidSize = username.length !in minLength..maxLength
     TextField(
         value = username,
         onValueChange = onUsernameChanged,
@@ -168,7 +169,7 @@ private fun UsernameTextField(
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Gray
         ),
-        isError = tooLong,
+        isError = invalidSize,
         singleLine = true,
         label = { Text(stringResource(R.string.username_field)) })
 }
@@ -177,7 +178,7 @@ private fun UsernameTextField(
  * Text field for the password, character limit is 20.
  * @param password the current password.
  * @param confirm whether the passwordTextField is for confirmation.
- * @param isError whether the password is too long.
+ * @param isError whether the password is invalid.
  * @param onPasswordChanged the function to be called when the password is changed.
  */
 @Composable
@@ -187,8 +188,9 @@ private fun PasswordTextField(
     isError: Boolean = false,
     onPasswordChanged: (String) -> Unit
 ) {
+    val minLength = 8
     val maxLength = 20
-    val tooLong = password.length > maxLength
+    val invalidSize = password.length !in minLength..maxLength
     TextField(
         value = password,
         onValueChange = onPasswordChanged,
@@ -206,7 +208,7 @@ private fun PasswordTextField(
             unfocusedTextColor = Color.Gray
         ),
         singleLine = true,
-        isError = isError || tooLong,
+        isError = isError || invalidSize,
         label = {
             Text(
                 if (confirm) stringResource(R.string.confirm_password_field) else stringResource(
