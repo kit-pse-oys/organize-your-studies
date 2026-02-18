@@ -143,7 +143,7 @@ class PlanningServiceTest {
 
 
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
-        responseItem.setId(taskId.toString() + "_0");
+        responseItem.setId(taskId + "_0");
         responseItem.setStart(72); // 06:00 Uhr
         responseItem.setEnd(87);   // 07:00 Uhr + pause
 

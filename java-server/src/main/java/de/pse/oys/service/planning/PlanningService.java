@@ -4,6 +4,7 @@ import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
@@ -11,6 +12,7 @@ import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
 import de.pse.oys.dto.plan.PlanningTaskDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +63,7 @@ public class PlanningService {
 
     private final TaskRepository taskRepository;
     private final LearningPlanRepository learningPlanRepository;
+    private final LearningUnitRepository learningUnitRepository;
     private final UserRepository userRepository;
     private final LearningAnalyticsProvider learningAnalyticsProvider;
     private final RestTemplate restTemplate;
@@ -82,12 +85,50 @@ public class PlanningService {
                            LearningPlanRepository learningPlanRepository,
                            UserRepository userRepository,
                            LearningAnalyticsProvider learningAnalyticsProvider,
-                           RestTemplate restTemplate) {
+                           RestTemplate restTemplate, LearningUnitRepository learningUnitRepository) {
         this.taskRepository = taskRepository;
         this.learningPlanRepository = learningPlanRepository;
         this.userRepository = userRepository;
         this.learningAnalyticsProvider = learningAnalyticsProvider;
         this.restTemplate = restTemplate;
+        this.learningUnitRepository = learningUnitRepository;
+    }
+
+/**     * Löscht alle geplanten Lerneinheiten eines bestehenden Lernplans, die nach einem bestimmten Zeitpunkt liegen.
+     * Wird aufgerufen, bevor ein neuer Plan generiert wird, um Konflikte zu vermeiden.
+     *
+     * @param userId    Die ID des Benutzers.
+     * @param weekStart Das Startdatum der Woche.
+     * @param fromTime  Der Zeitpunkt, ab dem geplante Einheiten gelöscht werden sollen.
+     */
+    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
+
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
+
+        if (plan == null || plan.getUnits().isEmpty()) {
+            return;
+        }
+        List<LearningUnit> unitsToDelete = plan.getUnits().stream()
+                .filter(unit -> unit.getStatus() == UnitStatus.PLANNED)
+                .filter(unit -> !unit.getStartTime().isBefore(fromTime))
+                .toList();
+
+        if (unitsToDelete.isEmpty()) {
+            return;
+        }
+        for (LearningUnit unit : unitsToDelete) {
+
+            plan.getUnits().remove(unit);
+            Task task = unit.getTask();
+            if (task != null) {
+                task.getLearningUnits().remove(unit);
+                taskRepository.save(task);
+            }
+        }
+
+        learningPlanRepository.save(plan);
+
+        learningUnitRepository.deleteAll(unitsToDelete);
     }
 
 
@@ -103,6 +144,7 @@ public class PlanningService {
      */
     @Transactional
     public void generateWeeklyPlan(UUID userId, LocalDate weekStart) {
+        clearPlannedUnitsForReplanning(userId, weekStart, LocalDateTime.now());
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
