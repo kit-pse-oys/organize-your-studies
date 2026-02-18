@@ -99,6 +99,23 @@ public class LearningUnit {
     }
 
     /**
+     * Prüft, ob die Lerneinheit bereits zeitlich abgeschlossen ist.
+     * Eine Einheit gilt als vergangen, wenn ihr Endzeitpunkt vor der aktuellen Zeit liegt.
+     *
+     * @return true, wenn die Einheit in der Vergangenheit liegt.
+     */
+    public boolean hasPassed() {
+        if (this.endTime == null) {
+            return false;
+        }
+        boolean isPast = java.time.LocalDateTime.now().isAfter(this.endTime);
+        if (this.status == UnitStatus.PLANNED && isPast) {
+            this.status = UnitStatus.COMPLETED;
+        }
+        return isPast;
+    }
+
+    /**
      * Prüft, ob sich diese Lerneinheit zeitlich mit einer anderen Einheit überschneidet.
      * Eine Überschneidung liegt vor, wenn der Start dieser Einheit vor dem Ende der anderen
      * liegt UND das Ende dieser Einheit nach dem Start der anderen liegt.

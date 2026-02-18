@@ -64,6 +64,7 @@ public class RatingService {
         ConcentrationLevel concentration = ratingDTO.getConcentration();
 
         UnitRating unitRating = new UnitRating(concentration, perceivedDuration, goalCompletion);
+        learningUnit.markAsCompleted();
         learningUnit.setRating(unitRating);
 
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,
@@ -107,6 +108,7 @@ public class RatingService {
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
                 .filter(unit -> unit.getRating() == null)
                 .filter(unit -> unit.getStatus() != UnitStatus.MISSED)
+                .filter(LearningUnit::hasPassed)
                 .map(LearningUnit::getUnitId)
                 .toList();
     }
