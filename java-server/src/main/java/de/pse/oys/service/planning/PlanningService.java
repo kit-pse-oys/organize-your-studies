@@ -102,45 +102,6 @@ public class PlanningService {
         this.restTemplate = restTemplate;
     }
 
-    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
-        /*
-        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
-
-        if (plan == null || plan.getUnits().isEmpty()) {
-            return;
-        }
-        */
-        List<LearningUnit> allUnits = learningUnitRepository.findAllByTask_Module_User_UserId(userId);
-
-        List<LearningUnit> unitsToDelete = allUnits.stream()
-                .filter(unit -> !unit.hasPassed())
-                .toList();
-
-        if (unitsToDelete.isEmpty()) {
-            return;
-        }
-        /*
-        for (LearningUnit unit : unitsToDelete) {
-
-            plan.getUnits().remove(unit);
-            Task task = unit.getTask();
-            if (task != null) {
-                task.getLearningUnits().remove(unit);
-                taskRepository.save(task);
-            }
-        }
-
-        learningPlanRepository.save(plan); */
-        for (LearningUnit unit : unitsToDelete) {
-            Task task = unit.getTask();
-            if (task != null) {
-                task.getLearningUnits().remove(unit);
-            }
-        }
-        learningUnitRepository.deleteAll(unitsToDelete);
-        learningUnitRepository.flush();
-    }
-
 
     /**
      * Kernfunktion. Lädt offene Tasks und Nutzer-Präferenzen sowie die aktuelle Kosten-
@@ -267,6 +228,37 @@ public class PlanningService {
             System.out.println("Keine Planungsergebnisse für Rescheduling empfangen.");
             return null;
         }
+    }
+
+
+    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
+        List<LearningUnit> allUnits = learningUnitRepository.findAllByTask_Module_User_UserId(userId);
+
+        List<LearningUnit> unitsToDelete = allUnits.stream()
+                .filter(unit -> !unit.hasPassed())
+                .toList();
+
+        if (unitsToDelete.isEmpty()) {
+            return;
+        }
+
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
+
+        for (LearningUnit unit : unitsToDelete) {
+            if (plan != null && plan.getUnits() != null) {
+                plan.getUnits().remove(unit);
+            }
+            Task task = unit.getTask();
+            if (task != null) {
+                task.getLearningUnits().remove(unit);
+            }
+        }
+
+        if (plan != null) {
+            learningPlanRepository.save(plan);
+        }
+        learningUnitRepository.deleteAll(unitsToDelete);
+        learningUnitRepository.flush();
     }
 
 
