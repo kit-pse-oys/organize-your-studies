@@ -119,6 +119,8 @@ public class PlanningService {
 
         try {
             clearPlannedUnitsForReplanning(userId, weekStart);
+        } catch (NullPointerException e) {
+            throw new RuntimeException("null Problem beim Löschen alter Einheiten");
         } catch (Exception e) {
             throw new RuntimeException("clear Problem");
         }
