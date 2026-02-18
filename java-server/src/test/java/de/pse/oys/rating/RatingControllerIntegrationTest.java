@@ -1,6 +1,7 @@
 package de.pse.oys.rating;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.pse.oys.BaseIntegrationTest;
 import de.pse.oys.domain.CostMatrix;
 import de.pse.oys.domain.ExamTask;
 import de.pse.oys.domain.LearningUnit;
@@ -52,21 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integrationstests für den RatingController.
  * Überprüft die Bewertung von Lerneinheiten und das Markieren als verpasst.
  */
-@Testcontainers
-@SpringBootTest
-@ActiveProfiles("integration")
-@AutoConfigureMockMvc
-class RatingControllerIntegrationTest {
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-
-    @DynamicPropertySource
-    static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+class RatingControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
@@ -84,6 +72,12 @@ class RatingControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         // 1. User anlegen
+        learningUnitRepository.deleteAll();
+        costMatrixRepository.deleteAll();
+        taskRepository.deleteAll();
+        moduleRepository.deleteAll();
+        userRepository.deleteAll();
+
         LocalUser testUser = new LocalUser("ratingUser", passwordEncoder.encode(rawPassword));
         testUser = userRepository.save(testUser);
 
