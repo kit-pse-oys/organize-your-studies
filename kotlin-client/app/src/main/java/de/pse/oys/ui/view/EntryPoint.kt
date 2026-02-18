@@ -97,9 +97,9 @@ fun EntryPoint(
         composable<EditModule> { backEntry ->
             val id = backEntry.toRoute<EditModule>().id
             val target = Uuid.parse(id)
-            val module =
-                model.modules?.get(target) ?: error("Module not found")
-            CreateModuleView(viewModel {
+            CreateModuleView(viewModel(key = id) {
+                val module =
+                    model.modules?.get(target) ?: error("Module not found")
                 EditModuleViewModel(api, model, Module(module, target), navController)
             })
         }
@@ -112,9 +112,9 @@ fun EntryPoint(
         composable<EditFreeTime> { backEntry ->
             val id = backEntry.toRoute<EditFreeTime>().id
             val target = Uuid.parse(id)
-            val freeTime =
-                model.freeTimes?.get(target) ?: error("FreeTime not found")
-            CreateFreeTimeView(viewModel {
+            CreateFreeTimeView(viewModel(key = id) {
+                val freeTime =
+                    model.freeTimes?.get(target) ?: error("FreeTime not found")
                 EditFreeTimeViewModel(api, model, FreeTime(freeTime, target), navController)
             })
         }
@@ -127,9 +127,9 @@ fun EntryPoint(
         composable<EditTask> { backEntry ->
             val id = backEntry.toRoute<EditTask>().id
             val target = Uuid.parse(id)
-            val task =
-                model.tasks?.get(target) ?: error("Task not found")
-            CreateTaskView(viewModel {
+            CreateTaskView(viewModel(key = id) {
+                val task =
+                    model.tasks?.get(target) ?: error("Task not found")
                 EditTaskViewModel(api, model, Task(task, target), navController)
             })
         }
