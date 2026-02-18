@@ -80,7 +80,7 @@ public class PlanningService {
      * @param learningPlanRepository der LearningPlanRepository
      * @param userRepository der UserRepository
      * @param learningAnalyticsProvider der LearningAnalyticsProvider
-     * @param restTemplate der RestTemplate für HTTP-Anfragen
+     * @param restTemplate der RestTemplate für HTTP-Anfragen.
      */
     public PlanningService(TaskRepository taskRepository,
                            LearningPlanRepository learningPlanRepository,
