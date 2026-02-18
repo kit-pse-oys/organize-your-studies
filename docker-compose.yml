@@ -32,6 +32,9 @@ services:
       - SERVER_SSL_KEY_STORE_TYPE=${SERVER_SSL_KEY_STORE_TYPE}
       - SERVER_PORT=${SERVER_PORT}
       - MICROSERVICE_PLANNING_URL=http://oys-python-microservice:5001/optimize
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
       - python-microservice # Wartet, bis der Python-Microservice-Container gestartet ist

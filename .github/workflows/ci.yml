@@ -69,7 +69,7 @@ jobs:
         run: |
           cd java-server
           chmod +x gradlew
-          ./gradlew test
+          ./gradlew test --info
 
   # --- JOB 4: KOTLIN CLIENT ---
   test-kotlin:
