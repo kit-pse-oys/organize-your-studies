@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">OrganizeYourStudies</string>
-    <string name="username_field">Username</string>
+    <string name="username_field">Username (4–20 Characters)</string>
     <string name="confirm_password_field">Confirm password</string>
-    <string name="password_field">Password</string>
+    <string name="password_field">Password (8–20 Characters)</string>
     <string name="register_button">Register</string>
     <string name="login_button">Login</string>
     <string name="login_account_yes">Already have an account?</string>
@@ -77,7 +77,7 @@
     <string name="enter_exam_date">Exam Date:\u0020</string>
     <string name="notify_before_exam">I want to be notified before the exam.</string>
     <string name="enter_submission_date">Submission Date:</string>
-    <string name="enter_submission_cycle">Submission Cycle  (weeks):</string>
+    <string name="enter_submission_cycle">Submission Cycle (Weeks):</string>
     <string name="notify_before_submission">I want to be notified before each submission date.</string>
     <string name="submission_task_since">Since\u0020</string>
     <string name="submission_weekcycle_is">-Week Cycle</string>

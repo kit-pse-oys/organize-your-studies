@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OrganizeYourStudies</string>
-    <string name="username_field">Nutzername</string>
+    <string name="username_field">Nutzername (4–20 Zeichen)</string>
     <string name="confirm_password_field">Passwort bestätigen</string>
-    <string name="password_field">Passwort</string>
+    <string name="password_field">Passwort (8–20 Zeichen)</string>
     <string name="register_button">Registrieren</string>
     <string name="login_button">Einloggen</string>
     <string name="login_account_yes">Du hast schon ein Konto?</string>

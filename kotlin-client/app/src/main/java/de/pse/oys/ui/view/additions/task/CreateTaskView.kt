@@ -94,7 +94,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var showEndDatePicker by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     val submitButtonActive =
-        viewModel.title.isNotBlank() && viewModel.module != stringResource(id = R.string.nothing_chosen)
+        viewModel.title.isNotBlank() && viewModel.module != ""
                 && viewModel.weeklyTimeLoad >= 0 && (viewModel.type != TaskType.SUBMISSION || viewModel.submissionCycle in 1..<10)
                 && (viewModel.type != TaskType.OTHER || viewModel.start <= viewModel.end)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -387,14 +387,22 @@ private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
             style = typography.titleLarge
         )
         TextField(
-            value = viewModel.submissionCycle.toString(),
-            onValueChange = { viewModel.submissionCycle = it.toIntOrNull() ?: 1 },
+            value = if (viewModel.submissionCycle == 0) "" else viewModel.submissionCycle.toString(),
+            onValueChange = {
+                if (it.isEmpty()) {
+                    viewModel.submissionCycle = 0
+                } else {
+                    viewModel.submissionCycle = it.toIntOrNull() ?: viewModel.submissionCycle
+                }
+            },
             modifier = Modifier
                 .width(50.dp)
                 .height(50.dp),
             textStyle = TextStyle(textAlign = TextAlign.Center),
             shape = RoundedCornerShape(12.dp),
             colors = TextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.DarkGray,
                 focusedContainerColor = LightBlue,
                 unfocusedContainerColor = LightBlue,
                 focusedIndicatorColor = Color.Transparent,
@@ -403,6 +411,7 @@ private fun SubmissionCycleSelection(viewModel: ICreateTaskViewModel) {
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            isError = viewModel.submissionCycle !in 1..<10
         )
     }
 }
