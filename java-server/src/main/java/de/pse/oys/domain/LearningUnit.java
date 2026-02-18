@@ -108,6 +108,9 @@ public class LearningUnit {
         if (this.endTime == null) {
             return false;
         }
+        if (this.status == UnitStatus.PLANNED) {
+            this.status = UnitStatus.COMPLETED;
+        }
         return java.time.LocalDateTime.now().isAfter(this.endTime);
     }
 
