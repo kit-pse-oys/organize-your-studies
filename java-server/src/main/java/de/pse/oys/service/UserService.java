@@ -98,10 +98,10 @@ public class UserService {
      * @param dto Die zu prüfenden Daten.
      */
     private void validateRegistration(LoginDTO dto) {
-        if (dto.getUsername() == null || dto.getUsername().length() <= MIN_USERNAME_LENGTH) {
+        if (dto.getUsername() == null || dto.getUsername().length() < MIN_USERNAME_LENGTH) {
             throw new IllegalArgumentException(ERROR_USERNAME_TOO_SHORT);
         }
-        if (dto.getPassword() == null || dto.getPassword().length() <= MIN_PASSWORD_LENGTH) {
+        if (dto.getPassword() == null || dto.getPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(ERROR_PASSWORD_TOO_SHORT);
         }
     }
