@@ -137,9 +137,8 @@ public class PlanningService {
                 task.getLearningUnits().remove(unit);
             }
         }
-        learningUnitRepository.flush();
-
         learningUnitRepository.deleteAll(unitsToDelete);
+        learningUnitRepository.flush();
     }
 
 
