@@ -116,7 +116,12 @@ public class PlanningService {
     public void generateWeeklyPlan(UUID userId) {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
-        clearPlannedUnitsForReplanning(userId, weekStart);
+
+        try {
+            clearPlannedUnitsForReplanning(userId, weekStart);
+        } catch (Exception e) {
+            throw new RuntimeException("clear Problem");
+        }
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
@@ -454,7 +459,7 @@ public class PlanningService {
                     boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
                     boolean isInPast = unitDateTime.isBefore(now);
                     if (isInCurrentWeek && isInPast) {
-                        long minutes = ChronoUnit.MINUTES.between(unit.getStartTime(), unit.getEndTime());
+                        long minutes = ChronoUnit.MINUTES.between(unit.getStartTime(), unit.getEndTime()); //todo: mit actualDuration arbeiten?
                         durationExistingUnits += (int) minutes;
                     }
 
