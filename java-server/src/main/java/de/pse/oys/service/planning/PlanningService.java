@@ -4,6 +4,7 @@ import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
