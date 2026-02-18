@@ -1,6 +1,9 @@
 package de.pse.oys.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,7 @@ public class LearningPlan {
             joinColumns = @JoinColumn(name = "planid"),
             inverseJoinColumns = @JoinColumn(name = "unitid")
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<LearningUnit> units = new ArrayList<>();
 
     /**
