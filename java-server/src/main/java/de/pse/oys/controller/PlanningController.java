@@ -6,8 +6,8 @@ import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class PlanningController extends BaseController {
      * @return Status 200 (OK), 403 (Forbidden) bei Zugriffsschutz oder 400 (Bad Request).
      */
     @PostMapping("/units/moveAuto")
-    public ResponseEntity<WrapperDTO<UnitDTO>> rescheduleUnit(@RequestParam WrapperDTO<Void> wrapperDTO) {
+    public ResponseEntity<WrapperDTO<UnitDTO>> rescheduleUnit(@RequestBody WrapperDTO<Void> wrapperDTO) {
         UUID userId = getAuthenticatedUserId();
         UUID unitId = wrapperDTO.getId();
         UnitDTO updatedUnit = planningService.rescheduleUnit(userId, unitId);
