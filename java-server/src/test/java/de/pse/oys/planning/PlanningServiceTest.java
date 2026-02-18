@@ -6,10 +6,7 @@ import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
 import de.pse.oys.dto.plan.PlanningTaskDTO;
-import de.pse.oys.persistence.CostMatrixRepository;
-import de.pse.oys.persistence.LearningPlanRepository;
-import de.pse.oys.persistence.TaskRepository;
-import de.pse.oys.persistence.UserRepository;
+import de.pse.oys.persistence.*;
 import de.pse.oys.service.planning.LearningAnalyticsProvider;
 import de.pse.oys.service.planning.PlanningService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +43,8 @@ class PlanningServiceTest {
     @Mock
     private TaskRepository taskRepository;
     @Mock
+    private LearningUnitRepository learningUnitRepository;
+    @Mock
     private LearningPlanRepository learningPlanRepository;
     @Mock
     private UserRepository userRepository;
@@ -55,6 +54,7 @@ class PlanningServiceTest {
     private LearningAnalyticsProvider learningAnalyticsProvider;
     @Mock
     private RestTemplate restTemplate;
+
 
     private PlanningService planningService;
 
@@ -67,7 +67,7 @@ class PlanningServiceTest {
     @Mock
     private Task testTask;
     @Mock
-    private LearningPreferences testPreferences; // Auch das ist jetzt ein Mock
+    private LearningPreferences testPreferences;
 
     private final UUID userId = UUID.randomUUID();
     private final UUID taskId = UUID.randomUUID();
@@ -81,7 +81,8 @@ class PlanningServiceTest {
                 learningPlanRepository,
                 userRepository,
                 learningAnalyticsProvider,
-                restTemplate
+                restTemplate,
+                learningUnitRepository
         );
 
 
