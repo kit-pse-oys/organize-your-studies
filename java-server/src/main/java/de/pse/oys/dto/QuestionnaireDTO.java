@@ -35,6 +35,7 @@ import de.pse.oys.domain.enums.TimeSlot;
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class QuestionnaireDTO {
+    private static int DAY_LOAD_LIMIT = 24;
 
     private static final String ERR_INVALID_QUESTIONNAIRE_DATA = "Ungültige Daten im Fragebogen festgestellt.";
 
@@ -45,9 +46,7 @@ public class QuestionnaireDTO {
     private Map<Integer, Boolean> minUnitDuration;
 
     @JsonProperty("max_day_load")
-    private Map<Integer, Boolean> maxDayLoad = new java.util.HashMap<>() {{ //Standardmäßig soll keine Begrenzung vorliegen
-        put(Integer.MAX_VALUE, true);
-    }};
+    private Map<Integer, Boolean> maxDayLoad = new java.util.HashMap<>(Map.of(DAY_LOAD_LIMIT, true)); //Standardmäßig soll nur die natürliche Tagesbegrenzung vorliegen
 
     @JsonProperty("time_before_deadlines")
     private Map<Integer, Boolean> timeBeforeDeadlines;
