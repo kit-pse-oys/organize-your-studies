@@ -1,10 +1,18 @@
 package de.pse.oys.service.planning;
 
-import de.pse.oys.domain.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.pse.oys.domain.FreeTime;
+import de.pse.oys.domain.LearningPlan;
+import de.pse.oys.domain.LearningPreferences;
+import de.pse.oys.domain.LearningUnit;
+import de.pse.oys.domain.OtherTask;
+import de.pse.oys.domain.RecurringFreeTime;
+import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.Task;
+import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
-import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
@@ -25,7 +33,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -94,6 +101,7 @@ public class PlanningService {
         this.learningAnalyticsProvider = learningAnalyticsProvider;
         this.restTemplate = restTemplate;
     }
+
     private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
         LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
 
@@ -101,8 +109,7 @@ public class PlanningService {
             return;
         }
         List<LearningUnit> unitsToDelete = plan.getUnits().stream()
-                .filter(unit -> unit.getStatus() == UnitStatus.PLANNED)
-                .filter(unit -> !unit.getStartTime().isBefore(fromTime))
+                .filter(unit -> !unit.hasPassed())
                 .toList();
 
         if (unitsToDelete.isEmpty()) {
