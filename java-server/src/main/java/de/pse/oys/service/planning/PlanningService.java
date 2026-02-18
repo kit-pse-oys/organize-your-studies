@@ -101,8 +101,7 @@ public class PlanningService {
             return;
         }
         List<LearningUnit> unitsToDelete = plan.getUnits().stream()
-                .filter(unit -> unit.getStatus() == UnitStatus.PLANNED)
-                .filter(unit -> !unit.getStartTime().isBefore(fromTime))
+                .filter(unit -> !unit.hasPassed())
                 .toList();
 
         if (unitsToDelete.isEmpty()) {
