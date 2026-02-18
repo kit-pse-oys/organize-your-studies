@@ -116,7 +116,7 @@ public class PlanningService {
     public void generateWeeklyPlan(UUID userId) {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
-        clearPlannedUnitsForReplanning(userId, weekStart, LocalDateTime.now());
+        clearPlannedUnitsForReplanning(userId, weekStart);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
@@ -231,7 +231,7 @@ public class PlanningService {
     }
 
 
-    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
+    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart) {
         List<LearningUnit> allUnits = learningUnitRepository.findAllByTask_Module_User_UserId(userId);
 
         List<LearningUnit> unitsToDelete = allUnits.stream()
