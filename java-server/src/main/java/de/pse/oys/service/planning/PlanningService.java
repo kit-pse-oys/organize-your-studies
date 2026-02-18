@@ -131,6 +131,13 @@ public class PlanningService {
         }
 
         learningPlanRepository.save(plan); */
+        for (LearningUnit unit : unitsToDelete) {
+            Task task = unit.getTask();
+            if (task != null) {
+                task.getLearningUnits().remove(unit);
+            }
+        }
+        learningUnitRepository.flush();
 
         learningUnitRepository.deleteAll(unitsToDelete);
     }
