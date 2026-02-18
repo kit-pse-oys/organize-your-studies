@@ -103,18 +103,23 @@ public class PlanningService {
     }
 
     private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart, LocalDateTime fromTime) {
+        /*
         LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
 
         if (plan == null || plan.getUnits().isEmpty()) {
             return;
         }
-        List<LearningUnit> unitsToDelete = plan.getUnits().stream()
+        */
+        List<LearningUnit> allUnits = learningUnitRepository.findAllByTask_Module_User_UserId(userId);
+
+        List<LearningUnit> unitsToDelete = allUnits.stream()
                 .filter(unit -> !unit.hasPassed())
                 .toList();
 
         if (unitsToDelete.isEmpty()) {
             return;
         }
+        /*
         for (LearningUnit unit : unitsToDelete) {
 
             plan.getUnits().remove(unit);
@@ -125,7 +130,7 @@ public class PlanningService {
             }
         }
 
-        learningPlanRepository.save(plan);
+        learningPlanRepository.save(plan); */
 
         learningUnitRepository.deleteAll(unitsToDelete);
     }
