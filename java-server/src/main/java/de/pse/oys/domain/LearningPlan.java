@@ -45,13 +45,15 @@ public class LearningPlan {
      * Liste der im Plan enthaltenen Lerneinheiten.
      * Realisiert über die Verbindungstabelle 'plan_units'.
      */
-    @ManyToMany
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(
             name = "plan_units",
             joinColumns = @JoinColumn(name = "planid"),
-            inverseJoinColumns = @JoinColumn(name = "unitid")
+            inverseJoinColumns = @JoinColumn(
+                    name = "unitid",
+                    foreignKey = @ForeignKey(foreignKeyDefinition = "FOREIGN KEY (unitid) REFERENCES learning_units(unitid) ON DELETE CASCADE")
+            )
     )
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<LearningUnit> units = new ArrayList<>();
 
     /**
