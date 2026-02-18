@@ -7,7 +7,6 @@ import de.pse.oys.domain.enums.PerceivedDuration;
 import de.pse.oys.dto.RatingDTO;
 import de.pse.oys.persistence.CostMatrixRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
-import de.pse.oys.persistence.RatingRepository;
 import de.pse.oys.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,6 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 class RatingServiceTest {
 
-    private RatingRepository ratingRepository;
     private LearningUnitRepository learningUnitRepository;
     private CostMatrixRepository costMatrixRepository;
 
@@ -41,11 +39,10 @@ class RatingServiceTest {
 
     @BeforeEach
     void setUp() {
-        ratingRepository = mock(RatingRepository.class);
         learningUnitRepository = mock(LearningUnitRepository.class);
         costMatrixRepository = mock(CostMatrixRepository.class);
 
-        ratingService = new RatingService(ratingRepository, learningUnitRepository, costMatrixRepository);
+        ratingService = new RatingService(learningUnitRepository, costMatrixRepository);
     }
 
     @Test
