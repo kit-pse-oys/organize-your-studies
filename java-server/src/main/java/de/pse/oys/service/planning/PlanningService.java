@@ -116,7 +116,7 @@ public class PlanningService {
     public void generateWeeklyPlan(UUID userId) {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
-        clearPlannedUnitsForReplanning(userId, weekStart);
+        //clearPlannedUnitsForReplanning(userId, weekStart);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
