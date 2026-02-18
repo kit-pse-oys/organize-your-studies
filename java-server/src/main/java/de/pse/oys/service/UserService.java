@@ -29,7 +29,7 @@ public class UserService {
     private static final String ERROR_PASSWORD_TOO_SHORT = "Passwort zu kurz.";
 
     // --- Konstanten für Validierungswerte ---
-    private static final int MIN_USERNAME_LENGTH = 3;
+    private static final int MIN_USERNAME_LENGTH = 4;
     private static final int MIN_PASSWORD_LENGTH = 8;
 
     private final UserRepository userRepository;
