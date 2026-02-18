@@ -22,16 +22,16 @@ val Questions: List<Question> = listOf(
         30..360 step 30,
         R.string.minutes_template
     ),
-    question(
-        "max_day_load",
-        R.string.max_day_load,
-        1..14,
-        R.string.amount_template
-    ),
+//    question(
+//        "max_day_load",
+//        R.string.max_day_load,
+//        1..14,
+//        R.string.amount_template
+//    ),
     question(
         "time_before_deadlines",
         R.string.time_before_deadline,
-        1..7,
+        0..7,
         R.string.days_template
     ),
     question(
