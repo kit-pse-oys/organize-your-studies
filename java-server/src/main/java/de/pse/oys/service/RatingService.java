@@ -1,6 +1,5 @@
 package de.pse.oys.service;
 
-import de.pse.oys.domain.CostMatrix;
 import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.UnitRating;
@@ -28,7 +27,6 @@ import java.util.UUID;
 @Service
 public class RatingService {
     private static final String ERR_UNIT_NOT_FOUND = "Es wurde keine Lerneinheit mit der ID %s gefunden.";
-    private static final String ERR_MATRIX_NOT_FOUND = "Keine CostMatrix für TaskId %s gefunden.";
     private final LearningUnitRepository learningUnitRepository;
     private final CostMatrixRepository costMatrixRepository;
 
@@ -70,13 +68,14 @@ public class RatingService {
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,
         // wird die zugehörige Kostenmatrix als veraltet markiert.
         Task task = learningUnit.getTask();
-        CostMatrix costMatrix = costMatrixRepository.findByTask_TaskId(task.getTaskId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format(ERR_MATRIX_NOT_FOUND, task.getTaskId())));
-        costMatrix.markAsOutdated();
-        costMatrixRepository.save(costMatrix);
 
-        // Unitrating wird durch CASCADE in LearningUnit mitgespeichert.
+        // Falls eine Kostenmatrix existiert, markiere sie als veraltet
+        costMatrixRepository.findByTask_TaskId(task.getTaskId())
+                .ifPresent(matrix -> {
+                    matrix.markAsOutdated();
+                    costMatrixRepository.save(matrix);
+                });
+
         learningUnitRepository.save(learningUnit);
     }
 
