@@ -587,11 +587,13 @@ abstract class BaseCreateTaskViewModel(
      * Registers or deletes a task in the [ModelFacade].
      * @param id The uuid of the task
      * @param task the [Task] to be registered or null to delete.
+     * @param oldId The old uuid of the task, if it is being replaced.
      */
-    protected fun registerNewTask(id: Uuid, task: TaskData?) {
+    protected fun registerNewTask(id: Uuid, task: TaskData?, oldId: Uuid? = null) {
         val tasks = model.tasks.orEmpty().toMutableMap()
         model.tasks = tasks
         model.steps = null
+        oldId?.let { tasks.remove(it) }
         if (task != null) {
             tasks[id] = task
         } else {
@@ -697,9 +699,9 @@ class EditTaskViewModel(
         viewModelScope.launch {
             val data = assembleRemoteTask()
             val task = RemoteTask(data, uuid)
-            api.updateTask(task).defaultHandleError(navController) { error = true }?.let { uuid ->
+            api.updateTask(task).defaultHandleError(navController) { error = true }?.let { newUuid ->
                 withContext(Dispatchers.Main.immediate) {
-                    registerNewTask(uuid, assembleTask())
+                    registerNewTask(newUuid, assembleTask(), oldId = uuid)
                 }
             }
         }
