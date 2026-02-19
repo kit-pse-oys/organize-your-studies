@@ -48,6 +48,7 @@ import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.Questionnaire
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
@@ -238,6 +239,7 @@ interface IQuestionnaireViewModel {
  */
 abstract class BaseQuestionnaireViewModel(
     private val api: RemoteAPI,
+    private val model: ModelFacade,
     protected val navController: NavController
 ) :
     ViewModel(),
@@ -284,6 +286,7 @@ abstract class BaseQuestionnaireViewModel(
     override fun submitQuestionnaire() {
         viewModelScope.launch {
             api.updateQuestionnaire(state).defaultHandleError(navController) { error = true }?.let {
+                model.steps = null
                 withContext(Dispatchers.Main.immediate) {
                     navigateToMain()
                 }
@@ -302,8 +305,8 @@ abstract class BaseQuestionnaireViewModel(
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
-    BaseQuestionnaireViewModel(api, navController) {
+class FirstQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navController: NavController) :
+    BaseQuestionnaireViewModel(api, model, navController) {
     override var showWelcome by mutableStateOf(true)
 
     override fun showQuestionnaire() {
@@ -328,8 +331,8 @@ class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) 
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
-    BaseQuestionnaireViewModel(api, navController) {
+class EditQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navController: NavController) :
+    BaseQuestionnaireViewModel(api, model, navController) {
 
     init {
         viewModelScope.launch {
@@ -362,8 +365,9 @@ class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
 fun QuestionnaireViewModel(
     firstTime: Boolean,
     api: RemoteAPI,
+    model: ModelFacade,
     navController: NavController
 ): BaseQuestionnaireViewModel {
-    return if (firstTime) FirstQuestionnaireViewModel(api, navController)
-    else EditQuestionnaireViewModel(api, navController)
+    return if (firstTime) FirstQuestionnaireViewModel(api, model, navController)
+    else EditQuestionnaireViewModel(api, model, navController)
 }
