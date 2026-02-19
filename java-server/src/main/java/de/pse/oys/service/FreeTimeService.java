@@ -64,7 +64,7 @@ public class FreeTimeService {
         User user = requireUserExists(userId);
 
         validate(dto);
-        ensureNoOverlap(userId, dto);
+        ensureNoOverlap(userId, dto, null);
 
         FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
         user.addFreeTime(saved);
@@ -95,7 +95,7 @@ public class FreeTimeService {
             throw new ValidationException(MSG_TYPE_CHANGE_NOT_SUPPORTED);
         }
 
-        ensureNoOverlap(userId, dto);
+        ensureNoOverlap(userId, dto, freeTimeId);
 
         applyUpdate(existing, dto);
 
@@ -190,13 +190,14 @@ public class FreeTimeService {
     // -------------------------
 
     /** Overlap-Check. */
-    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto) {
+    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID excludeId) {
 
         boolean overlap = hasOverlap(
                 userId,
                 dto.getDate(),
                 dto.getStartTime(),
-                dto.getEndTime()
+                dto.getEndTime(),
+                excludeId
         );
 
         if (overlap) {
@@ -208,12 +209,17 @@ public class FreeTimeService {
     private boolean hasOverlap(UUID userId,
                                java.time.LocalDate date,
                                java.time.LocalTime startTime,
-                               java.time.LocalTime endTime) {
+                               java.time.LocalTime endTime,
+                               UUID excludeId) {
 
         List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
 
         for (FreeTime ft : candidates) {
             if (ft == null) continue;
+
+            if (excludeId != null && excludeId.equals(ft.getFreeTimeId())) {
+                continue;
+            }
 
             // gilt am Datum? (Single: Datum, Weekly: Wochentag)
             if (!ft.occursOn(date)) {

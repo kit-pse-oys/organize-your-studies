@@ -47,7 +47,6 @@ class QuestionnaireServiceTest {
         QuestionnaireDTO dto = new QuestionnaireDTO();
         dto.setMinUnitDuration(30);
         dto.setMaxUnitDuration(90);
-        dto.setMaxDayLoad(6);
         dto.setPreferredPauseDuration(10);
         dto.setTimeBeforeDeadlines(2);
         dto.setPreferredStudyTimes(Set.of(TimeSlot.MORNING, TimeSlot.EVENING));
@@ -59,7 +58,6 @@ class QuestionnaireServiceTest {
         assertNotNull(prefs);
         assertEquals(30, prefs.getMinUnitDurationMinutes());
         assertEquals(90, prefs.getMaxUnitDurationMinutes());
-        assertEquals(6, prefs.getMaxDailyWorkloadHours());
         assertEquals(10, prefs.getBreakDurationMinutes());
         assertEquals(2, prefs.getDeadlineBufferDays());
         assertEquals(Set.of(TimeSlot.MORNING, TimeSlot.EVENING), prefs.getPreferredTimeSlots());
@@ -84,7 +82,6 @@ class QuestionnaireServiceTest {
         QuestionnaireDTO dto = new QuestionnaireDTO();
         dto.setMinUnitDuration(20);
         dto.setMaxUnitDuration(80);
-        dto.setMaxDayLoad(5);
         dto.setPreferredPauseDuration(8);
         dto.setTimeBeforeDeadlines(2);
         dto.setPreferredStudyTimes(Set.of(TimeSlot.MORNING));
@@ -96,7 +93,6 @@ class QuestionnaireServiceTest {
         assertSame(existing, updated);
         assertEquals(20, updated.getMinUnitDurationMinutes());
         assertEquals(80, updated.getMaxUnitDurationMinutes());
-        assertEquals(5, updated.getMaxDailyWorkloadHours());
         assertEquals(8, updated.getBreakDurationMinutes());
         assertEquals(2, updated.getDeadlineBufferDays());
         assertEquals(Set.of(TimeSlot.MORNING), updated.getPreferredTimeSlots());
@@ -138,7 +134,6 @@ class QuestionnaireServiceTest {
         assertNotNull(result);
         assertEquals(30, result.getMinUnitDuration());
         assertEquals(120, result.getMaxUnitDuration());
-        assertEquals(8, result.getMaxDayLoad());
         assertEquals(15, result.getPreferredPauseDuration());
         assertEquals(3, result.getTimeBeforeDeadlines());
 
