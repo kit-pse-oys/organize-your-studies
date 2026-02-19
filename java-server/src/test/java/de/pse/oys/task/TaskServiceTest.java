@@ -177,22 +177,39 @@ class TaskServiceTest {
     class UpdateTaskTests {
 
         @Test
-        @DisplayName("wirft ValidationException, wenn Category geändert werden soll")
-        void throwsWhenCategoryWouldChange() {
+        @DisplayName("bei Kategoriewechsel wird der alte Task gelöscht und ein neuer erstellt")
+        void testUpdateTask_ChangesCategoryByRecreatingTask() {
+            // GIVEN
             when(userRepository.existsById(USER_ID)).thenReturn(true);
 
-            // bestehende OTHER-Task (Category = OTHER)
+            // 1. Bestehenden OTHER-Task vorbereiten
             OtherTask existing = new OtherTask("Old", WEEKLY_LOAD, OTHER_START, OTHER_END);
+            Module module = new Module(OLD_MODULE_TITLE, anyPriority());
+            existing.setModule(module);
 
-            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID)).thenReturn(Optional.of(existing));
+            when(taskRepository.findByTaskIdAndModuleUserUserId(TASK_ID, USER_ID))
+                    .thenReturn(Optional.of(existing));
 
-            // DTO hat Category EXAM -> soll failen
-            ExamTaskDTO dto = validExamDto(OLD_MODULE_ID);
+            // 2. Mocks für die Neuerstellung des EXAM-Tasks
+            ExamTaskDTO newDto = validExamDto(OLD_MODULE_ID); // Category ist EXAM
+            when(moduleRepository.findByModuleIdAndUser_UserId(OLD_MODULE_ID, USER_ID))
+                    .thenReturn(Optional.of(module));
 
-            assertThatThrownBy(() -> sut.updateTask(USER_ID, TASK_ID, dto))
-                    .isInstanceOf(ValidationException.class);
+            ExamTask savedNewTask = new ExamTask(newDto.getTitle(), WEEKLY_LOAD, EXAM_DATE);
+            when(taskRepository.save(any(Task.class))).thenReturn(savedNewTask);
+            when(taskRepository.findById(any())).thenReturn(Optional.of(savedNewTask));
 
-            verify(taskRepository, never()).save(any());
+            // WHEN
+            TaskDTO result = sut.updateTask(USER_ID, TASK_ID, newDto);
+
+            // THEN
+            // Prüfen, ob der alte gelöscht wurde
+            verify(taskRepository).delete(existing);
+            // Prüfen, ob ein neuer gespeichert wurde
+            verify(taskRepository, atLeastOnce()).save(any(ExamTask.class));
+
+            assertThat(result.getCategory()).isEqualTo(TaskCategory.EXAM);
+            assertThat(result.getTitle()).isEqualTo(newDto.getTitle());
         }
 
         @Test
