@@ -139,4 +139,5 @@
     <string name="no_upcomig_units_available">You don\'t have any units tomorrow.</string>
     <string name="move_automatically_button">Move automatically</string>
     <string name="mark_as_finished_early_button">Mark as finished early</string>
+    <string name="mark_as_missed_button">Mark as missed</string>
 </resources>
