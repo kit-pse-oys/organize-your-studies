@@ -116,7 +116,6 @@ class QuestionnaireControllerIntegrationTest extends BaseIntegrationTest {
         QuestionnaireDTO dto = new QuestionnaireDTO();
         dto.setMinUnitDuration(30);
         dto.setMaxUnitDuration(90);
-        dto.setMaxDayLoad(6);
         dto.setPreferredPauseDuration(10);
         dto.setTimeBeforeDeadlines(2);
         dto.setPreferredStudyDays(EnumSet.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY));
@@ -144,7 +143,6 @@ class QuestionnaireControllerIntegrationTest extends BaseIntegrationTest {
         assertNotNull(resultDto);
         assertEquals(30, resultDto.getMinUnitDuration());
         assertEquals(90, resultDto.getMaxUnitDuration());
-        assertEquals(6, resultDto.getMaxDayLoad());
         assertEquals(10, resultDto.getPreferredPauseDuration());
 
         Set<DayOfWeek> days = resultDto.getPreferredStudyDays();

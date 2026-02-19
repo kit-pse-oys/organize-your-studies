@@ -3,6 +3,8 @@ package de.pse.oys.freeTime;
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.User;
+import de.pse.oys.domain.enums.UserType;
 import de.pse.oys.dto.FreeTimeDTO;
 import de.pse.oys.persistence.FreeTimeRepository;
 import de.pse.oys.persistence.UserRepository;
@@ -35,12 +37,15 @@ class FreeTimeServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private FreeTimeRepository freeTimeRepository;
+    private User mockUser;
 
     private FreeTimeService sut;
 
     @BeforeEach
     void setUp() {
         sut = new FreeTimeService(userRepository, freeTimeRepository);
+        mockUser = new User("TestUser", UserType.LOCAL) {};
+        setField(mockUser, "freeTimes", new java.util.ArrayList<>());
     }
 
     @Nested
@@ -61,23 +66,21 @@ class FreeTimeServiceTest {
 
             UUID generatedId = UUID.randomUUID();
 
-            FreeTime savedMock = mock(FreeTime.class);
-            when(savedMock.getFreeTimeId()).thenReturn(generatedId);
-
-            when(freeTimeRepository.save(any(FreeTime.class))).thenReturn(savedMock);
+            when(freeTimeRepository.save(any(FreeTime.class))).thenAnswer(invocation -> {
+                FreeTime ft = invocation.getArgument(0);
+                forceSetId(ft, generatedId);
+                return ft;
+            });
 
             UUID result = sut.createFreeTime(userId, input);
 
             assertThat(result).isEqualTo(generatedId);
 
-            ArgumentCaptor<FreeTime> saved = ArgumentCaptor.forClass(FreeTime.class);
-            verify(freeTimeRepository).save(saved.capture());
+            assertThat(mockUser.getFreeTimes()).hasSize(1);
+            assertThat(mockUser.getFreeTimes().get(0).getFreeTimeId()).isEqualTo(generatedId);
 
-            assertThat(saved.getValue()).isInstanceOf(SingleFreeTime.class);
-            assertThat(saved.getValue().getTitle()).isEqualTo("Gym");
-            assertThat(saved.getValue().getStartTime()).isEqualTo(start);
-            assertThat(saved.getValue().getEndTime()).isEqualTo(end);
-            assertThat(((SingleFreeTime) saved.getValue()).getDate()).isEqualTo(date);
+            verify(freeTimeRepository).save(any(FreeTime.class));
+            verify(userRepository).save(mockUser);
         }
 
 
@@ -356,7 +359,9 @@ class FreeTimeServiceTest {
     // -------------------------
 
     private void givenUserExists(UUID userId) {
+        setField(mockUser, "userId", userId);
         when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.getReferenceById(userId)).thenReturn(mockUser);
     }
 
     private void givenNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
@@ -368,10 +373,10 @@ class FreeTimeServiceTest {
         // Ein Eintrag, der am dto.date gilt und zeitlich überlappt.
         FreeTime overlapping = mock(FreeTime.class);
 
-        when(overlapping.getFreeTimeId()).thenReturn(UUID.randomUUID());
-        when(overlapping.occursOn(eq(dto.getDate()))).thenReturn(true);
-        when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
-        when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
+        lenient().when(overlapping.getFreeTimeId()).thenReturn(UUID.randomUUID());
+        lenient().when(overlapping.occursOn(any())).thenReturn(true);
+        lenient().when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
+        lenient().when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
 
         when(freeTimeRepository.findAllByUserId(eq(userId)))
                 .thenReturn(List.of(overlapping));

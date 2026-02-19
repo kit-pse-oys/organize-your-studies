@@ -61,19 +61,15 @@ public class FreeTimeService {
      */
     @Transactional
     public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
-        requireUserExists(userId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(MSG_USER_NOT_FOUND));
+        User user = requireUserExists(userId);
 
         validate(dto);
         ensureNoOverlap(userId, dto, null);
 
-        FreeTime newFreeTime = toEntity(userId, dto);
-
-        user.addFreeTime(newFreeTime);
-        userRepository.saveAndFlush(user); // speichert auch die neue Freizeit durch Cascade
-
-        return newFreeTime.getFreeTimeId();
+        FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
+        user.addFreeTime(saved);
+        userRepository.save(user);
+        return saved.getFreeTimeId();
     }
 
     /**
@@ -99,7 +95,7 @@ public class FreeTimeService {
             throw new ValidationException(MSG_TYPE_CHANGE_NOT_SUPPORTED);
         }
 
-        ensureNoOverlap(userId, dto, existing.getFreeTimeId());
+        ensureNoOverlap(userId, dto, freeTimeId);
 
         applyUpdate(existing, dto);
 
@@ -194,14 +190,14 @@ public class FreeTimeService {
     // -------------------------
 
     /** Overlap-Check. */
-    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
+    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID excludeId) {
 
         boolean overlap = hasOverlap(
                 userId,
                 dto.getDate(),
                 dto.getStartTime(),
                 dto.getEndTime(),
-                ignoreId
+                excludeId
         );
 
         if (overlap) {
@@ -214,15 +210,14 @@ public class FreeTimeService {
                                java.time.LocalDate date,
                                java.time.LocalTime startTime,
                                java.time.LocalTime endTime,
-                               UUID ignoreId) {
+                               UUID excludeId) {
 
         List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
 
         for (FreeTime ft : candidates) {
             if (ft == null) continue;
 
-            UUID ftId = ft.getFreeTimeId();
-            if (ignoreId != null && ignoreId.equals(ftId)) {
+            if (excludeId != null && excludeId.equals(ft.getFreeTimeId())) {
                 continue;
             }
 
@@ -248,10 +243,11 @@ public class FreeTimeService {
     }
 
     /** Validiert, dass der Nutzer existiert. */
-    private void requireUserExists(UUID userId) {
+    private User requireUserExists(UUID userId) {
         if (userId == null || !userRepository.existsById(userId)) {
             throw new ResourceNotFoundException(MSG_USER_NOT_FOUND);
         }
+        return userRepository.getReferenceById(userId);
     }
 
     /** Prüft, ob die Freizeit dem Nutzer gehört. */

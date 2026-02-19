@@ -138,9 +138,6 @@ public abstract class FreeTime {
 
     /** @return Die ID des Freizeitblocks. */
     public UUID getFreeTimeId() {
-        if (freeTimeId == null) {
-            throw new IllegalStateException("Freizeitblock hat keine ID. Möglicherweise wurde er noch nicht gespeichert.");
-        }
         return freeTimeId;
     }
 
