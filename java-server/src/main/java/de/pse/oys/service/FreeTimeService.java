@@ -59,6 +59,7 @@ public class FreeTimeService {
      * @param dto Eingabedaten (temporär: {@link FreeTimeDTO})
      * @return angelegte Freizeit als DTO
      */
+    @Transactional
     public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
         User user = userRepository.findById(userId)
@@ -70,7 +71,7 @@ public class FreeTimeService {
         FreeTime newFreeTime = toEntity(userId, dto);
 
         user.addFreeTime(newFreeTime);
-        userRepository.save(user); // speichert auch die neue Freizeit durch Cascade
+        userRepository.saveAndFlush(user); // speichert auch die neue Freizeit durch Cascade
 
         return newFreeTime.getFreeTimeId();
     }
