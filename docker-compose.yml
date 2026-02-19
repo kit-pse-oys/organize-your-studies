@@ -8,6 +8,8 @@ services:
   db:
     image: postgres:15
     container_name: oys-postgres-db
+    ports:
+      - "127.0.0.1:5432:5432" # Für das Visualisieren der Datenbank über einen ssh-Tunnel ohne den Port nach außen freizugeben
     environment:
       - POSTGRES_DB=${DB_NAME:-oys_db}
       - POSTGRES_USER=${DB_USER:-postgres}
