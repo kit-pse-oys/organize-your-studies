@@ -252,13 +252,13 @@ fun MainView(viewModel: IMainViewModel) {
                     val now = Clock.System.now()
                         .toLocalDateTime(TimeZone.currentSystemDefault())
                     if (end >= now) {
-                        SimpleMenuAndAdditionsButton("Move automatically") {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.move_automatically_button)) {
                             viewModel.moveUnitAutomatically(unit)
                             clickedEvent = null
                         }
                     }
                     if (now in start..end) {
-                        SimpleMenuAndAdditionsButton("Mark finished early") {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_finished_early_button)) {
                             viewModel.marksAsFinished(unit)
                             clickedEvent = null
                         }

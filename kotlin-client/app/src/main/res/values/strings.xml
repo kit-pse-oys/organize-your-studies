@@ -137,4 +137,6 @@
     <string name="planer_switch_weekly">Weekly Plan</string>
     <string name="planer_switch_daily">Daily Plan</string>
     <string name="no_upcomig_units_available">You don\'t have any units tomorrow.</string>
+    <string name="move_automatically_button">Move automatically</string>
+    <string name="mark_as_finished_early_button">Mark as finished early</string>
 </resources>

@@ -697,7 +697,7 @@ class EditTaskViewModel(
         viewModelScope.launch {
             val data = assembleRemoteTask()
             val task = RemoteTask(data, uuid)
-            api.updateTask(task).defaultHandleError(navController) { error = true }?.let {
+            api.updateTask(task).defaultHandleError(navController) { error = true }?.let { uuid ->
                 withContext(Dispatchers.Main.immediate) {
                     registerNewTask(uuid, assembleTask())
                 }
@@ -707,7 +707,7 @@ class EditTaskViewModel(
 
     override fun delete() {
         viewModelScope.launch {
-            api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let { uuid ->
+            api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let {
                 withContext(Dispatchers.Main.immediate) {
                     registerNewTask(uuid, null)
                 }
