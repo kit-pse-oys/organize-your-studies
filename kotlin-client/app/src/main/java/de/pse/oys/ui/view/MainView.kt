@@ -240,18 +240,20 @@ fun MainView(viewModel: IMainViewModel) {
             }
         }
 
-        if (clickedEvent != null) {
+        clickedEvent?.let { unit ->
             Dialog({ clickedEvent = null }) {
                 Column {
-                    SimpleMenuAndAdditionsButton("Move automatically") {
-                        viewModel.moveUnitAutomatically(clickedEvent!!)
-                        clickedEvent = null
+                    val now = Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault()).time
+                    if (unit.end >= now) {
+                        SimpleMenuAndAdditionsButton("Move automatically") {
+                            viewModel.moveUnitAutomatically(unit)
+                            clickedEvent = null
+                        }
                     }
-                    if (clickedEvent!!.start > Clock.System.now()
-                            .toLocalDateTime(TimeZone.currentSystemDefault()).time
-                    ) {
+                    if (now in unit.start..unit.end) {
                         SimpleMenuAndAdditionsButton("Mark finished early") {
-                            viewModel.marksAsFinished(clickedEvent!!)
+                            viewModel.marksAsFinished(unit)
                             clickedEvent = null
                         }
                     }

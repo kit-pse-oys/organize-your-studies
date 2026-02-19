@@ -183,7 +183,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                 Spacer(Modifier.weight(1f))
                 SubmitButton(
                     stringResource(R.string.questionnaire_commit),
-                    true,
+                    viewModel.isValid,
                     viewModel::submitQuestionnaire
                 )
             }
@@ -198,6 +198,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
 interface IQuestionnaireViewModel {
     var error: Boolean
     val showWelcome: Boolean
+    val isValid: Boolean
 
     /**
      * Returns a observable state whether the given answer is currently selected for a question.
@@ -243,6 +244,7 @@ abstract class BaseQuestionnaireViewModel(
     IQuestionnaireViewModel {
     override var error: Boolean by mutableStateOf(false)
     private var state: QuestionState = QuestionState()
+    override var isValid: Boolean by mutableStateOf(state.isValid)
 
     private val _selectedFlows = Questions.associateWith { question ->
         question.answers.associateWith {
@@ -261,6 +263,7 @@ abstract class BaseQuestionnaireViewModel(
 
     override fun select(question: Question, answer: Answer) {
         state.select(question, answer)
+        isValid = state.isValid
 
         _selectedFlows.getValue(question).forEach { (answer, flow) ->
             flow.value = state.selected(question, answer)
@@ -269,6 +272,7 @@ abstract class BaseQuestionnaireViewModel(
 
     protected fun updateState(newState: QuestionState) {
         state = newState
+        isValid = state.isValid
 
         _selectedFlows.forEach { (question, answers) ->
             answers.forEach { (answer, flow) ->

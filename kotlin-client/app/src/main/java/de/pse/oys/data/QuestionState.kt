@@ -105,6 +105,9 @@ class QuestionState(
         }
     }
 
+    val isValid: Boolean
+        get() = answers.all { it.any() }
+
     private val Question.index: Int
         get() = questions.indexOf(this)
 
