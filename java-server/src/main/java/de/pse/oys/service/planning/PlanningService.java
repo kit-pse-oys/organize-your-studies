@@ -186,7 +186,10 @@ public class PlanningService {
         LocalDateTime now = LocalDateTime.now();
         int currentSlot = calculateCurrentSlot(weekStart, now);
 
-        List<FixedBlockDTO> fixedBlocksDTO = createFixedBlocksFromExistingPlan(units, weekStart);
+
+        List<FreeTime> freeTimes = user.getFreeTimes();
+        List<FixedBlockDTO> fixedBlocksDTO = calculateFixedBlocksDTO(freeTimes, weekStart);
+        fixedBlocksDTO.addAll(createFixedBlocksFromExistingPlan(units, weekStart));
         Task parentTask = unitToReschedule.getTask();
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
