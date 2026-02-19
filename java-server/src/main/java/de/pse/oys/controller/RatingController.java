@@ -3,6 +3,7 @@ package de.pse.oys.controller;
 import de.pse.oys.dto.RatingDTO;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.service.RatingService;
+import de.pse.oys.service.planning.PlanningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,13 +24,15 @@ import java.util.UUID;
 public class RatingController extends BaseController {
 
     private final RatingService ratingService;
+        private final PlanningService planningservice;
 
     /**
      * Erzeugt eine neue Instanz des RatingControllers.
      * @param ratingService Der Service für die Bewertungslogik.
      */
-    public RatingController(RatingService ratingService) {
+    public RatingController(RatingService ratingService, PlanningService planningservice) {
         this.ratingService = ratingService;
+        this.planningservice = planningservice;
     }
 
     /**
@@ -54,7 +57,9 @@ public class RatingController extends BaseController {
      */
     @PostMapping("/missed")
     public ResponseEntity<Void> markAsMissed(@RequestBody WrapperDTO<Void> wrapper) {
+        UUID userId = getAuthenticatedUserId();
         ratingService.markAsMissed(wrapper.getId());
+        planningservice.rescheduleUnit(userId, wrapper.getId());
         return ResponseEntity.ok().build();
     }
 
