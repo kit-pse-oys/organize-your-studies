@@ -447,6 +447,10 @@ public class PlanningService {
                         long minutes = unit.getActualDurationMinutes();
                         durationExistingUnits += (int) minutes;
                     }
+                    if (isMissed){
+                        applyPenaltyToCostMatrix(unit.getTask(), unit, weekStart);
+                        learningUnitRepository.delete(unit);
+                    }
 
 
                 }
