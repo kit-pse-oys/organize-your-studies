@@ -45,13 +45,8 @@ public class LearningPlan {
      * Liste der im Plan enthaltenen Lerneinheiten.
      * Realisiert über die Verbindungstabelle 'plan_units'.
      */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true) //FIXME Fehler beim löschen von Modulen und Task da units gelöscht werden müssen
-    @JoinTable(
-            name = "plan_units",
-            joinColumns = @JoinColumn(name = "planid"),
-            inverseJoinColumns = @JoinColumn(name = "unitid")
-    )
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany //FIXME Lässt aktuell zu das löschen im lernplan es NICHT komplett löscht
+    @JoinColumn(name = "planid")
     private List<LearningUnit> units = new ArrayList<>();
 
     /**
