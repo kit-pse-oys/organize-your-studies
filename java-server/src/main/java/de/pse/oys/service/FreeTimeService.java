@@ -3,6 +3,7 @@ package de.pse.oys.service;
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.RecurringFreeTime;
 import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.FreeTimeDTO;
@@ -60,10 +61,18 @@ public class FreeTimeService {
      */
     public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
         requireUserExists(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(MSG_USER_NOT_FOUND));
+
         validate(dto);
         ensureNoOverlap(userId, dto, null);
-        FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
-        return saved.getFreeTimeId();
+
+        FreeTime newFreeTime = toEntity(userId, dto);
+
+        user.addFreeTime(newFreeTime);
+        userRepository.save(user); // speichert auch die neue Freizeit durch Cascade
+
+        return newFreeTime.getFreeTimeId();
     }
 
     /**
