@@ -521,7 +521,7 @@ class MainViewModel(
             units.map { (id, unit) ->
                 id to (day to PlannedUnit(
                     unit.task.data.title,
-                    unit.task.data.module.data.description,
+                    unit.task.data.module.data.title,
                     unit.task.data.module.data.color,
                     unit.start,
                     unit.end
