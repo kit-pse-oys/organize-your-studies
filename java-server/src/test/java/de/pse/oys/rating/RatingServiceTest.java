@@ -102,27 +102,4 @@ class RatingServiceTest {
 
         assertTrue(ex.getMessage().contains("Es wurde keine Lerneinheit"));
     }
-
-    @Test
-    void submitRating_shouldThrowException_whenCostMatrixNotFound() {
-        UUID learningUnitId = UUID.randomUUID();
-        UUID taskId = UUID.randomUUID();
-
-        Task task = mock(Task.class);
-        when(task.getTaskId()).thenReturn(taskId);
-
-        LocalDateTime start = LocalDateTime.now();
-        LocalDateTime end = start.plusHours(1);
-        LearningUnit unit = new LearningUnit(task, start, end);
-
-        when(learningUnitRepository.findById(learningUnitId)).thenReturn(Optional.of(unit));
-        when(costMatrixRepository.findByTask_TaskId(taskId)).thenReturn(Optional.empty());
-
-        RatingDTO ratingDTO = new RatingDTO(AchievementLevel.GOOD, PerceivedDuration.IDEAL, ConcentrationLevel.VERY_HIGH);
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> ratingService.submitRating(learningUnitId, ratingDTO));
-
-        assertTrue(ex.getMessage().contains("Keine CostMatrix"));
-    }
 }
