@@ -16,6 +16,7 @@ import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -126,6 +127,7 @@ public class TaskService {
 
         if (oldModule != null && oldModule != newModule) {
             newModule.addTask(existingTask);
+            oldModule.deleteTask(existingTask);
         }
 
         existingTask.setTitle(dto.getTitle());
@@ -304,18 +306,21 @@ public class TaskService {
      * Setzt nur die spezifischen Felder des jeweiligen Subtyps (Exam/Submission/Other).
      */
     private void applySubtypeFields(Task task, TaskDTO dto) {
-        switch (task.getCategory()) {
-            case EXAM -> ((ExamTask) task).setExamDate(((ExamTaskDTO) dto).getExamDate());
+
+        Task realTask = (Task) Hibernate.unproxy(task); // wichtig, damit die Getter/Setter der Unterklasse aufgerufen werden und nicht die der Basisklasse
+
+        switch (realTask.getCategory()) {
+            case EXAM -> ((ExamTask) realTask).setExamDate(((ExamTaskDTO) dto).getExamDate());
             case SUBMISSION -> {
                 SubmissionTaskDTO sub = (SubmissionTaskDTO) dto;
-                SubmissionTask st = (SubmissionTask) task;
+                SubmissionTask st = (SubmissionTask) realTask;
                 st.setFirstDeadline(sub.getFirstDeadline());
                 st.setCycleWeeks(sub.getSubmissionCycle());
                 st.setEndTime(sub.getEndTime());
             }
             case OTHER -> {
                 OtherTaskDTO other = (OtherTaskDTO) dto;
-                OtherTask ot = (OtherTask) task;
+                OtherTask ot = (OtherTask) realTask;
                 ot.setStartTime(other.getStartTime());
                 ot.setEndTime(other.getEndTime());
             }
@@ -326,26 +331,27 @@ public class TaskService {
      * Mappt eine Task-Entity in das passende DTO.
      */
     private TaskDTO mapToDto(Task task) {
-        return switch (task.getCategory()) {
+        Task realTask = (Task) Hibernate.unproxy(task);
+        return switch (realTask.getCategory()) {
             case EXAM -> {
                 ExamTaskDTO dto = new ExamTaskDTO();
                 fillBase(dto, task);
-                dto.setExamDate(((ExamTask) task).getExamDate());
+                dto.setExamDate(((ExamTask) realTask).getExamDate());
                 yield dto;
             }
             case SUBMISSION -> {
-                SubmissionTask st = (SubmissionTask) task;
+                SubmissionTask st = (SubmissionTask) realTask;
                 SubmissionTaskDTO dto = new SubmissionTaskDTO();
-                fillBase(dto, task);
+                fillBase(dto, realTask);
                 dto.setFirstDeadline(st.getFirstDeadline());
                 dto.setSubmissionCycle(st.getCycleWeeks());
                 dto.setEndTime(st.getEndTime());
                 yield dto;
             }
             case OTHER -> {
-                OtherTask ot = (OtherTask) task;
+                OtherTask ot = (OtherTask) realTask;
                 OtherTaskDTO dto = new OtherTaskDTO();
-                fillBase(dto, task);
+                fillBase(dto, realTask);
                 dto.setStartTime(ot.getStartTime());
                 dto.setEndTime(ot.getEndTime());
                 yield dto;
