@@ -113,14 +113,14 @@ class PlanningServiceTest {
         lenient().when(testTask.getSoftDeadline(anyInt()))
                 .thenReturn(LocalDate.of(2026, 1, 30).atTime(12, 0));
 
-        // --- 4. REPOSITORY BEHAVIOR DEFINIEREN ---
+        // --- 4. REPOSITORYDEFINIEREN ---
         lenient().when(taskRepository.save(any(Task.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         lenient().when(taskRepository.saveAndFlush(any(Task.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // LearningPlanRepository: save() gibt Input zurück
+
         lenient().when(learningPlanRepository.save(any(LearningPlan.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
