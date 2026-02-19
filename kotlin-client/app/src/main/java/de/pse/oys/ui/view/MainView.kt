@@ -251,9 +251,15 @@ fun MainView(viewModel: IMainViewModel) {
                     val end = unit.date.atTime(unit.end)
                     val now = Clock.System.now()
                         .toLocalDateTime(TimeZone.currentSystemDefault())
-                    if (end >= now) {
+                    if (end > now) {
                         SimpleMenuAndAdditionsButton(stringResource(R.string.move_automatically_button)) {
                             viewModel.moveUnitAutomatically(unit)
+                            clickedEvent = null
+                        }
+                    }
+                    if (now > end) {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_missed_button)) {
+                            viewModel.marksAsMissed(unit)
                             clickedEvent = null
                         }
                     }
@@ -504,6 +510,7 @@ interface IMainViewModel {
     fun moveUnit(unit: PlannedUnit, newDay: DayOfWeek, newStart: LocalTime)
     fun moveUnitAutomatically(unit: PlannedUnit)
     fun marksAsFinished(unit: PlannedUnit)
+    fun marksAsMissed(unit: PlannedUnit)
 
     fun navigateToMenu()
     fun navigateToAdditions()
@@ -653,6 +660,13 @@ class MainViewModel(
         viewModelScope.launch {
             api.markUnitFinished(uuid, actualDuration)
                 .defaultHandleError(navController) { error = true }
+        }
+    }
+
+    override fun marksAsMissed(unit: PlannedUnit) {
+        val uuid = _units[unit] ?: return
+        viewModelScope.launch {
+            api.rateUnitMissed(uuid).defaultHandleError(navController) { error = true }
         }
     }
 

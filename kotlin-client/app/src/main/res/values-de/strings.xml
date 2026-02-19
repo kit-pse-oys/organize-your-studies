@@ -137,4 +137,5 @@
     <string name="no_upcomig_units_available">Du hast für morgen keine Einheiten.</string>
     <string name="move_automatically_button">Automatisch verschieben</string>
     <string name="mark_as_finished_early_button">Als Frühzeitig Beendet markieren</string>
+    <string name="mark_as_missed_button">Als Verpasst markieren</string>
 </resources>
