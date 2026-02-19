@@ -1,6 +1,5 @@
 package de.pse.oys.service.planning;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.pse.oys.domain.FreeTime;
 import de.pse.oys.domain.LearningPlan;
 import de.pse.oys.domain.LearningPreferences;
@@ -13,6 +12,7 @@ import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
@@ -293,7 +293,6 @@ public class PlanningService {
             if (startSlot >= 0 && durationSlots > 0) {
                 fixedBlocksDTO.add(new FixedBlockDTO(startSlot, durationSlots));
             }
-
         }
         return fixedBlocksDTO;
     }
@@ -309,19 +308,6 @@ public class PlanningService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Connection", "close");
-        // --- DEBUGGING START ---
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonDebug = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO);
-            System.out.println("========================================");
-            System.out.println("DEBUG: JSON DAS GESENDET WIRD:");
-            System.out.println(jsonDebug);
-            System.out.println("========================================");
-        } catch (Exception e) {
-            System.out.println("DEBUG ERROR: Konnte JSON nicht drucken: " + e.getMessage());
-        }
-        // --- DEBUGGING ENDE ---
-
         HttpEntity<PlanningRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
         try {
@@ -455,8 +441,10 @@ public class PlanningService {
 
                     boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
                     boolean isInPast = unitDateTime.isBefore(now);
-                    if (isInCurrentWeek && isInPast) {
-                        long minutes = ChronoUnit.MINUTES.between(unit.getStartTime(), unit.getEndTime()); //todo: mit actualDuration arbeiten?
+                    boolean isMissed = unit.getStatus() == UnitStatus.MISSED;
+
+                    if (isInCurrentWeek && isInPast && !isMissed) {
+                        long minutes = unit.getActualDurationMinutes();
                         durationExistingUnits += (int) minutes;
                     }
 
