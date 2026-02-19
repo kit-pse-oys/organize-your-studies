@@ -12,6 +12,7 @@ import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,19 +62,15 @@ public class FreeTimeService {
      */
     @Transactional
     public UUID createFreeTime(UUID userId, FreeTimeDTO dto) throws ResourceNotFoundException, ValidationException {
-        requireUserExists(userId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(MSG_USER_NOT_FOUND));
+        User user = requireUserExists(userId);
 
         validate(dto);
         ensureNoOverlap(userId, dto, null);
 
-        FreeTime newFreeTime = toEntity(userId, dto);
-
-        user.addFreeTime(newFreeTime);
-        userRepository.saveAndFlush(user); // speichert auch die neue Freizeit durch Cascade
-
-        return newFreeTime.getFreeTimeId();
+        FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
+        user.addFreeTime(saved);
+        userRepository.save(user);
+        return saved.getFreeTimeId();
     }
 
     /**
@@ -248,10 +245,11 @@ public class FreeTimeService {
     }
 
     /** Validiert, dass der Nutzer existiert. */
-    private void requireUserExists(UUID userId) {
+    private User requireUserExists(UUID userId) {
         if (userId == null || !userRepository.existsById(userId)) {
             throw new ResourceNotFoundException(MSG_USER_NOT_FOUND);
         }
+        return userRepository.getReferenceById(userId);
     }
 
     /** Prüft, ob die Freizeit dem Nutzer gehört. */
