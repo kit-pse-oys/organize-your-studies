@@ -12,9 +12,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.clearAuthTokens
-import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -139,7 +137,7 @@ internal constructor(
 
                             markAsRefreshTokenRequest()
                         }
-                        
+
                         if (response.status.isSuccess()) {
                             val accessToken = response.body<Routes.Auth.AccessToken>().accessToken
                             session.setSession(Session(accessToken, refreshToken))
@@ -239,9 +237,11 @@ internal constructor(
             val questions = response.response?.let {
                 val questions = QuestionState()
                 for ((questionId, answers) in it) {
-                    val question = questions.questions.first { it.id == questionId }
+                    val question = questions.questions.firstOrNull { it.id == questionId }
+                        ?: error("Question $questionId not found")
                     for ((answerId, _) in answers.filter { it.value }) {
-                        val answer = question.answers.first { it.id == answerId }
+                        val answer = question.answers.firstOrNull { it.id == answerId }
+                            ?: error("Answer $answerId for question $questionId not found")
                         questions.select(question, answer)
                     }
                 }
@@ -249,7 +249,7 @@ internal constructor(
             }
 
             Response(questions, response.status)
-    }
+        }
 
     override suspend fun markUnitFinished(unit: Uuid, actualDuration: Duration): Response<Unit> =
         withContext(Dispatchers.IO) {
