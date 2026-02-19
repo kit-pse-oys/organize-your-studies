@@ -12,7 +12,6 @@ import de.pse.oys.persistence.UserRepository;
 import de.pse.oys.service.exception.AccessDeniedException;
 import de.pse.oys.service.exception.ResourceNotFoundException;
 import de.pse.oys.service.exception.ValidationException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +64,7 @@ public class FreeTimeService {
         User user = requireUserExists(userId);
 
         validate(dto);
-        ensureNoOverlap(userId, dto, null);
+        ensureNoOverlap(userId, dto);
 
         FreeTime saved = freeTimeRepository.save(toEntity(userId, dto));
         user.addFreeTime(saved);
@@ -96,7 +95,7 @@ public class FreeTimeService {
             throw new ValidationException(MSG_TYPE_CHANGE_NOT_SUPPORTED);
         }
 
-        ensureNoOverlap(userId, dto, existing.getFreeTimeId());
+        ensureNoOverlap(userId, dto);
 
         applyUpdate(existing, dto);
 
@@ -191,14 +190,13 @@ public class FreeTimeService {
     // -------------------------
 
     /** Overlap-Check. */
-    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto, UUID ignoreId) {
+    private void ensureNoOverlap(UUID userId, FreeTimeDTO dto) {
 
         boolean overlap = hasOverlap(
                 userId,
                 dto.getDate(),
                 dto.getStartTime(),
-                dto.getEndTime(),
-                ignoreId
+                dto.getEndTime()
         );
 
         if (overlap) {
@@ -210,18 +208,12 @@ public class FreeTimeService {
     private boolean hasOverlap(UUID userId,
                                java.time.LocalDate date,
                                java.time.LocalTime startTime,
-                               java.time.LocalTime endTime,
-                               UUID ignoreId) {
+                               java.time.LocalTime endTime) {
 
         List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
 
         for (FreeTime ft : candidates) {
             if (ft == null) continue;
-
-            UUID ftId = ft.getFreeTimeId();
-            if (ignoreId != null && ignoreId.equals(ftId)) {
-                continue;
-            }
 
             // gilt am Datum? (Single: Datum, Weekly: Wochentag)
             if (!ft.occursOn(date)) {

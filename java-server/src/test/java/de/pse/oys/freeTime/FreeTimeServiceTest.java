@@ -373,10 +373,10 @@ class FreeTimeServiceTest {
         // Ein Eintrag, der am dto.date gilt und zeitlich überlappt.
         FreeTime overlapping = mock(FreeTime.class);
 
-        when(overlapping.getFreeTimeId()).thenReturn(UUID.randomUUID());
-        when(overlapping.occursOn(eq(dto.getDate()))).thenReturn(true);
-        when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
-        when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
+        lenient().when(overlapping.getFreeTimeId()).thenReturn(UUID.randomUUID());
+        lenient().when(overlapping.occursOn(any())).thenReturn(true);
+        lenient().when(overlapping.getStartTime()).thenReturn(dto.getStartTime());
+        lenient().when(overlapping.getEndTime()).thenReturn(dto.getEndTime());
 
         when(freeTimeRepository.findAllByUserId(eq(userId)))
                 .thenReturn(List.of(overlapping));
