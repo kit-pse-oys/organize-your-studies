@@ -70,11 +70,11 @@ public class TaskController extends BaseController {
      * @return Status 200 (OK) bei Erfolg.
      */
     @PutMapping
-    public ResponseEntity<Void> updateTask(@RequestBody WrapperDTO<TaskDTO> wrapper) {
+    public ResponseEntity<Map<String, UUID>> updateTask(@RequestBody WrapperDTO<TaskDTO> wrapper) {
         UUID userId = getAuthenticatedUserId();
-        taskService.updateTask(userId, wrapper.getId(), wrapper.getData());
+        UUID taskId = taskService.updateTask(userId, wrapper.getId(), wrapper.getData());
         updatePlanAfterChange(userId, planningService);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("id", taskId));
 
     }
 

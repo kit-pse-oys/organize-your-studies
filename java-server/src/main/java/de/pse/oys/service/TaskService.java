@@ -102,7 +102,7 @@ public class TaskService {
      * @throws ResourceNotFoundException wenn Nutzer, Modul oder Task nicht existiert
      * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
-    public TaskDTO updateTask(UUID userId, UUID taskId, TaskDTO dto) {
+    public UUID updateTask(UUID userId, UUID taskId, TaskDTO dto) {
         Objects.requireNonNull(userId, "userId");
         Objects.requireNonNull(taskId, "taskId");
         validateData(dto);
@@ -117,7 +117,7 @@ public class TaskService {
 
             Task newTask = taskRepository.findById(newTaskId)
                     .orElseThrow(() -> new ResourceNotFoundException(MSG_TASK_NOT_FOUND));
-            return mapToDto(newTask);
+            return newTask.getTaskId();
         }
 
         // FALL 2: Kategorie bleibt gleich -> Normales Update (effizienter)
@@ -131,8 +131,9 @@ public class TaskService {
         existingTask.setTitle(dto.getTitle());
         existingTask.setWeeklyDurationMinutes(dto.getWeeklyTimeLoad());
         applySubtypeFields(existingTask, dto);
+        taskRepository.save(existingTask);
 
-        return mapToDto(taskRepository.save(existingTask));
+        return existingTask.getTaskId();
     }
 
     /**
