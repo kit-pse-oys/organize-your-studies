@@ -125,10 +125,7 @@ public class TaskService {
         Module oldModule = existingTask.getModule();
 
         if (oldModule != null && oldModule != newModule) {
-            oldModule.deleteTask(existingTask);
             newModule.addTask(existingTask);
-        } else {
-            existingTask.setModule(newModule);
         }
 
         existingTask.setTitle(dto.getTitle());
