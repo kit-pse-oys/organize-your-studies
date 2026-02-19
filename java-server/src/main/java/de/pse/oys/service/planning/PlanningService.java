@@ -25,14 +25,11 @@ import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -120,7 +117,7 @@ public class PlanningService {
         clearPlannedUnitsForReplanning(userId, weekStart);
 
         if (user == null) {
-            throw new IllegalArgumentException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Benutzer nicht gefunden.");
         }
         LocalDateTime now = LocalDateTime.now();
         int currentSlot = calculateCurrentSlot(weekStart, now);
@@ -147,7 +144,7 @@ public class PlanningService {
             saveLearningResults(planningResults, weekStart, breakDuration, user);
             System.out.println("Planungsergebnisse erfolgreich gespeichert.");
         } else {
-            System.out.println("Keine Planungsergebnisse empfangen.");
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Keine Planungsergebnisse empfangen.");
 
         }
     }
@@ -165,12 +162,12 @@ public class PlanningService {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
-            throw new IllegalArgumentException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Benutzer nicht gefunden.");
         }
         LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId,
                 weekStart).orElse(null);
         if (plan == null) {
-            throw new IllegalArgumentException("Learning Plan not found for the specified week");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lernplan für die aktuelle Woche nicht gefunden.");
         }
         List<LearningUnit> units = plan.getUnits();
         LearningUnit unitToReschedule = null;
@@ -181,7 +178,7 @@ public class PlanningService {
             }
         }
         if (unitToReschedule == null) {
-            throw new IllegalArgumentException("Learning Unit not found in the specified plan");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lerneinheit nicht im aktuellen Lernplan gefunden.");
         }
         LocalDateTime now = LocalDateTime.now();
         int currentSlot = calculateCurrentSlot(weekStart, now);
@@ -227,8 +224,7 @@ public class PlanningService {
             return unitToReschedule.toDTO();
 
         } else {
-            System.out.println("Keine Planungsergebnisse für Rescheduling empfangen.");
-            return null;
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Keine Planungsergebnisse empfangen.");
         }
     }
 
@@ -309,18 +305,6 @@ public class PlanningService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Connection", "close");
-        // --- DEBUGGING START ---
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonDebug = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO);
-            System.out.println("========================================");
-            System.out.println("DEBUG: JSON DAS GESENDET WIRD:");
-            System.out.println(jsonDebug);
-            System.out.println("========================================");
-        } catch (Exception e) {
-            System.out.println("DEBUG ERROR: Konnte JSON nicht drucken: " + e.getMessage());
-        }
-        // --- DEBUGGING ENDE ---
 
         HttpEntity<PlanningRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
@@ -335,7 +319,7 @@ public class PlanningService {
             return responseEntity.getBody();
         } catch (Exception e) {
             System.err.println("Fehler bei der Kommunikation mit dem Solver: " + e.getMessage());
-            return Collections.emptyList();
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Fehler bei der Kommunikation mit dem Planungssolver.");
         }
     }
 
