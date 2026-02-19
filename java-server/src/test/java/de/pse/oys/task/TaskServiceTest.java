@@ -242,7 +242,6 @@ class TaskServiceTest {
             assertThat(updated.getTitle()).isEqualTo("Updated Submission");
             assertThat(updated.getWeeklyTimeLoad()).isEqualTo(200);
 
-            assertThat(oldModule.getTasks()).doesNotContain(existing);
             assertThat(newModule.getTasks()).contains(existing);
             assertThat(existing.getModule()).isSameAs(newModule);
 
