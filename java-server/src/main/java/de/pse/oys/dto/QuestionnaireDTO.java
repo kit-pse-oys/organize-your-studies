@@ -46,7 +46,7 @@ public class QuestionnaireDTO {
     private Map<Integer, Boolean> minUnitDuration;
 
     @JsonProperty("max_day_load")
-    @JsonIgnore
+    @JsonIgnore //wird nicht im planningservice verwendet, deshalb erstmal ausgenommen
     private Map<Integer, Boolean> maxDayLoad = new java.util.HashMap<>(Map.of(DAY_LOAD_LIMIT, true)); //Standardmäßig soll nur die natürliche Tagesbegrenzung vorliegen
 
     @JsonProperty("time_before_deadlines")
