@@ -79,7 +79,7 @@ fun EntryPoint(
         }
         composable<Questionnaire> { backEntry ->
             val firstTime = backEntry.toRoute<Questionnaire>().firstTime
-            QuestionnaireView(viewModel { QuestionnaireViewModel(firstTime, api, navController) })
+            QuestionnaireView(viewModel { QuestionnaireViewModel(firstTime, api, model, navController) })
         }
         composable<Rating> { backEntry ->
             val id = backEntry.toRoute<Rating>().step

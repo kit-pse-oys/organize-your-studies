@@ -70,7 +70,7 @@ interface RemoteAPI {
 
     suspend fun queryTasks(): Response<List<RemoteTask>>
     suspend fun createTask(task: RemoteTaskData): Response<Uuid>
-    suspend fun updateTask(task: RemoteTask): Response<Unit>
+    suspend fun updateTask(task: RemoteTask): Response<Uuid>
     suspend fun deleteTask(task: Uuid): Response<Unit>
 
     suspend fun queryFreeTimes(): Response<List<FreeTime>>
@@ -407,7 +407,7 @@ internal constructor(
             }.idResponse()
         }
 
-    override suspend fun updateTask(task: RemoteTask): Response<Unit> =
+    override suspend fun updateTask(task: RemoteTask): Response<Uuid> =
         withContext(Dispatchers.IO) {
             client.put(serverUrl) {
                 url {
@@ -416,7 +416,7 @@ internal constructor(
 
                 contentType(ContentType.Application.Json)
                 setBody(task)
-            }.statusResponse()
+            }.idResponse()
         }
 
     override suspend fun deleteTask(task: Uuid): Response<Unit> = withContext(Dispatchers.IO) {

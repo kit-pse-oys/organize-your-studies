@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atDate
@@ -151,16 +152,19 @@ fun MainView(viewModel: IMainViewModel) {
             )
 
             if (weeklyCalendar) {
-                val events = viewModel.units.mapValues { (_, list) ->
-                    list.map {
+                val events = viewModel.units.map { (day, list) ->
+                    day to list.map {
                         PlannedEvent(it.title, it.description, it.color, it.start, it.end) {
                             clickedEvent = it
                         }
                     }
-                } + viewModel.freeTimes.mapValues { (_, list) ->
-                    list.map {
+                } + viewModel.freeTimes.map { (day, list) ->
+                    day to list.map {
                         PlannedEvent(it.title, null, Color.Black, it.start, it.end) {}
                     }
+                }
+                val eventsMap = events.groupBy { it.first }.mapValues { (_, lists) ->
+                    lists.flatMap { it.second }
                 }
                 Box(
                     modifier = Modifier
@@ -171,7 +175,7 @@ fun MainView(viewModel: IMainViewModel) {
                         .background(LightBlue)
                         .border(2.dp, Blue, RoundedCornerShape(16.dp))
                 ) {
-                    CalendarWeek(Modifier, events = events)
+                    CalendarWeek(Modifier, events = eventsMap)
                 }
             } else {
                 val events = viewModel.unitsToday.map {
@@ -243,15 +247,17 @@ fun MainView(viewModel: IMainViewModel) {
         clickedEvent?.let { unit ->
             Dialog({ clickedEvent = null }) {
                 Column {
+                    val start = unit.date.atTime(unit.start)
+                    val end = unit.date.atTime(unit.end)
                     val now = Clock.System.now()
-                        .toLocalDateTime(TimeZone.currentSystemDefault()).time
-                    if (unit.end >= now) {
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                    if (end >= now) {
                         SimpleMenuAndAdditionsButton("Move automatically") {
                             viewModel.moveUnitAutomatically(unit)
                             clickedEvent = null
                         }
                     }
-                    if (now in unit.start..unit.end) {
+                    if (now in start..end) {
                         SimpleMenuAndAdditionsButton("Mark finished early") {
                             viewModel.marksAsFinished(unit)
                             clickedEvent = null
@@ -467,6 +473,7 @@ data class PlannedUnit(
     val title: String,
     val description: String,
     val color: Color,
+    val date: LocalDate,
     val start: LocalTime,
     val end: LocalTime,
 )
@@ -523,6 +530,7 @@ class MainViewModel(
                     unit.task.data.title,
                     unit.task.data.module.data.title,
                     unit.task.data.module.data.color,
+                    unit.date,
                     unit.start,
                     unit.end
                 ))

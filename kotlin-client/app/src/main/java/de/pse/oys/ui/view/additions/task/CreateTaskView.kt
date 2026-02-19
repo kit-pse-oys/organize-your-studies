@@ -707,7 +707,7 @@ class EditTaskViewModel(
 
     override fun delete() {
         viewModelScope.launch {
-            api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let {
+            api.deleteTask(uuid).defaultHandleError(navController) { error = true }?.let { uuid ->
                 withContext(Dispatchers.Main.immediate) {
                     registerNewTask(uuid, null)
                 }
