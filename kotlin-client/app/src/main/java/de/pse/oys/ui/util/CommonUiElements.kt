@@ -203,6 +203,31 @@ fun SimpleMenuAndAdditionsButton(label: String, onClick: () -> Unit) {
 }
 
 /**
+ * Creates a simple smaller button.
+ * @param label the label to be displayed.
+ * @param onClick the function to be called when the button is clicked.
+ */
+@Composable
+fun SimpleButtonSmall(label: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 20.dp)
+            .height(40.dp),
+        shape = RoundedCornerShape(40.dp),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue)
+    ) {
+        Text(
+            text = label,
+            style = typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+    }
+}
+
+/**
  * Creates a checkbox with clickable text.
  * @param text the text to be displayed next to the checkbox.
  * @param checked the current state of the checkbox.

@@ -67,7 +67,7 @@ import de.pse.oys.ui.theme.Typography
 import de.pse.oys.ui.util.CalendarDay
 import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
-import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
+import de.pse.oys.ui.util.SimpleButtonSmall
 import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
@@ -246,27 +246,54 @@ fun MainView(viewModel: IMainViewModel) {
 
         clickedEvent?.let { unit ->
             Dialog({ clickedEvent = null }) {
-                Column {
-                    val start = unit.date.atTime(unit.start)
-                    val end = unit.date.atTime(unit.end)
-                    val now = Clock.System.now()
-                        .toLocalDateTime(TimeZone.currentSystemDefault())
-                    if (end > now) {
-                        SimpleMenuAndAdditionsButton(stringResource(R.string.move_automatically_button)) {
-                            viewModel.moveUnitAutomatically(unit)
-                            clickedEvent = null
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = Blue,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            color = unit.color,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val start = unit.date.atTime(unit.start)
+                        val end = unit.date.atTime(unit.end)
+                        val now = Clock.System.now()
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                        Text(
+                            unit.title,
+                            style = typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            unit.start.toString() + " - " + unit.end.toString(),
+                            style = typography.bodySmall,
+                            color = Color.White
+                        )
+                        if (end > now) {
+                            SimpleButtonSmall(stringResource(R.string.move_automatically_button)) {
+                                viewModel.moveUnitAutomatically(unit)
+                                clickedEvent = null
+                            }
                         }
-                    }
-                    if (now > end) {
-                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_missed_button)) {
-                            viewModel.marksAsMissed(unit)
-                            clickedEvent = null
+                        if (now > end) {
+                            SimpleButtonSmall(stringResource(R.string.mark_as_missed_button)) {
+                                viewModel.marksAsMissed(unit)
+                                clickedEvent = null
+                            }
                         }
-                    }
-                    if (now in start..end) {
-                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_finished_early_button)) {
-                            viewModel.marksAsFinished(unit)
-                            clickedEvent = null
+                        if (now in start..end) {
+                            SimpleButtonSmall(stringResource(R.string.mark_as_finished_early_button)) {
+                                viewModel.marksAsFinished(unit)
+                                clickedEvent = null
+                            }
                         }
                     }
                 }

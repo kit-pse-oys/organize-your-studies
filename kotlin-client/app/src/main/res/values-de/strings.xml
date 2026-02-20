@@ -41,7 +41,7 @@
     <string name="task">Aufgabe</string>
     <string name="freetime">Freizeit</string>
     <string name="new_module">Neues Modul</string>
-    <string name="new_task">Neues Aufgabe</string>
+    <string name="new_task">Neue Aufgabe</string>
     <string name="new_freetime">Neue Freizeit</string>
     <string name="edit_freetime">Freizeit bearbeiten</string>
     <string name="save_changes_button">Änderungen Speichern</string>
@@ -132,7 +132,7 @@
     <string name="week_plan_header">Dein Plan für diese Woche:</string>
     <string name="upcoming_units_header">Deine Einheiten für morgen:</string>
     <string name="days_template">%1$d Tage</string>
-    <string name="planer_switch_weekly">Wöchentlicher Plan</string>
+    <string name="planer_switch_weekly">Wochenplan</string>
     <string name="planer_switch_daily">Täglicher Plan</string>
     <string name="no_upcomig_units_available">Du hast für morgen keine Einheiten.</string>
     <string name="move_automatically_button">Automatisch verschieben</string>
