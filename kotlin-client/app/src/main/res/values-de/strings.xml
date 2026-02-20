@@ -130,7 +130,7 @@
     <string name="sign_in_with_google_button">Mit Google anmelden</string>
     <string name="day_plan_header">Dein Plan für Heute:</string>
     <string name="week_plan_header">Dein Plan für diese Woche:</string>
-    <string name="upcoming_units_header">Deine Einheiten für morgen:</string>
+    <string name="upcoming_units_header">Deine nächsten Einheiten:</string>
     <string name="days_template">%1$d Tage</string>
     <string name="planer_switch_weekly">Wochenplan</string>
     <string name="planer_switch_daily">Täglicher Plan</string>

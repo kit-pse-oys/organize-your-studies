@@ -69,6 +69,7 @@ import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
 import de.pse.oys.ui.util.SimpleButtonSmall
 import de.pse.oys.ui.util.ViewHeader
+import de.pse.oys.ui.util.toFormattedString
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DateTimePeriod
@@ -231,12 +232,34 @@ fun MainView(viewModel: IMainViewModel) {
                             )
                         }
                     } else {
+                        items(viewModel.unitsToday) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val now = Clock.System.now()
+                                    .toLocalDateTime(TimeZone.currentSystemDefault()).time
+                                if (it.start > now) {
+                                    UpcomingUnitField(
+                                        it.title,
+                                        it.start.toString(),
+                                        it.end.toString(),
+                                        it.date.toFormattedString()
+                                    )
+                                }
+                            }
+                        }
                         items(viewModel.unitsTomorrow) {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                UpcomingUnitField(it.title, it.start.toString(), it.end.toString())
+                                UpcomingUnitField(
+                                    it.title,
+                                    it.start.toString(),
+                                    it.end.toString(),
+                                    it.date.toFormattedString()
+                                )
                             }
                         }
                     }
@@ -253,8 +276,8 @@ fun MainView(viewModel: IMainViewModel) {
                             shape = RoundedCornerShape(20.dp)
                         )
                         .border(
-                            width = 3.dp,
-                            color = unit.color,
+                            width = 2.dp,
+                            color = Color.White,
                             shape = RoundedCornerShape(20.dp)
                         )
                 ) {
@@ -414,7 +437,7 @@ private fun RateUnitsButton(onClick: () -> Unit) {
  * @param end the end time of the unit.
  */
 @Composable
-private fun UpcomingUnitField(title: String, start: String, end: String) {
+private fun UpcomingUnitField(title: String, start: String, end: String, date: String) {
     Box(
         modifier = Modifier
             .padding(bottom = 10.dp)
@@ -440,7 +463,7 @@ private fun UpcomingUnitField(title: String, start: String, end: String) {
                     color = Color.White
                 )
                 Text(
-                    "$start - $end",
+                    "$date, $start - $end",
                     style = typography.bodySmall,
                     fontWeight = FontWeight.Bold,
                     color = LightBlue

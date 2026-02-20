@@ -130,7 +130,7 @@
     <string name="sign_in_with_google_button">Sign in with Google</string>
     <string name="day_plan_header">Your Plan for Today:</string>
     <string name="week_plan_header">Your Plan for this Week:</string>
-    <string name="upcoming_units_header">Your Units for tomorrow:</string>
+    <string name="upcoming_units_header">Your upcoming Units:</string>
     <string name="minutes_template" translatable="false">%1$d min</string>
     <string name="amount_template" translatable="false">%1$d</string>
     <string name="days_template">%1$d days</string>
