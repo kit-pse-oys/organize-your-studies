@@ -116,32 +116,6 @@ public class LearningUnit {
     }
 
     /**
-     * Prüft, ob sich diese Lerneinheit zeitlich mit einer anderen Einheit überschneidet.
-     * Eine Überschneidung liegt vor, wenn der Start dieser Einheit vor dem Ende der anderen
-     * liegt UND das Ende dieser Einheit nach dem Start der anderen liegt.
-     *
-     * @param other Die andere Lerneinheit, die geprüft werden soll.
-     * @return true, wenn eine zeitliche Überschneidung vorliegt.
-     */
-    public boolean isOverlapping(LearningUnit other) {
-        if (other == null) return false;
-        return this.startTime.isBefore(other.getEndTime()) &&
-                this.endTime.isAfter(other.getStartTime());
-    }
-
-    /**
-     * Berechnet die ursprünglich geplante Dauer der Einheit in Minuten.
-     *
-     * @return Die Differenz zwischen Start- und Endzeitpunkt in Minuten.
-     */
-    public long getPlannedDuration() {
-        if (startTime == null || endTime == null) {
-            return 0;
-        }
-        return Duration.between(startTime, endTime).toMinutes();
-    }
-
-    /**
      * Gibt an, ob für diese Lerneinheit bereits eine Bewertung durch den Nutzer vorliegt.
      *
      * @return true, wenn ein UnitRating-Objekt verknüpft ist.
@@ -204,9 +178,6 @@ public class LearningUnit {
 
     /** @param endTime Der neue Endzeitpunkt. */
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
-
-    /** @param status Der neue Status der Einheit. */
-    public void setStatus(UnitStatus status) { this.status = status; }
 
     /**
      * Setzt die Bewertung der Lerneinheit und markiert sie als abgeschlossen.

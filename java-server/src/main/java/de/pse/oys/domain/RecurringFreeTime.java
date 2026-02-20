@@ -106,11 +106,4 @@ public class RecurringFreeTime extends FreeTime {
     public DayOfWeek getDayOfWeek() {
         return dayOfWeek;
     }
-
-    /**
-     * @param dayOfWeek Der neue Wochentag für die regelmäßige Wiederholung.
-     */
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
 }

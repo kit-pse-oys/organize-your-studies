@@ -104,26 +104,6 @@ public abstract class FreeTime {
     public abstract void applyDtoDate(LocalDate date);
 
     /**
-     * Berechnet die Dauer des Freizeitblocks in Minuten.
-     * @return Dauer in Minuten.
-     */
-    public long getDurationInMinutes() {
-        if (startTime == null || endTime == null) {
-            return 0;
-        }
-        return Duration.between(startTime, endTime).toMinutes();
-    }
-
-    /**
-     * Prüft, ob der Zeitraum logisch konsistent ist (Start vor Ende).
-     * @return true, wenn Startzeit chronologisch vor Endzeit liegt.
-     */
-    public boolean isValidTimeRange() {
-        return startTime != null && endTime != null && startTime.isBefore(endTime);
-    }
-
-
-    /**
      * Prüft, ob dieser Freizeitblock wöchentlich wiederkehrend ist.
      *
      * @return {@code true}, wenn {@link #getRecurrenceType()} {@link RecurrenceType#WEEKLY} liefert,

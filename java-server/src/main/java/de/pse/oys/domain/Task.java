@@ -1,5 +1,6 @@
 package de.pse.oys.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.pse.oys.domain.enums.TaskCategory;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -78,7 +79,7 @@ public abstract class Task {
      */
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "moduleid", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
     private Module module;
 
     /**
@@ -113,16 +114,6 @@ public abstract class Task {
     public LocalDateTime getSoftDeadline(int bufferDays) {
         LocalDateTime hard = getHardDeadline();
         return (hard != null) ? hard.minusDays(bufferDays) : null;
-    }
-
-    /**
-     * Prüft, ob der aktuelle Zeitpunkt bereits nach der weichen Deadline liegt.
-     * @param bufferDays Die Anzahl der Tage, die als Puffer dienen.
-     * @return true, wenn die weiche Deadline überschritten wurde.
-     */
-    public boolean isPastSoftDeadline(int bufferDays) {
-        LocalDateTime soft = getSoftDeadline(bufferDays);
-        return (soft != null) && LocalDateTime.now().isAfter(soft);
     }
 
     /** @return true, wenn die Aufgabe aktiv ist und bearbeitet werden kann. */

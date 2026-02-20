@@ -53,9 +53,6 @@ public abstract class User {
     /** Sicherheits-Hash des aktuell gültigen Refresh-Tokens. */
     private String refreshTokenHash;
 
-    /** Zeitpunkt, an dem der Refresh-Token seine Gültigkeit verliert. */
-    private LocalDateTime refreshTokenExpiration;
-
     /** Art des Benutzerkontos (LOCAL oder AUTH). */
     @Enumerated(EnumType.STRING)
     private UserType userType;
@@ -107,27 +104,6 @@ public abstract class User {
         LearningPlan plan = new LearningPlan(start, end);
         this.learningPlans.add(plan);
     }
-
-    /**
-     * Überprüft, ob der aktuell gespeicherte Hash des Refresh-Tokens noch gültig ist[cite: 810, 811].
-     * @return true, wenn der Token noch nicht abgelaufen ist.
-     */
-    public boolean isRefreshTokenValid() {
-        return refreshTokenHash != null &&
-                refreshTokenExpiration != null &&
-                refreshTokenExpiration.isAfter(LocalDateTime.now());
-    }
-
-    /**
-     * Aktualisiert den Sicherheits-Hash des Refresh-Tokens und setzt das Ablaufdatum neu[cite: 812, 813].
-     * @param newHash Neuer Hash-Wert.
-     * @param durationDays Gültigkeitsdauer in Tagen.
-     */
-    public void updateRefreshToken(String newHash, int durationDays) {
-        this.refreshTokenHash = newHash;
-        this.refreshTokenExpiration = LocalDateTime.now().plusDays(durationDays);
-    }
-
     /**
      * Gibt die Liste der Freizeiten zurück.
      * @return Liste der Freizeiten
