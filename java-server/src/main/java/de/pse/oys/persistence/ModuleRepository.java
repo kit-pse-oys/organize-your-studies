@@ -35,6 +35,4 @@ public interface ModuleRepository extends JpaRepository<Module, UUID> {
      * @return Optional mit dem Modul, falls die Kombination existiert
      */
     Optional<Module> findByModuleIdAndUser_UserId(UUID moduleId, UUID userId);
-
-    UUID user(User user);
 }

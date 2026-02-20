@@ -19,15 +19,6 @@ import java.util.UUID;
 public interface LearningPlanRepository extends JpaRepository<LearningPlan, UUID> {
 
     /**
-     * Lädt einen Lernplan nur dann, wenn er dem angegebenen User gehört.
-     *
-     * @param planId ID des Lernplans
-     * @param userId ID des Users
-     * @return Optional mit der gefundenen LearningPlan oder leer, wenn keine gefunden wurde.
-     */
-    Optional<LearningPlan> findByPlanIdAndUserId(UUID planId, UUID userId);
-
-    /**
      * Findet den Lernplan eines Users für eine konkrete Startwoche.
      *
      * @param userId    ID des Users
