@@ -96,7 +96,7 @@ public abstract class FreeTime {
      * Aktualisiert subtype-spezifische Felder anhand des DTO-Datums.
      * - SingleFreeTime: setzt das konkrete Datum
      * - RecurringFreeTime: setzt den Wochentag (aus date.getDayOfWeek())
-     *
+     * <p>
      * Hinweis: Diese Methode führt KEINEN Typwechsel durch.
      *
      * @param date Das neue Datum aus dem DTO.

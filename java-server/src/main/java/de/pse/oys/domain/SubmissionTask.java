@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 
 /**
  * Repräsentiert eine Aufgabe mit wiederkehrenden Abgaben.
- *
+ * <p>
  * Konzept:
  * - firstDeadline: "allererste Deadline" (Anchor)
  * - cycleWeeks: alle x Wochen wiederholt sich die Deadline

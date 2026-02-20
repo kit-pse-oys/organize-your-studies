@@ -7,7 +7,7 @@ import java.time.DayOfWeek;
 
 /**
  * JPA-Converter für {@link DayOfWeek}.
- *
+ * <p>
  * Speichert {@link DayOfWeek} als String in der Datenbank
  * und konvertiert den gespeicherten Wert beim Laden wieder zurück.
  */
@@ -17,7 +17,7 @@ public class DayOfWeekStringConverter implements AttributeConverter<DayOfWeek, S
     /**
      * Konvertiert den Entity-Wert in den Datenbankwert.
      *
-     * @param {@link DayOfWeek}
+     * @param attribute der gegebene Wochentag
      * @return String-Repräsentation für die DB oder {@code null}
      */
     @Override

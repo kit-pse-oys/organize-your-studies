@@ -5,7 +5,7 @@ import java.time.LocalTime;
 
 /**
  * DTO für FreeTime in API-Responses.
- *
+ * <p>
  * Hinweis zur Bedeutung von "date":
  * - weekly=false: echtes Datum der einmaligen Freizeit
  * - weekly=true : Datum dient nur dazu, den Wochentag zu transportieren (getDayOfWeek()).
