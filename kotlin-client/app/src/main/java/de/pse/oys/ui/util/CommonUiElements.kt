@@ -213,7 +213,7 @@ fun SimpleButtonSmall(label: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 20.dp)
+            .padding(vertical = 4.dp, horizontal = 20.dp)
             .height(40.dp),
         shape = RoundedCornerShape(40.dp),
         colors = ButtonDefaults.outlinedButtonColors(containerColor = LightBlue)
