@@ -286,25 +286,14 @@ private fun ModuleSelection(viewModel: ICreateTaskViewModel) {
 @Composable
 private fun TimeLoadSelection(viewModel: ICreateTaskViewModel) {
     var showTimeLoadPicker by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier
-            .padding(start = 20.dp, bottom = 10.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            stringResource(id = R.string.enter_weekly_time_load),
-            style = typography.titleLarge,
-            modifier = Modifier.padding(end = 20.dp)
+    InputLabel(stringResource(id = R.string.enter_weekly_time_load))
+    OutlinedButton(
+        onClick = { showTimeLoadPicker = true },
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = LightBlue,
         )
-        OutlinedButton(
-            onClick = { showTimeLoadPicker = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = LightBlue,
-            )
-        ) {
-            Text(text = viewModel.weeklyTimeLoad.toFormattedTimeString())
-        }
+    ) {
+        Text(text = viewModel.weeklyTimeLoad.toFormattedTimeString())
     }
 
     if (showTimeLoadPicker) {
