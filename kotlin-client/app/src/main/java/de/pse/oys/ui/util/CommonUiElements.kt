@@ -143,8 +143,7 @@ fun SingleLineInput(
         isError = tooLong,
         modifier = Modifier
             .fillMaxWidth(0.9f)
-            .padding(bottom = 14.dp)
-            .height(50.dp),
+            .padding(bottom = 14.dp),
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = LightBlue,
