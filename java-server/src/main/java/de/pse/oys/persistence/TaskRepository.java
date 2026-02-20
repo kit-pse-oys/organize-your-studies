@@ -33,13 +33,4 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
      * @return Task, falls existent und dem User zugehörig
      */
     Optional<Task> findByTaskIdAndModuleUserUserId(UUID taskId, UUID userId);
-
-    /**
-     * Findet alle Tasks, die zu einem bestimmten Modul gehören.
-     *
-     * @param userId   ID des Users
-     * @param moduleId ID des Moduls
-     * @return Liste der Tasks des Moduls innerhalb des User-Scopes
-     */
-    List<Task> findAllByModuleModuleIdAndModuleUserUserId(UUID moduleId, UUID userId);
 }
