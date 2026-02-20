@@ -47,11 +47,11 @@ docker-compose.yml               # Docker Compose Setup File (Server + Microserv
 ## Inbetriebnahme - Client
 1. Öffnen Sie Android Studio und wählen Sie "Open from Version Control". Wählen Sie das geklonte Repository-Verzeichnis `kotlin-client` aus. (Android Studio hat möglicherweise Probleme damit ein Multi-Module Projekt zu öffnen, daher der Umweg über das Unterverzeichnis.)
 2. Warten Sie, bis Android Studio alle Abhängigkeiten heruntergeladen und das Projekt synchronisiert hat.
-3. Setzten sie die notwendigen Umgebungsvariablen im Code bzw. der `local.properties` Datei im `kotlin-client/` Verzeichnis:
+3. Setzten Sie, falls benötigt die notwendigen zusätzlichen Umgebungsvariablen im Code bzw. der `local.properties` Datei im `kotlin-client/` Verzeichnis:
 4. Verbinden Sie Ihr Android-Gerät oder starten Sie einen Emulator.
 5. Klicken Sie auf "Run" (grüner Pfeil) in Android Studio, um die App auf Ihrem Gerät/Emulator zu installieren und zu starten.
 
-Alternativ kann die beigefügte APK direkt installiert werden.
+**Alternativ kann die beigefügte APK direkt installiert werden.**
 
 ## Inbetriebnahme - Server, Microservice und Datenbank
 Das Backend besteht aus einem Java-Server, einem Python-Microservice und einer PostgreSQL-Datenbank. Diese Komponenten werden mittels Docker Compose orchestriert. Daher müssen Docker und Docker Compose auf dem Server installiert sein. Die Docker verwalten die Abhängigkeiten und die Laufzeitumgebung für alle drei Komponenten.

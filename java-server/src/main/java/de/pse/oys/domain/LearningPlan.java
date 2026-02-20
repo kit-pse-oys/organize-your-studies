@@ -45,7 +45,7 @@ public class LearningPlan {
      * Liste der im Plan enthaltenen Lerneinheiten.
      * Realisiert über die Verbindungstabelle 'plan_units'.
      */
-    @OneToMany //FIXME Lässt aktuell zu das löschen im lernplan es NICHT komplett löscht
+    @OneToMany
     @JoinColumn(name = "planid")
     private List<LearningUnit> units = new ArrayList<>();
 
@@ -70,18 +70,6 @@ public class LearningPlan {
         this.weekStart = start;
         this.weekEnd = end;
     }
-
-    /**
-     * Filtert alle Einheiten des Plans für ein bestimmtes Datum.
-     * @param date Das angefragte Datum.
-     * @return Liste der Einheiten, die am angefragten Tag stattfinden.
-     */
-    public List<LearningUnit> getUnitsForDay(LocalDate date) {
-        return units.stream()
-                .filter(unit -> unit.getStartTime().toLocalDate().equals(date))
-                .collect(Collectors.toList());
-    }
-
     // Getter & Setter
 
     /** @return Die eindeutige Kennung des Lernplans. */

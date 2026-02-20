@@ -88,7 +88,7 @@ class PlanningServiceTest {
 
         ReflectionTestUtils.setField(planningService, "planningMicroserviceUrl", "http://localhost:5001/optimize");
 
-        // --- 1. LEARNING PREFERENCES MOCKEN ---
+        //Learning preferences
 
         lenient().when(testPreferences.getMinUnitDurationMinutes()).thenReturn(30);
         lenient().when(testPreferences.getMaxUnitDurationMinutes()).thenReturn(90);
@@ -97,13 +97,13 @@ class PlanningServiceTest {
         lenient().when(testPreferences.getPreferredTimeSlots()).thenReturn(Set.of(TimeSlot.MORNING));
         lenient().when(testPreferences.getPreferredDays()).thenReturn(Set.of(DayOfWeek.values()));
 
-        // --- 2. USER MOCKEN ---
+        // User mock
 
         lenient().when(testUser.getId()).thenReturn(userId);
         lenient().when(testUser.getPreferences()).thenReturn(testPreferences);
         lenient().when(testUser.getFreeTimes()).thenReturn(new ArrayList<>());
 
-        // --- 3. TASK MOCKEN ---
+        // Task mock
 
         lenient().when(testTask.isActive()).thenReturn(true);
         lenient().when(testTask.getTaskId()).thenReturn(taskId);
@@ -113,7 +113,7 @@ class PlanningServiceTest {
         lenient().when(testTask.getSoftDeadline(anyInt()))
                 .thenReturn(LocalDate.of(2026, 1, 30).atTime(12, 0));
 
-        // --- 4. REPOSITORYDEFINIEREN ---
+        // Repos Mock
         lenient().when(taskRepository.save(any(Task.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -141,7 +141,7 @@ class PlanningServiceTest {
 
 
         PlanningResponseDTO responseItem = new PlanningResponseDTO();
-        responseItem.setId(taskId.toString() + "_0");
+        responseItem.setId(taskId+ "_0");
         responseItem.setStart(72); // 06:00 Uhr
         responseItem.setEnd(87);   // 07:00 Uhr + pause
 
@@ -171,6 +171,8 @@ class PlanningServiceTest {
 
         verify(learningPlanRepository, times(1)).save(any(LearningPlan.class));
     }
+    /** Testet, ob die Pause korrekt in die Anfrage an den Solver integriert wird und nicht in der persistierten Lerneinheit bleibt.
+     */
 
     @Test
     void generateWeeklyPlan_ShouldAddPaddingToRequest_AndRemoveItFromPersistence() {
@@ -214,7 +216,7 @@ class PlanningServiceTest {
         PlanningTaskDTO sentTask = request.getTasks().get(0);
 
         assertTrue(sentTask.getDuration() >= 15,
-                "Der Request an Python muss die Pause beinhalten (mind. 15 Slots bei 75min)");
+                "Der Request an Python muss die Pause beinhalten mind. 15 Slots bei 75min");
 
         ArgumentCaptor<LearningPlan> planCaptor = ArgumentCaptor.forClass(LearningPlan.class);
 
@@ -223,7 +225,7 @@ class PlanningServiceTest {
         List<LearningPlan> capturedPlans = planCaptor.getAllValues();
         LearningPlan finalPlan = capturedPlans.get(capturedPlans.size() - 1);
 
-        assertFalse(finalPlan.getUnits().isEmpty(), "Die Liste der Units darf nicht leer sein!");
+        assertFalse(finalPlan.getUnits().isEmpty(), "Die Liste der Units darf nicht leer sein");
         LearningUnit savedUnit = finalPlan.getUnits().get(0);
         assertEquals(LocalDateTime.of(weekStart, LocalTime.of(6, 0)), savedUnit.getStartTime());
 
@@ -231,7 +233,7 @@ class PlanningServiceTest {
         LocalDateTime expectedEnd = LocalDateTime.of(weekStart, LocalTime.of(7, 0));
 
         assertEquals(expectedEnd, savedUnit.getEndTime(),
-                "In der DB darf die Pause NICHT enthalten sein. Ende muss 07:00 sein, nicht 07:15.");
+                "In der DB darf die Pause nicht enthalten sein. Ende muss 07:00 sein");
     }
 
 
@@ -247,17 +249,19 @@ class PlanningServiceTest {
         LearningUnit unitToMoveMock = mock(LearningUnit.class);
 
         lenient().when(unitToMoveMock.getUnitId()).thenReturn(unitIdToMove);
+
         lenient().when(unitToMoveMock.getTask()).thenReturn(testTask);
+
         lenient().when(unitToMoveMock.getStartTime()).thenReturn(weekStart.atTime(10, 0));
+
         lenient().when(unitToMoveMock.getEndTime()).thenReturn(weekStart.atTime(11, 0));
 
         LearningUnit otherUnitMock = mock(LearningUnit.class);
 
-
         lenient().when(otherUnitMock.getUnitId()).thenReturn(otherUnitId);
 
-
         lenient().when(otherUnitMock.getStartTime()).thenReturn(weekStart.atTime(12, 0));
+
         lenient().when(otherUnitMock.getEndTime()).thenReturn(weekStart.atTime(13, 0));
 
 
@@ -283,23 +287,29 @@ class PlanningServiceTest {
                 any(ParameterizedTypeReference.class)
         )).thenReturn(ResponseEntity.ok(List.of(response)));
 
-
         planningService.rescheduleUnit(userId, unitIdToMove);
 
 
         verify(restTemplate).exchange(
+
+
                 anyString(),
                 eq(HttpMethod.POST),
                 requestCaptor.capture(),
                 any(ParameterizedTypeReference.class)
+
         );
 
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-
-        boolean otherUnitBlocked = request.getFixed_blocks().stream()
-                .anyMatch(b -> b.getStart() == 144);
-        assertTrue(otherUnitBlocked);
+        boolean isBlocked = false;
+        for (var block : request.getFixed_blocks()) {
+            if (block.getStart() == 144) {
+                isBlocked = true;
+                break;
+            }
+        }
+        assertTrue(isBlocked);
 
 
         verify(unitToMoveMock).setStartTime(any());
@@ -308,6 +318,10 @@ class PlanningServiceTest {
         verify(learningPlanRepository).save(existingPlanMock);
     }
 
+    /**
+     * Testet, ob bei der Verschiebung einer Lerneinheit die alten Zeiten blockiert werden, um eine zwingende Verschiebung zu erzwingen.
+        * Außerdem wird überprüft, ob die Kostenmatrix mit einer Strafe für den alten Slot aktualisiert wird.
+     */
     @Test
     void rescheduleUnit_ShouldForceMoveAndLearnPreferences() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
@@ -332,6 +346,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
         when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
                 .thenReturn(Optional.of(existingPlanMock));
 
@@ -365,14 +380,19 @@ class PlanningServiceTest {
 
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        boolean oldSlotBlocked = request.getFixed_blocks().stream()
-                .anyMatch(b -> b.getStart() == 120);
-
-        assertTrue(oldSlotBlocked,
-                "Der alte Slot (10:00 Uhr) MUSS blockiert sein, damit der Solver zwingend verschiebt!");
+        boolean oldSlotBlocked = false;
+        for (var block : request.getFixed_blocks()) {
+            if (block.getStart() == 120) {
+                oldSlotBlocked = true;
+                break;
+            }
+        }
+        assertTrue(oldSlotBlocked, "Der alte Slot 10:00 Uhr muss blockiert sein");
 
 
         verify(unitToMoveMock).setStartTime(any());
+
         verify(learningPlanRepository).save(existingPlanMock);
+
     }
 }

@@ -1,5 +1,6 @@
 package de.pse.oys.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.pse.oys.domain.enums.ModulePriority;
 import jakarta.persistence.*;
 
@@ -47,7 +48,7 @@ public class Module {
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
     private User user;
 
     /**

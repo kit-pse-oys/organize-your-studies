@@ -97,27 +97,6 @@ public class LearningPreferences {
         this.preferredTimeSlots = preferredTimeSlots != null ? preferredTimeSlots : new HashSet<>();
         this.preferredDays = preferredDays != null ? preferredDays : new HashSet<>();
     }
-
-    /**
-     * Fügt einen bevorzugten Zeitslot zur Liste hinzu.
-     * @param slot Der hinzuzufügende {@link TimeSlot}.
-     */
-    public void addSlot(TimeSlot slot) {
-        if (!this.preferredTimeSlots.contains(slot)) {
-            this.preferredTimeSlots.add(slot);
-        }
-    }
-
-    /**
-     * Entfernt einen bevorzugten Zeitslot aus der Liste.
-     * @param slot Der zu entfernende {@link TimeSlot}.
-     */
-    public void removeSlot(TimeSlot slot) {
-        this.preferredTimeSlots.remove(slot);
-    }
-
-
-
     // --- Getter, Setter & Helper ---
 
     /** @return Die Menge der bevorzugten Wochentage für Lerneinheiten. */
@@ -136,16 +115,6 @@ public class LearningPreferences {
     /** @param preferredDays Die neu zu setzende Menge an bevorzugten Wochentagen. */
     public void setPreferredDays(Set<DayOfWeek> preferredDays) {
         this.preferredDays = preferredDays;
-    }
-
-    /** @param day Ein Wochentag, der zu den bevorzugten Tagen hinzugefügt werden soll. */
-    public void addPreferredDay(DayOfWeek day) {
-        this.preferredDays.add(day);
-    }
-
-    /** @param day Der Wochentag, der aus den bevorzugten Tagen entfernt werden soll. */
-    public void removePreferredDay(DayOfWeek day) {
-        this.preferredDays.remove(day);
     }
 
     /** @return Die eindeutige Kennung dieser Präferenz-Konfiguration. */

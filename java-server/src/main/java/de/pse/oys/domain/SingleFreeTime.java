@@ -84,15 +84,6 @@ public class SingleFreeTime extends FreeTime {
     public void applyDtoDate(LocalDate date) {
         this.date = date;
     }
-
-    /**
-     * Überprüft, ob der Termin der einmaligen Freizeit bereits in der Vergangenheit liegt.
-     * @return true, wenn das Datum vor dem heutigen Systemdatum liegt.
-     */
-    public boolean isPast() {
-        return date != null && date.isBefore(LocalDate.now());
-    }
-
     //GETTER UND SETTER
 
     /**
@@ -100,12 +91,5 @@ public class SingleFreeTime extends FreeTime {
      */
     public LocalDate getDate() {
         return date;
-    }
-
-    /**
-     * @param date Das neue Datum für diesen Freizeitblock.
-     */
-    public void setDate(LocalDate date) {
-        this.date = date;
     }
 }
