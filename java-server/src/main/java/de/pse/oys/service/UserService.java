@@ -29,7 +29,7 @@ public class UserService {
     private static final String ERROR_PASSWORD_TOO_SHORT = "Passwort zu kurz.";
 
     // --- Konstanten für Validierungswerte ---
-    private static final int MIN_USERNAME_LENGTH = 3;
+    private static final int MIN_USERNAME_LENGTH = 4;
     private static final int MIN_PASSWORD_LENGTH = 8;
 
     private final UserRepository userRepository;
@@ -98,10 +98,10 @@ public class UserService {
      * @param dto Die zu prüfenden Daten.
      */
     private void validateRegistration(LoginDTO dto) {
-        if (dto.getUsername() == null || dto.getUsername().length() <= MIN_USERNAME_LENGTH) {
+        if (dto.getUsername() == null || dto.getUsername().length() < MIN_USERNAME_LENGTH) {
             throw new IllegalArgumentException(ERROR_USERNAME_TOO_SHORT);
         }
-        if (dto.getPassword() == null || dto.getPassword().length() <= MIN_PASSWORD_LENGTH) {
+        if (dto.getPassword() == null || dto.getPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(ERROR_PASSWORD_TOO_SHORT);
         }
     }

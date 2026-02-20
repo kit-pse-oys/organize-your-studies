@@ -45,11 +45,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.SavedStateHandle
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
-import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.NavController
 import de.pse.oys.R
 import de.pse.oys.data.api.RemoteAPI
@@ -69,11 +67,13 @@ import de.pse.oys.ui.theme.Typography
 import de.pse.oys.ui.util.CalendarDay
 import de.pse.oys.ui.util.CalendarEvent
 import de.pse.oys.ui.util.CalendarWeek
+import de.pse.oys.ui.util.SimpleMenuAndAdditionsButton
 import de.pse.oys.ui.util.ViewHeader
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atDate
@@ -95,6 +95,7 @@ import kotlin.uuid.Uuid
 @Composable
 fun MainView(viewModel: IMainViewModel) {
     var weeklyCalendar by remember { mutableStateOf(false) }
+    var clickedEvent by remember { mutableStateOf<PlannedUnit?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.error) {
@@ -151,14 +152,19 @@ fun MainView(viewModel: IMainViewModel) {
             )
 
             if (weeklyCalendar) {
-                val events = viewModel.units.mapValues { (_, list) ->
-                    list.map {
-                        PlannedEvent(it.title, it.description, it.color, it.start, it.end)
+                val events = viewModel.units.map { (day, list) ->
+                    day to list.map {
+                        PlannedEvent(it.title, it.description, it.color, it.start, it.end) {
+                            clickedEvent = it
+                        }
                     }
-                } + viewModel.freeTimes.mapValues { (_, list) ->
-                    list.map {
-                        PlannedEvent(it.title, null, Color.Black, it.start, it.end)
+                } + viewModel.freeTimes.map { (day, list) ->
+                    day to list.map {
+                        PlannedEvent(it.title, null, Color.Black, it.start, it.end) {}
                     }
+                }
+                val eventsMap = events.groupBy { it.first }.mapValues { (_, lists) ->
+                    lists.flatMap { it.second }
                 }
                 Box(
                     modifier = Modifier
@@ -169,13 +175,15 @@ fun MainView(viewModel: IMainViewModel) {
                         .background(LightBlue)
                         .border(2.dp, Blue, RoundedCornerShape(16.dp))
                 ) {
-                    CalendarWeek(Modifier, events = events)
+                    CalendarWeek(Modifier, events = eventsMap)
                 }
             } else {
                 val events = viewModel.unitsToday.map {
-                    PlannedEvent(it.title, it.description, it.color, it.start, it.end)
+                    PlannedEvent(it.title, it.description, it.color, it.start, it.end) {
+                        clickedEvent = it
+                    }
                 } + viewModel.freeTimesToday.map {
-                    PlannedEvent(it.title, null, Color.Black, it.start, it.end)
+                    PlannedEvent(it.title, null, Color.Black, it.start, it.end) {}
                 }
                 Box(
                     modifier = Modifier
@@ -230,6 +238,35 @@ fun MainView(viewModel: IMainViewModel) {
                             ) {
                                 UpcomingUnitField(it.title, it.start.toString(), it.end.toString())
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        clickedEvent?.let { unit ->
+            Dialog({ clickedEvent = null }) {
+                Column {
+                    val start = unit.date.atTime(unit.start)
+                    val end = unit.date.atTime(unit.end)
+                    val now = Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                    if (end > now) {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.move_automatically_button)) {
+                            viewModel.moveUnitAutomatically(unit)
+                            clickedEvent = null
+                        }
+                    }
+                    if (now > end) {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_missed_button)) {
+                            viewModel.marksAsMissed(unit)
+                            clickedEvent = null
+                        }
+                    }
+                    if (now in start..end) {
+                        SimpleMenuAndAdditionsButton(stringResource(R.string.mark_as_finished_early_button)) {
+                            viewModel.marksAsFinished(unit)
+                            clickedEvent = null
                         }
                     }
                 }
@@ -393,6 +430,7 @@ private fun UpcomingUnitField(title: String, start: String, end: String) {
  * @param color the color of the event.
  * @param start the start time of the event.
  * @param end the end time of the event.
+ * @param onClick the handler for when the event is clicked
  */
 private class PlannedEvent(
     private val title: String,
@@ -400,6 +438,7 @@ private class PlannedEvent(
     private val color: Color,
     override val start: LocalTime,
     override val end: LocalTime,
+    private val onClick: () -> Unit,
 ) : CalendarEvent {
     @Composable
     override fun Draw(modifier: Modifier) {
@@ -407,6 +446,7 @@ private class PlannedEvent(
             modifier = modifier
                 .background(color.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
                 .padding(4.dp)
+                .clickable(onClick = onClick)
         ) {
             Box(
                 modifier = Modifier
@@ -439,6 +479,7 @@ data class PlannedUnit(
     val title: String,
     val description: String,
     val color: Color,
+    val date: LocalDate,
     val start: LocalTime,
     val end: LocalTime,
 )
@@ -469,6 +510,7 @@ interface IMainViewModel {
     fun moveUnit(unit: PlannedUnit, newDay: DayOfWeek, newStart: LocalTime)
     fun moveUnitAutomatically(unit: PlannedUnit)
     fun marksAsFinished(unit: PlannedUnit)
+    fun marksAsMissed(unit: PlannedUnit)
 
     fun navigateToMenu()
     fun navigateToAdditions()
@@ -493,8 +535,9 @@ class MainViewModel(
             units.map { (id, unit) ->
                 id to (day to PlannedUnit(
                     unit.task.data.title,
-                    unit.task.data.module.data.description,
+                    unit.task.data.module.data.title,
                     unit.task.data.module.data.color,
+                    unit.date,
                     unit.start,
                     unit.end
                 ))
@@ -565,6 +608,7 @@ class MainViewModel(
     }
 
     private suspend fun reloadUnits() {
+        model.steps = null
         model.ensureUnits(api).defaultHandleError(navController) { error = true }?.let {
             updateUnits(it)
         }
@@ -616,6 +660,13 @@ class MainViewModel(
         viewModelScope.launch {
             api.markUnitFinished(uuid, actualDuration)
                 .defaultHandleError(navController) { error = true }
+        }
+    }
+
+    override fun marksAsMissed(unit: PlannedUnit) {
+        val uuid = _units[unit] ?: return
+        viewModelScope.launch {
+            api.rateUnitMissed(uuid).defaultHandleError(navController) { error = true }
         }
     }
 

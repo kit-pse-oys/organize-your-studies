@@ -65,6 +65,7 @@ public class LearningUnitService {
         moveUnitInternal(plan, unit, start, end);
 
         learningPlanRepository.save(plan);
+        //todo vllt auch noch in unit speichern
     }
 
     /**

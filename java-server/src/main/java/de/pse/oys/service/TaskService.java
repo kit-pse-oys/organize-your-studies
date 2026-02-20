@@ -5,11 +5,11 @@ import de.pse.oys.domain.Module;
 import de.pse.oys.domain.OtherTask;
 import de.pse.oys.domain.SubmissionTask;
 import de.pse.oys.domain.Task;
-import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.dto.ExamTaskDTO;
 import de.pse.oys.dto.OtherTaskDTO;
 import de.pse.oys.dto.SubmissionTaskDTO;
 import de.pse.oys.dto.TaskDTO;
+import de.pse.oys.dto.controller.WrapperDTO;
 import de.pse.oys.persistence.ModuleRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * TaskService kapselt die Geschäftslogik für Aufgaben:
@@ -46,7 +46,6 @@ public class TaskService {
     private static final String MSG_MODULE_NOT_FOUND = "Modul existiert nicht oder gehört nicht zum User.";
     private static final String MSG_TASK_NOT_FOUND = "Task existiert nicht.";
     private static final String MSG_TASK_NOT_OWNED = "Task gehört nicht zum User.";
-    private static final String MSG_CATEGORY_CHANGE_FORBIDDEN = "TaskCategory darf beim Update nicht geändert werden.";
     private static final String MSG_SUBMISSION_CYCLE_INVALID = "submissionCycle muss >= 1 sein.";
     private static final String MSG_SUBMISSION_RANGE_INVALID = "endTime muss nach firstDeadline liegen.";
     private static final String MSG_OTHER_RANGE_INVALID = "Bei sonstigen Aufgaben muss endTime größer als startTime sein.";
@@ -103,35 +102,38 @@ public class TaskService {
      * @throws ResourceNotFoundException wenn Nutzer, Modul oder Task nicht existiert
      * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
-    public TaskDTO updateTask(UUID userId, UUID taskId, TaskDTO dto) {
+    public UUID updateTask(UUID userId, UUID taskId, TaskDTO dto) {
         Objects.requireNonNull(userId, "userId");
         Objects.requireNonNull(taskId, "taskId");
         validateData(dto);
         requireUserExists(userId);
+        Task existingTask = requireOwnedTask(userId, taskId);
 
-        Task task = requireOwnedTask(userId, taskId);
+        // FALL 1: Kategorie-Wechsel (Typwechsel) -> Löschen und Neu erstellen
+        if (dto.getCategory() != existingTask.getCategory()) {
+            deleteTask(userId, taskId);
 
-        // Kategorie-Wechsel würde Typwechsel bedeuten → nicht erlaubt
-        if (dto.getCategory() != task.getCategory()) {
-            throw new ValidationException(MSG_CATEGORY_CHANGE_FORBIDDEN);
+            UUID newTaskId = createTask(userId, dto);
+
+            Task newTask = taskRepository.findById(newTaskId)
+                    .orElseThrow(() -> new ResourceNotFoundException(MSG_TASK_NOT_FOUND));
+            return newTask.getTaskId();
         }
 
+        // FALL 2: Kategorie bleibt gleich -> Normales Update (effizienter)
         Module newModule = requireOwnedModule(userId, dto.getModuleId());
-        Module oldModule = task.getModule();
+        Module oldModule = existingTask.getModule();
 
-        // Falls Modulwechsel: Collection im alten Modul aktualisieren und neues Modul setzen
         if (oldModule != null && oldModule != newModule) {
-            oldModule.deleteTask(task);
-            newModule.addTask(task);
-        } else {
-            task.setModule(newModule);
+            newModule.addTask(existingTask);
         }
 
-        task.setTitle(dto.getTitle());
-        task.setWeeklyDurationMinutes(dto.getWeeklyTimeLoad());
-        applySubtypeFields(task, dto);
+        existingTask.setTitle(dto.getTitle());
+        existingTask.setWeeklyDurationMinutes(dto.getWeeklyTimeLoad());
+        applySubtypeFields(existingTask, dto);
+        taskRepository.save(existingTask);
 
-        return mapToDto(taskRepository.save(task));
+        return existingTask.getTaskId();
     }
 
     /**

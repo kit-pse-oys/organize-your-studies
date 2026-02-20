@@ -1,16 +1,15 @@
 package de.pse.oys.service;
 
-import de.pse.oys.domain.CostMatrix;
 import de.pse.oys.domain.LearningUnit;
 import de.pse.oys.domain.Task;
 import de.pse.oys.domain.UnitRating;
 import de.pse.oys.domain.enums.AchievementLevel;
 import de.pse.oys.domain.enums.ConcentrationLevel;
 import de.pse.oys.domain.enums.PerceivedDuration;
+import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.RatingDTO;
 import de.pse.oys.persistence.CostMatrixRepository;
 import de.pse.oys.persistence.LearningUnitRepository;
-import de.pse.oys.persistence.RatingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,21 +27,16 @@ import java.util.UUID;
 @Service
 public class RatingService {
     private static final String ERR_UNIT_NOT_FOUND = "Es wurde keine Lerneinheit mit der ID %s gefunden.";
-    private static final String ERR_MATRIX_NOT_FOUND = "Keine CostMatrix für TaskId %s gefunden.";
-    private final RatingRepository ratingRepository;
     private final LearningUnitRepository learningUnitRepository;
     private final CostMatrixRepository costMatrixRepository;
 
     /**
      * Konstruktor mit Dependency Injection.
-     * @param ratingRepository das RatingRepository für das Speichern von Bewertungen.
      * @param learningUnitRepository das LearningUnitRepository für den Zugriff auf Lerneinheiten.
      * @param costMatrixRepository das CostMatrixRepository für den Zugriff auf Kostenmatrizen.
      */
-    public RatingService(RatingRepository ratingRepository,
-                         LearningUnitRepository learningUnitRepository,
+    public RatingService(LearningUnitRepository learningUnitRepository,
                          CostMatrixRepository costMatrixRepository) {
-        this.ratingRepository = ratingRepository;
         this.learningUnitRepository = learningUnitRepository;
         this.costMatrixRepository = costMatrixRepository;
     }
@@ -68,18 +62,20 @@ public class RatingService {
         ConcentrationLevel concentration = ratingDTO.getConcentration();
 
         UnitRating unitRating = new UnitRating(concentration, perceivedDuration, goalCompletion);
+        learningUnit.markAsCompleted();
         learningUnit.setRating(unitRating);
 
         // Da eine nächste Lernplanberechnung folgen kann und sich neue ungetrackte Bewertungen ergeben haben,
         // wird die zugehörige Kostenmatrix als veraltet markiert.
         Task task = learningUnit.getTask();
-        CostMatrix costMatrix = costMatrixRepository.findByTask_TaskId(task.getTaskId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format(ERR_MATRIX_NOT_FOUND, task.getTaskId())));
-        costMatrix.markAsOutdated();
-        costMatrixRepository.save(costMatrix);
 
-        // Unitrating wird durch CASCADE in LearningUnit mitgespeichert.
+        // Falls eine Kostenmatrix existiert, markiere sie als veraltet
+        costMatrixRepository.findByTask_TaskId(task.getTaskId())
+                .ifPresent(matrix -> {
+                    matrix.markAsOutdated();
+                    costMatrixRepository.save(matrix);
+                });
+
         learningUnitRepository.save(learningUnit);
     }
 
@@ -108,14 +104,12 @@ public class RatingService {
 
     public List<UUID> getRateableUnits(UUID userId) {
         Objects.requireNonNull(userId, "userId");
-        // requireUserExists(userId); // TODO (eigentlich nicht, da die userId aus dem Token kommt und damit immer gültig sein sollte)
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
                 .filter(unit -> unit.getRating() == null)
+                .filter(unit -> unit.getStatus() != UnitStatus.MISSED)
+                .filter(LearningUnit::hasPassed)
                 .map(LearningUnit::getUnitId)
                 .toList();
     }
-
-
-
 
 }

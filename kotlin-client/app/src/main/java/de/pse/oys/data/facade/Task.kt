@@ -31,6 +31,7 @@ data class SubmissionTaskData(
     override val module: Module,
     override val weeklyTimeLoad: Int,
     val firstDate: LocalDateTime,
+    val endDate: LocalDate,
     val cycle: Int,
 ) : TaskData()
 

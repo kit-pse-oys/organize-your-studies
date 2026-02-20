@@ -48,6 +48,7 @@ import de.pse.oys.data.QuestionState
 import de.pse.oys.data.Questions
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.defaultHandleError
+import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.Questionnaire
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
@@ -183,7 +184,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                 Spacer(Modifier.weight(1f))
                 SubmitButton(
                     stringResource(R.string.questionnaire_commit),
-                    true,
+                    viewModel.isValid,
                     viewModel::submitQuestionnaire
                 )
             }
@@ -198,6 +199,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
 interface IQuestionnaireViewModel {
     var error: Boolean
     val showWelcome: Boolean
+    val isValid: Boolean
 
     /**
      * Returns a observable state whether the given answer is currently selected for a question.
@@ -237,12 +239,14 @@ interface IQuestionnaireViewModel {
  */
 abstract class BaseQuestionnaireViewModel(
     private val api: RemoteAPI,
+    private val model: ModelFacade,
     protected val navController: NavController
 ) :
     ViewModel(),
     IQuestionnaireViewModel {
     override var error: Boolean by mutableStateOf(false)
     private var state: QuestionState = QuestionState()
+    override var isValid: Boolean by mutableStateOf(state.isValid)
 
     private val _selectedFlows = Questions.associateWith { question ->
         question.answers.associateWith {
@@ -261,6 +265,7 @@ abstract class BaseQuestionnaireViewModel(
 
     override fun select(question: Question, answer: Answer) {
         state.select(question, answer)
+        isValid = state.isValid
 
         _selectedFlows.getValue(question).forEach { (answer, flow) ->
             flow.value = state.selected(question, answer)
@@ -269,6 +274,7 @@ abstract class BaseQuestionnaireViewModel(
 
     protected fun updateState(newState: QuestionState) {
         state = newState
+        isValid = state.isValid
 
         _selectedFlows.forEach { (question, answers) ->
             answers.forEach { (answer, flow) ->
@@ -280,6 +286,7 @@ abstract class BaseQuestionnaireViewModel(
     override fun submitQuestionnaire() {
         viewModelScope.launch {
             api.updateQuestionnaire(state).defaultHandleError(navController) { error = true }?.let {
+                model.steps = null
                 withContext(Dispatchers.Main.immediate) {
                     navigateToMain()
                 }
@@ -298,8 +305,8 @@ abstract class BaseQuestionnaireViewModel(
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
-    BaseQuestionnaireViewModel(api, navController) {
+class FirstQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navController: NavController) :
+    BaseQuestionnaireViewModel(api, model, navController) {
     override var showWelcome by mutableStateOf(true)
 
     override fun showQuestionnaire() {
@@ -324,8 +331,8 @@ class FirstQuestionnaireViewModel(api: RemoteAPI, navController: NavController) 
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
-    BaseQuestionnaireViewModel(api, navController) {
+class EditQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navController: NavController) :
+    BaseQuestionnaireViewModel(api, model, navController) {
 
     init {
         viewModelScope.launch {
@@ -358,8 +365,9 @@ class EditQuestionnaireViewModel(api: RemoteAPI, navController: NavController) :
 fun QuestionnaireViewModel(
     firstTime: Boolean,
     api: RemoteAPI,
+    model: ModelFacade,
     navController: NavController
 ): BaseQuestionnaireViewModel {
-    return if (firstTime) FirstQuestionnaireViewModel(api, navController)
-    else EditQuestionnaireViewModel(api, navController)
+    return if (firstTime) FirstQuestionnaireViewModel(api, model, navController)
+    else EditQuestionnaireViewModel(api, model, navController)
 }

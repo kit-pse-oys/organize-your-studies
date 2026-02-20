@@ -1,6 +1,7 @@
 package de.pse.oys.task;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.pse.oys.BaseIntegrationTest;
 import de.pse.oys.domain.LearningPreferences;
 import de.pse.oys.domain.LocalUser;
 import de.pse.oys.domain.Module;
@@ -41,21 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Testcontainers
-@SpringBootTest
-@ActiveProfiles("integration")
-@AutoConfigureMockMvc
-class TaskControllerIntegrationTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-
-    @DynamicPropertySource
-    static void overrideProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
+class TaskControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
@@ -68,6 +55,8 @@ class TaskControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
+
         // 1. User anlegen
         LocalUser testUser = new LocalUser("taskUser", passwordEncoder.encode(password));
         testUser = userRepository.save(testUser);

@@ -64,6 +64,7 @@ suspend fun ModelFacade.ensureTasks(api: RemoteAPI): Response<Map<Uuid, TaskData
                     Module(modules[task.module]!!, task.module),
                     task.weeklyTimeLoad,
                     task.firstDate,
+                    task.endDate.date,
                     task.cycle
                 )
 
@@ -71,8 +72,8 @@ suspend fun ModelFacade.ensureTasks(api: RemoteAPI): Response<Map<Uuid, TaskData
                     task.title,
                     Module(modules[task.module]!!, task.module),
                     task.weeklyTimeLoad,
-                    task.start,
-                    task.end
+                    task.start.date,
+                    task.end.date
                 )
             }
         }

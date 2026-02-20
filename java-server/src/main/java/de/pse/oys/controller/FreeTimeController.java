@@ -63,7 +63,6 @@ public class FreeTimeController extends BaseController {
         UUID created = freeTimeService.createFreeTime(userId, dto);
         updatePlanAfterChange(userId, planningService);
         return ResponseEntity.ok(Map.of("id", created.toString()));
-
     }
 
     /**

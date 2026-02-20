@@ -1,9 +1,18 @@
 package de.pse.oys.service.planning;
 
-import de.pse.oys.domain.*;
+import de.pse.oys.domain.FreeTime;
+import de.pse.oys.domain.LearningPlan;
+import de.pse.oys.domain.LearningPreferences;
+import de.pse.oys.domain.LearningUnit;
+import de.pse.oys.domain.OtherTask;
+import de.pse.oys.domain.RecurringFreeTime;
+import de.pse.oys.domain.SingleFreeTime;
+import de.pse.oys.domain.Task;
+import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.RecurrenceType;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
+import de.pse.oys.domain.enums.UnitStatus;
 import de.pse.oys.dto.CostDTO;
 import de.pse.oys.dto.UnitDTO;
 import de.pse.oys.dto.plan.FixedBlockDTO;
@@ -11,6 +20,7 @@ import de.pse.oys.dto.plan.PlanningRequestDTO;
 import de.pse.oys.dto.plan.PlanningResponseDTO;
 import de.pse.oys.dto.plan.PlanningTaskDTO;
 import de.pse.oys.persistence.LearningPlanRepository;
+import de.pse.oys.persistence.LearningUnitRepository;
 import de.pse.oys.persistence.TaskRepository;
 import de.pse.oys.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +33,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -62,6 +71,7 @@ public class PlanningService {
 
     private final TaskRepository taskRepository;
     private final LearningPlanRepository learningPlanRepository;
+    private final LearningUnitRepository learningUnitRepository;
     private final UserRepository userRepository;
     private final LearningAnalyticsProvider learningAnalyticsProvider;
     private final RestTemplate restTemplate;
@@ -83,8 +93,9 @@ public class PlanningService {
                            LearningPlanRepository learningPlanRepository,
                            UserRepository userRepository,
                            LearningAnalyticsProvider learningAnalyticsProvider,
-                           RestTemplate restTemplate) {
+                           RestTemplate restTemplate, LearningUnitRepository learningUnitRepository) {
         this.taskRepository = taskRepository;
+        this.learningUnitRepository = learningUnitRepository;
         this.learningPlanRepository = learningPlanRepository;
         this.userRepository = userRepository;
         this.learningAnalyticsProvider = learningAnalyticsProvider;
@@ -105,6 +116,9 @@ public class PlanningService {
     public void generateWeeklyPlan(UUID userId) {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         User user = userRepository.findById(userId).orElse(null);
+
+        clearPlannedUnitsForReplanning(userId, weekStart);
+
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
@@ -172,7 +186,10 @@ public class PlanningService {
         LocalDateTime now = LocalDateTime.now();
         int currentSlot = calculateCurrentSlot(weekStart, now);
 
-        List<FixedBlockDTO> fixedBlocksDTO = createFixedBlocksFromExistingPlan(units, weekStart);
+
+        List<FreeTime> freeTimes = user.getFreeTimes();
+        List<FixedBlockDTO> fixedBlocksDTO = calculateFixedBlocksDTO(freeTimes, weekStart);
+        fixedBlocksDTO.addAll(createFixedBlocksFromExistingPlan(units, weekStart));
         Task parentTask = unitToReschedule.getTask();
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
@@ -219,6 +236,37 @@ public class PlanningService {
     }
 
 
+    private void clearPlannedUnitsForReplanning(UUID userId, LocalDate weekStart) {
+        List<LearningUnit> allUnits = learningUnitRepository.findAllByTask_Module_User_UserId(userId);
+
+        List<LearningUnit> unitsToDelete = allUnits.stream()
+                .filter(unit -> !unit.hasPassed())
+                .toList();
+
+        if (unitsToDelete.isEmpty()) {
+            return;
+        }
+
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart).orElse(null);
+
+        for (LearningUnit unit : unitsToDelete) {
+            if (plan != null && plan.getUnits() != null) {
+                plan.getUnits().remove(unit);
+            }
+            Task task = unit.getTask();
+            if (task != null) {
+                task.getLearningUnits().remove(unit);
+            }
+        }
+
+        if (plan != null) {
+            learningPlanRepository.save(plan);
+        }
+        learningUnitRepository.deleteAll(unitsToDelete);
+        learningUnitRepository.flush();
+    }
+
+
     private void applyPenaltyToCostMatrix(Task task, LearningUnit unit, LocalDate weekStart) {
         LocalDateTime startTime = unit.getStartTime();
         int penaltySlot = mapLocalDateTimeToSlot(startTime, weekStart);
@@ -248,7 +296,6 @@ public class PlanningService {
             if (startSlot >= 0 && durationSlots > 0) {
                 fixedBlocksDTO.add(new FixedBlockDTO(startSlot, durationSlots));
             }
-
         }
         return fixedBlocksDTO;
     }
@@ -264,19 +311,6 @@ public class PlanningService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Connection", "close");
-        // --- DEBUGGING START ---
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonDebug = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO);
-            System.out.println("========================================");
-            System.out.println("DEBUG: JSON DAS GESENDET WIRD:");
-            System.out.println(jsonDebug);
-            System.out.println("========================================");
-        } catch (Exception e) {
-            System.out.println("DEBUG ERROR: Konnte JSON nicht drucken: " + e.getMessage());
-        }
-        // --- DEBUGGING ENDE ---
-
         HttpEntity<PlanningRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
         try {
@@ -305,15 +339,18 @@ public class PlanningService {
      * @param user      Der Nutzer, dem der Lernplan zugeordnet werden soll.
      */
     private void saveLearningResults(List<PlanningResponseDTO> results, LocalDate weekStart, int breakDuration, User user) {
-        LearningPlan plan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
-        plan.setUserId(user.getId());
+        LearningPlan plan = learningPlanRepository.findByUserIdAndWeekStart(user.getId(), weekStart)
+                .orElseGet(() -> {
+                    LearningPlan newPlan = new LearningPlan(weekStart, weekStart.plusDays(DAYS_IN_WEEK_OFFSET));
+                    newPlan.setUserId(user.getId());
+                    return newPlan;
+                });
 
         List<LearningUnit> newLearningUnits = new ArrayList<>();
 
         for (PlanningResponseDTO result : results) {
             String id = result.getId();
-            String originalTaskIdStr = id.split(ID_SEPERATOR)[0];
-            UUID originalTaskId = UUID.fromString(originalTaskIdStr);
+            UUID originalTaskId = UUID.fromString(id.split(ID_SEPERATOR)[0]);
 
             Task task = taskRepository.findById(originalTaskId).orElse(null);
             if (task != null) {
@@ -337,7 +374,6 @@ public class PlanningService {
 
             }
         }
-        plan.setUserId(user.getId());
         plan.setUnits(newLearningUnits);
         learningPlanRepository.save(plan);
         cleanUpOldPlans(user.getId());
@@ -408,9 +444,15 @@ public class PlanningService {
 
                     boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
                     boolean isInPast = unitDateTime.isBefore(now);
-                    if (isInCurrentWeek && isInPast) {
-                        long minutes = ChronoUnit.MINUTES.between(unit.getStartTime(), unit.getEndTime());
+                    boolean isMissed = unit.getStatus() == UnitStatus.MISSED;
+
+                    if (isInCurrentWeek && isInPast && !isMissed) {
+                        long minutes = unit.getActualDurationMinutes();
                         durationExistingUnits += (int) minutes;
+                    }
+                    if (isMissed){
+                        applyPenaltyToCostMatrix(unit.getTask(), unit, weekStart);
+                        learningUnitRepository.delete(unit);
                     }
 
 

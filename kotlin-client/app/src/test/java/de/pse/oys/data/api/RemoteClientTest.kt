@@ -789,6 +789,7 @@ class RemoteClientTest {
                 module = Uuid.random(),
                 weeklyTimeLoad = 6,
                 firstDate = LocalDateTime(2026, 1, 1, 0, 0),
+                endDate = LocalDateTime(2026, 2, 1, 0, 0),
                 cycle = 1
             ), Uuid.random()
         )
@@ -797,8 +798,8 @@ class RemoteClientTest {
                 title = "Task 3",
                 module = Uuid.random(),
                 weeklyTimeLoad = 3,
-                start = LocalDate(2026, 1, 1),
-                end = LocalDate(2026, 2, 1)
+                start = LocalDateTime(2026, 1, 1, 0, 0),
+                end = LocalDateTime(2026, 2, 1, 23, 59, 59)
             ), Uuid.random()
         )
 
@@ -833,6 +834,7 @@ class RemoteClientTest {
                                 put("module", task2.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 6)
                                 put("firstDate", "2026-01-01T00:00")
+                                put("end", "2026-02-01T00:00")
                                 put("cycle", 1)
                             })
                         })
@@ -843,8 +845,8 @@ class RemoteClientTest {
                                 put("title", "Task 3")
                                 put("module", task3.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 3)
-                                put("start", "2026-01-01")
-                                put("end", "2026-02-01")
+                                put("start", "2026-01-01T00:00")
+                                put("end", "2026-02-01T23:59:59")
                             })
                         })
                     }.toString(),

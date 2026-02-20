@@ -1,6 +1,9 @@
 package de.pse.oys.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +45,8 @@ public class LearningPlan {
      * Liste der im Plan enthaltenen Lerneinheiten.
      * Realisiert über die Verbindungstabelle 'plan_units'.
      */
-    @ManyToMany
-    @JoinTable(
-            name = "plan_units",
-            joinColumns = @JoinColumn(name = "planid"),
-            inverseJoinColumns = @JoinColumn(name = "unitid")
-    )
+    @OneToMany //FIXME Lässt aktuell zu das löschen im lernplan es NICHT komplett löscht
+    @JoinColumn(name = "planid")
     private List<LearningUnit> units = new ArrayList<>();
 
     /**
