@@ -216,9 +216,14 @@ class COPSolver:
                     if 0 <= t_idx < horizon:
                         cost_array[t_idx] += cost_val
 
+            window_cost_array = [0] * (horizon + 1)
+            for t in range(len(window_cost_array) - duration):
+                summ = sum(cost_array[t:t + duration])
+                window_cost_array[t] = summ
+
             cost_var = self.model.NewIntVar(COST_MIN_BOUND, COST_MAX_BOUND, f'cost_{t_id}')
 
-            self.model.AddElement(start_var, cost_array, cost_var)
+            self.model.AddElement(start_var, window_cost_array, cost_var)
 
             all_cost_terms.append(cost_var)
 
