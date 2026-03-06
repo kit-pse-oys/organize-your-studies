@@ -54,11 +54,11 @@ class LearningUnitServiceTest {
 
     private LearningPlan plan;
     private LearningUnit unit;
-    private User testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new User("TestUser", UserType.LOCAL) {};
+        User testUser = new User("TestUser", UserType.LOCAL) {
+        };
         setField(testUser, "userId", USER_ID);
 
         plan = new LearningPlan(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 7));
@@ -86,6 +86,32 @@ class LearningUnitServiceTest {
 
         assertThat(unit.getStartTime()).isEqualTo(newStart);
         assertThat(unit.getEndTime()).isEqualTo(expectedEnd);
+        verify(learningPlanRepository).save(plan);
+    }
+
+    @Test
+    @DisplayName("findUnitOrThrow durchläuft zuerst eine andere gültige Unit mit anderer ID und findet danach die richtige Unit")
+    void moveLearningUnitManually_CoversDifferentUnitIdBranchInFindUnitOrThrow() {
+        LearningUnit otherUnit = unitWithTaskAndModule(
+                "Other Task",
+                LocalDateTime.of(2026, 1, 1, 8, 0),
+                LocalDateTime.of(2026, 1, 1, 9, 0)
+        );
+        setField(otherUnit, "unitId", UUID.fromString("44444444-4444-4444-4444-444444444444"));
+
+        List<LearningUnit> units = new ArrayList<>();
+        units.add(otherUnit);
+        units.add(unit);
+        setField(plan, "units", units);
+
+        when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
+
+        LocalDateTime newStart = LocalDateTime.of(2026, 1, 2, 14, 0);
+
+        sut.moveLearningUnitManually(USER_ID, UNIT_ID, newStart);
+
+        assertThat(unit.getStartTime()).isEqualTo(newStart);
+        assertThat(unit.getEndTime()).isEqualTo(LocalDateTime.of(2026, 1, 2, 15, 0));
         verify(learningPlanRepository).save(plan);
     }
 
@@ -132,7 +158,7 @@ class LearningUnitServiceTest {
                 LocalDateTime.of(2026, 1, 1, 15, 0)
         );
         setField(secondUnit, "unitId", UUID.randomUUID());
-        ((List<LearningUnit>) plan.getUnits()).add(secondUnit);
+        plan.getUnits().add(secondUnit);
 
         when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
 
@@ -152,7 +178,7 @@ class LearningUnitServiceTest {
                 LocalDateTime.of(2026, 1, 1, 15, 0)
         );
         setField(secondUnit, "unitId", UUID.randomUUID());
-        ((List<LearningUnit>) plan.getUnits()).add(secondUnit);
+        plan.getUnits().add(secondUnit);
 
         when(learningPlanRepository.findAll()).thenReturn(List.of(plan));
 
@@ -217,6 +243,65 @@ class LearningUnitServiceTest {
         assertThatThrownBy(() -> sut.moveLearningUnitManually(USER_ID, UNIT_ID, newStart))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("Startzeit muss vor der Endzeit liegen");
+    }
+
+    // -------------------------------------------------------------------------
+    // private Helper gezielt abdecken
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("findUnitOrThrow deckt null, Unit ohne ID, falsche ID und richtige ID ab")
+    void findUnitOrThrow_CoversAllBranchesOfPredicate() {
+        LearningUnit noIdUnit = unitWithTaskAndModule(
+                "No Id",
+                LocalDateTime.of(2026, 1, 1, 7, 0),
+                LocalDateTime.of(2026, 1, 1, 8, 0)
+        );
+
+        LearningUnit wrongUnit = unitWithTaskAndModule(
+                "Wrong Id",
+                LocalDateTime.of(2026, 1, 1, 8, 0),
+                LocalDateTime.of(2026, 1, 1, 9, 0)
+        );
+        setField(wrongUnit, "unitId", UUID.fromString("44444444-4444-4444-4444-444444444444"));
+
+        List<LearningUnit> units = new ArrayList<>();
+        units.add(null);
+        units.add(noIdUnit);
+        units.add(wrongUnit);
+        units.add(unit);
+        setField(plan, "units", units);
+
+        LearningUnit result = invokeFindUnitOrThrow(plan);
+
+        assertThat(result).isSameAs(unit);
+    }
+
+    @Test
+    @DisplayName("findUnitOrThrow wirft Exception, wenn keine passende Unit existiert")
+    void findUnitOrThrow_ThrowsWhenNoMatchingUnitExists() {
+        LearningUnit noIdUnit = unitWithTaskAndModule(
+                "No Id",
+                LocalDateTime.of(2026, 1, 1, 7, 0),
+                LocalDateTime.of(2026, 1, 1, 8, 0)
+        );
+
+        LearningUnit wrongUnit = unitWithTaskAndModule(
+                "Wrong Id",
+                LocalDateTime.of(2026, 1, 1, 8, 0),
+                LocalDateTime.of(2026, 1, 1, 9, 0)
+        );
+        setField(wrongUnit, "unitId", UUID.fromString("55555555-5555-5555-5555-555555555555"));
+
+        List<LearningUnit> units = new ArrayList<>();
+        units.add(null);
+        units.add(noIdUnit);
+        units.add(wrongUnit);
+        setField(plan, "units", units);
+
+        assertThatThrownBy(() -> invokeFindUnitOrThrow(plan))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("LearningUnit existiert nicht");
     }
 
     // -------------------------------------------------------------------------
@@ -332,44 +417,6 @@ class LearningUnitServiceTest {
                 .hasMessageContaining("Kein passender Lernplan");
     }
 
-    // -------------------------------------------------------------------------
-    // Reflection-Tests für intern noch nicht erreichte Branches
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("findUnitOrThrow wirft ResourceNotFoundException, wenn die Unit im Plan fehlt")
-    void findUnitOrThrow_ThrowsWhenMissing() throws Exception {
-        LearningPlan emptyPlan = new LearningPlan(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 7));
-        emptyPlan.setUserId(USER_ID);
-        setField(emptyPlan, "units", new ArrayList<>());
-
-        Method method = LearningUnitService.class.getDeclaredMethod("findUnitOrThrow", LearningPlan.class, UUID.class);
-        method.setAccessible(true);
-
-        assertThatThrownBy(() -> invoke(method, sut, emptyPlan, UNIT_ID))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("LearningUnit existiert nicht");
-    }
-
-    @Test
-    @DisplayName("moveUnitInternal wirft ValidationException bei identischem Start- und Endzeitpunkt")
-    void moveUnitInternal_ThrowsWhenStartEqualsEnd() throws Exception {
-        Method method = LearningUnitService.class.getDeclaredMethod(
-                "moveUnitInternal",
-                LearningPlan.class,
-                LearningUnit.class,
-                LocalDateTime.class,
-                LocalDateTime.class
-        );
-        method.setAccessible(true);
-
-        LocalDateTime same = LocalDateTime.of(2026, 1, 3, 12, 0);
-
-        assertThatThrownBy(() -> invoke(method, sut, plan, unit, same, same))
-                .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("Startzeit muss vor der Endzeit liegen");
-    }
-
     // --- Hilfsmethoden ---
 
     private static LearningUnit unitWithTaskAndModule(String title, LocalDateTime start, LocalDateTime end) {
@@ -387,11 +434,21 @@ class LearningUnitServiceTest {
         return new LearningUnit(task, start, end);
     }
 
-    private static Object invoke(Method method, Object target, Object... args) throws Throwable {
+    private LearningUnit invokeFindUnitOrThrow(LearningPlan plan) {
         try {
-            return method.invoke(target, args);
+            Method method = LearningUnitService.class.getDeclaredMethod(
+                    "findUnitOrThrow", LearningPlan.class, UUID.class
+            );
+            method.setAccessible(true);
+            return (LearningUnit) method.invoke(sut, plan, LearningUnitServiceTest.UNIT_ID);
         } catch (InvocationTargetException e) {
-            throw e.getCause();
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new RuntimeException(cause);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
