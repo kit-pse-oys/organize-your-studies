@@ -256,7 +256,7 @@ class TaskServiceTest {
         @Test
         @DisplayName("wirft ValidationException wenn Submission-Pflichtfelder fehlen")
         void throwsWhenSubmissionFieldsMissing() {
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
+            SubmissionTaskDTO dto = validSubmissionDto();
             dto.setFirstDeadline(null);
 
             assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
@@ -266,7 +266,7 @@ class TaskServiceTest {
         @Test
         @DisplayName("wirft ValidationException wenn submissionCycle < 1")
         void throwsWhenSubmissionCycleInvalid() {
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
+            SubmissionTaskDTO dto = validSubmissionDto();
             dto.setSubmissionCycle(0);
 
             assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
@@ -276,11 +276,23 @@ class TaskServiceTest {
         @Test
         @DisplayName("wirft ValidationException wenn Submission-Ende nicht nach FirstDeadline liegt")
         void throwsWhenSubmissionRangeInvalid() {
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
+            SubmissionTaskDTO dto = validSubmissionDto();
             dto.setEndTime(dto.getFirstDeadline());
 
             assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
                     .isInstanceOf(ValidationException.class);
+        }
+
+        @Test
+        @DisplayName("wirft ValidationException wenn Other-EndTime fehlt")
+        void throwsWhenOtherEndTimeMissing() {
+            OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+            dto.setEndTime(null);
+
+            assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                    .isInstanceOf(ValidationException.class);
+
+            verify(taskRepository, never()).save(any());
         }
 
         @Test
@@ -380,7 +392,7 @@ class TaskServiceTest {
                 return task;
             });
 
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
+            SubmissionTaskDTO dto = validSubmissionDto();
 
             UUID createdId = sut.createTask(USER_ID, dto);
 
@@ -424,6 +436,78 @@ class TaskServiceTest {
             ExamTask saved = (ExamTask) savedCaptor.getValue();
             assertThat(saved.getExamDate()).isEqualTo(dto.getExamDate());
         }
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException bei leerem Title")
+    void throwsOnBlankTitle() {
+        OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+        dto.setTitle("   ");
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException bei null moduleId")
+    void throwsOnNullModuleId() {
+        OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+        dto.setModuleId(null);
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException bei null category")
+    void throwsOnNullCategory() {
+        OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+        dto.setCategory(null);
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException bei null weeklyTimeLoad")
+    void throwsOnNullWeeklyLoad() {
+        OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+        dto.setWeeklyTimeLoad(null);
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException wenn Submission-EndTime fehlt")
+    void throwsWhenSubmissionEndTimeMissing() {
+        SubmissionTaskDTO dto = validSubmissionDto();
+        dto.setEndTime(null);
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("wirft ValidationException wenn Submission-Cycle fehlt")
+    void throwsWhenSubmissionCycleMissing() {
+        SubmissionTaskDTO dto = validSubmissionDto();
+        dto.setSubmissionCycle(null);
+
+        assertThatThrownBy(() -> sut.createTask(USER_ID, dto))
+                .isInstanceOf(ValidationException.class);
+
+        verify(taskRepository, never()).save(any());
     }
 
     // ------------------------------------------------------------
@@ -586,7 +670,7 @@ class TaskServiceTest {
             when(moduleRepository.findByModuleIdAndUser_UserId(NEW_MODULE_ID, USER_ID)).thenReturn(Optional.of(newModule));
             when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            SubmissionTaskDTO dto = validSubmissionDto(NEW_MODULE_ID);
+            SubmissionTaskDTO dto = validSubmissionDto();
             dto.setTitle("Updated Submission");
             dto.setWeeklyTimeLoad(200);
 
@@ -759,6 +843,24 @@ class TaskServiceTest {
     }
 
     // ------------------------------------------------------------
+    // private helper coverage
+    // ------------------------------------------------------------
+    @Nested
+    @DisplayName("private helper coverage")
+    class PrivateHelperCoverageTests {
+
+        @Test
+        @DisplayName("mapToEntity wirft NullPointerException bei null category")
+        void mapToEntityThrowsWhenCategoryIsNull() {
+            OtherTaskDTO dto = validOtherDto(NEW_MODULE_ID);
+            dto.setCategory(null);
+
+            assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(sut, "mapToEntity", dto))
+                    .isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    // ------------------------------------------------------------
     // Helper
     // ------------------------------------------------------------
 
@@ -783,10 +885,10 @@ class TaskServiceTest {
         return dto;
     }
 
-    private static SubmissionTaskDTO validSubmissionDto(UUID moduleId) {
+    private static SubmissionTaskDTO validSubmissionDto() {
         SubmissionTaskDTO dto = new SubmissionTaskDTO();
         dto.setTitle("Submission Title");
-        dto.setModuleId(moduleId);
+        dto.setModuleId(TaskServiceTest.NEW_MODULE_ID);
         dto.setCategory(TaskCategory.SUBMISSION);
         dto.setWeeklyTimeLoad(WEEKLY_LOAD);
 
