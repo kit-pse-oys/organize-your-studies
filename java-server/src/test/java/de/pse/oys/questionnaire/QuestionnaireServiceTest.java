@@ -2,6 +2,7 @@ package de.pse.oys.questionnaire;
 
 import de.pse.oys.domain.LearningPreferences;
 import de.pse.oys.domain.LocalUser;
+import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.persistence.UserRepository;
@@ -31,6 +32,16 @@ class QuestionnaireServiceTest {
 
     private UserRepository userRepository;
     private QuestionnaireService service;
+
+    private QuestionnaireDTO createValidDto() {
+        QuestionnaireDTO dto = new QuestionnaireDTO();
+        dto.setMinUnitDuration(30);
+        dto.setMaxUnitDuration(90);
+        dto.setMaxDayLoad(8);
+        dto.setPreferredPauseDuration(15);
+        dto.setTimeBeforeDeadlines(2);
+        return dto;
+    }
 
     @BeforeEach
     void setUp() {
@@ -177,5 +188,197 @@ class QuestionnaireServiceTest {
 
         // WHEN & THEN: Es muss eine EntityNotFoundException geworfen werden
         assertThrows(EntityNotFoundException.class, () -> service.getQuestionnaire(userId));
+    }
+
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenFieldIsNull() {
+        // Arrange: LocalUser mit Pflichtfeldern erstellen
+        LocalUser user = new LocalUser("testUser", "SecurePass123!");
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMinUnitDuration(null); // Triggert die Null-Prüfung
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenValuesAreZero() {
+        LocalUser user = new LocalUser("testUser", "SecurePass123!");
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxDayLoad(0); // Triggert: maxDayLoad <= 0
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenDayLoadExceeds24() {
+        LocalUser user = new LocalUser("testUser", "SecurePass123!");
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxDayLoad(25); // Triggert: maxDayLoad > DAILY_HOURS_LIMITER
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenMinGreaterThanMax() {
+        LocalUser user = new LocalUser("testUser", "SecurePass123!");
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMinUnitDuration(100);
+        dto.setMaxUnitDuration(50); // Triggert: minUnitDuration > maxUnitDuration
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenDtoIsNull() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, null));
+    }
+    @Test
+    void submitQuestionnaire_shouldThrowException_whenNegativeValues() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setTimeBeforeDeadlines(-1); // Triggert deadlineBufferDays < 0
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void testSubmitQuestionnaire_handlesNullSetsInDto() {
+        UUID userId = UUID.randomUUID();
+        LocalUser user = new LocalUser("testuser", "hash");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setPreferredStudyTimes(null);
+        dto.setPreferredStudyDays(null);
+
+        service.submitQuestionnaire(userId, dto);
+
+        assertNotNull(user.getPreferences().getPreferredTimeSlots());
+        assertTrue(user.getPreferences().getPreferredTimeSlots().isEmpty());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void validate_minUnitDuration_Zero_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        // Mock user find
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMinUnitDuration(0);
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_maxUnitDuration_Zero_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxUnitDuration(0);
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_maxDayLoad_Zero_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxDayLoad(0);
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_breakDuration_Negative_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setPreferredPauseDuration(-1);
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_deadlineBuffer_Negative_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setTimeBeforeDeadlines(-1);
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_maxUnitDuration_Null_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxUnitDuration(null); // Triggert die 2. Bedingung
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_maxDayLoad_Null_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setMaxDayLoad(null); // Triggert die 3. Bedingung
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_breakDuration_Null_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setPreferredPauseDuration(null); // Triggert die 4. Bedingung
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
+    }
+
+    @Test
+    void validate_deadlineBuffer_Null_TrueHit() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
+
+        QuestionnaireDTO dto = createValidDto();
+        dto.setTimeBeforeDeadlines(null); // Triggert die 5. Bedingung
+
+        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
     }
 }

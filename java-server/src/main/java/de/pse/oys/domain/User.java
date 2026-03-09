@@ -91,12 +91,15 @@ public abstract class User {
     protected User(String username, UserType type) {
         this.username = username;
         this.userType = type;
+        this.modules = new java.util.ArrayList<>();
+        this.freeTimes = new java.util.ArrayList<>();
+        this.learningPlans = new java.util.ArrayList<>();
     }
 
 
     /**
      * Instanziiert einen neuen Lernplan für den definierten Zeitraum und
-     * verknüpft diesen mit dem Nutzerprofil[cite: 807, 808].
+     * verknüpft diesen mit dem Nutzerprofil.
      * @param start Startdatum
      * @param end Enddatum
      */

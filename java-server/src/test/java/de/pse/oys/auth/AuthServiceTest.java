@@ -168,4 +168,143 @@ class AuthServiceTest {
         assertEquals(newAccessToken, response.getAccessToken());
     }
 
+    @Test
+    void refreshToken_withMismatchedHash_shouldThrowException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        String refreshToken = "valid-token-format-but-wrong-session";
+        String wrongHashInDb = "some-other-hash";
+
+        LocalUser user = mock(LocalUser.class);
+        when(user.getRefreshTokenHash()).thenReturn(wrongHashInDb);
+
+        when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
+        when(jwtProvider.extractUserId(refreshToken)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches(refreshToken, wrongHashInDb)).thenReturn(false);
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO(refreshToken);
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () ->
+                authService.refreshToken(refreshDTO)
+        );
+        verify(jwtProvider, never()).createAccessToken(any());
+    }
+
+    @Test
+    void login_withInvalidExternalToken_shouldThrowException() {
+        String token = "invalid-google-token";
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setAuthType(AuthType.OIDC);
+        loginDTO.setProvider(UserType.GOOGLE);
+        loginDTO.setExternalToken(token);
+
+        // Mock liefert null -> Trigger für die Exception
+        when(googleOAuthVerifier.verifyToken(token)).thenReturn(null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                authService.login(loginDTO)
+        );
+        assertEquals("Ungültiges externes Token übermittelt.", ex.getMessage());
+    }
+
+    @Test
+    void login_googleUserWithoutName_shouldUseDefaultName() {
+        String token = "token-without-name";
+        GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
+        when(payload.getSubject()).thenReturn("12345");
+        when(payload.get("name")).thenReturn(null);
+
+        when(googleOAuthVerifier.verifyToken(token)).thenReturn(payload);
+        when(userRepository.findByExternalSubjectIdAndUserType(anyString(), any()))
+                .thenReturn(Optional.empty());
+
+        // Captor um den gespeicherten User zu prüfen
+        ArgumentCaptor<ExternalUser> userCaptor = ArgumentCaptor.forClass(ExternalUser.class);
+
+        LoginDTO dto = new LoginDTO();
+        dto.setAuthType(AuthType.OIDC);
+        dto.setProvider(UserType.GOOGLE);
+        dto.setExternalToken(token);
+
+        authService.login(dto);
+
+        verify(userRepository).save(userCaptor.capture());
+        assertEquals("Google User", userCaptor.getValue().getUsername());
+    }
+
+    @Test
+    void login_localUserNotFound_shouldThrowIllegalStateException() {
+        // Arrange
+        String username = "nonexistent";
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setAuthType(AuthType.BASIC);
+        loginDTO.setUsername(username);
+        loginDTO.setPassword("password");
+
+        when(userRepository.findByUsernameAndUserType(username, UserType.LOCAL))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                authService.login(loginDTO)
+        );
+
+        assertTrue(exception.getMessage().contains("Der Benutzername existiert, findet aber keinen zugehörigen lokalen Benutzer"));
+    }
+
+    @Test
+    void login_wrongPassword_shouldThrowIllegalArgumentException() {
+        // Arrange
+        String username = "localuser";
+        String wrongPassword = "wrong-password";
+        String correctHash = "correct-hash";
+
+        LocalUser user = mock(LocalUser.class);
+        when(user.getHashedPassword()).thenReturn(correctHash);
+
+        when(userRepository.findByUsernameAndUserType(username, UserType.LOCAL))
+                .thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(wrongPassword, correctHash)).thenReturn(false);
+
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setAuthType(AuthType.BASIC);
+        loginDTO.setUsername(username);
+        loginDTO.setPassword(wrongPassword);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authService.login(loginDTO)
+        );
+
+        assertEquals("Ungültige Anmeldeinformationen.", exception.getMessage());
+    }
+
+    @Test
+    void refreshToken_withNullStoredHash_shouldThrowException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        String refreshToken = "valid-token";
+        LocalUser user = mock(LocalUser.class);
+
+        when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
+        when(jwtProvider.extractUserId(refreshToken)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        
+        when(user.getRefreshTokenHash()).thenReturn(null);
+
+        RefreshTokenDTO refreshDTO = new RefreshTokenDTO(refreshToken);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authService.refreshToken(refreshDTO)
+        );
+
+        assertEquals("Refresh-Token stimmt nicht überein.", exception.getMessage());
+        // Sicherstellen, dass der PasswordEncoder gar nicht erst gefragt wurde,
+        // da die Bedingung schon vorher true war (Short-Circuit)
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
 }

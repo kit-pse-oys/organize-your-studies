@@ -35,15 +35,6 @@ public class AuthResponseDTO {
         this.refreshToken = refreshToken;
     }
 
-    /**
-     * Konstruktor für Fälle, in denen nur ein Access-Token zurückgegeben wird (z.B. bei Token-Refresh).
-     *
-     * @param accessToken der ausgestellte Access-Token
-     */
-    public AuthResponseDTO(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
     // Getter
 
     /** @return Der aktuelle Access-Token. */
@@ -56,8 +47,4 @@ public class AuthResponseDTO {
 
     /** @param accessToken Der neue Access-Token. */
     public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
-
-    /** @param refreshToken Der neue Refresh-Token. */
-    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
-
 }

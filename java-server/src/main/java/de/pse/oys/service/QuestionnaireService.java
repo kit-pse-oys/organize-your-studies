@@ -67,13 +67,8 @@ public class QuestionnaireService {
         int breakDuration = questionnaireDTO.getPreferredPauseDuration();
         int deadlineBufferDays = questionnaireDTO.getTimeBeforeDeadlines();
 
-        Set<TimeSlot> preferredStudyTimes = questionnaireDTO.getPreferredStudyTimes() != null
-                ? questionnaireDTO.getPreferredStudyTimes()
-                : new HashSet<>();
-
-        Set<DayOfWeek> preferredStudyDays = questionnaireDTO.getPreferredStudyDays() != null
-                ? questionnaireDTO.getPreferredStudyDays()
-                : new HashSet<>();
+        Set<TimeSlot> preferredStudyTimes = questionnaireDTO.getPreferredStudyTimes();
+        Set<DayOfWeek> preferredStudyDays = questionnaireDTO.getPreferredStudyDays();
 
 
         LearningPreferences existingPreferences = user.getPreferences();

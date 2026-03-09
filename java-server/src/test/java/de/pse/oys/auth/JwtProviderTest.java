@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -81,4 +83,28 @@ class JwtProviderTest {
         assertFalse(shortLivedProvider.validateToken(token));
     }
 
+    @Test
+    void extractUserId_withInvalidToken_shouldThrowInvalidTokenException() {
+        // syntaktisch falscher String
+        String invalidToken = "not.a.valid.token";
+
+        // triggert den catch(JwtException e) Block im JwtProvider
+        assertThrows(de.pse.oys.service.auth.InvalidTokenException.class, () -> {
+            jwtProvider.extractUserId(invalidToken);
+        });
+    }
+
+    @Test
+    void extractUserId_withValidToken_shouldReturnCorrectUserId() {
+        // GIVEN
+        User user = new LocalUser("extract_user", "pw");
+        user = userRepository.save(user); // Speichern, um eine UUID zu haben
+        String token = jwtProvider.createAccessToken(user);
+
+        // WHEN
+        java.util.UUID extractedId = jwtProvider.extractUserId(token);
+
+        // THEN
+        assertEquals(user.getId(), extractedId);
+    }
 }

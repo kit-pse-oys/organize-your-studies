@@ -114,7 +114,7 @@ public class QuestionnaireDTO {
      * Setzt alle Werte in einer Multiple-Choice-Map auf FALSE und die gewünschten Keys auf TRUE.
      */
     private static <K> void setMultipleChoice(Map<K, Boolean> map, Set<K> values) {
-        if (map == null) return;
+        if (map == null || values == null) return;
         map.replaceAll((k, v) -> Boolean.FALSE);
         for (K value : values) {
             map.put(value, Boolean.TRUE);
