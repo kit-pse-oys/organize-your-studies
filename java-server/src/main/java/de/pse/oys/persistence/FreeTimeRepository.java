@@ -4,7 +4,6 @@ import de.pse.oys.domain.FreeTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 

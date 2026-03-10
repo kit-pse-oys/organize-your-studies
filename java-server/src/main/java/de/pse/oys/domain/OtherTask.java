@@ -71,9 +71,6 @@ public class OtherTask extends Task {
     /** @return Den Start des Zeitrahmens. */
     public LocalDateTime getStartTime() { return startTime; }
 
-    /** @return Das Ende des Zeitrahmens. */
-    public LocalDateTime getEndTime() { return endTime; }
-
     /** @param startTime Der neue Startzeitpunkt. */
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
 

@@ -32,6 +32,7 @@ public class ModuleResponseDTO {
      * Standardkonstruktor für die Deserialisierung.
      */
     public ModuleResponseDTO() {
+        // No-args constructor für die Deserialisierung
     }
 
     // Getter

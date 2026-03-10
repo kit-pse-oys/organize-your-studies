@@ -215,18 +215,9 @@ public class FreeTimeService {
         List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
 
         for (FreeTime ft : candidates) {
-            if (ft == null) continue;
+            if (ft == null || (excludeId != null && excludeId.equals(ft.getFreeTimeId()))) continue;
+            if (!ft.occursOn(date)) continue;
 
-            if (excludeId != null && excludeId.equals(ft.getFreeTimeId())) {
-                continue;
-            }
-
-            // gilt am Datum? (Single: Datum, Weekly: Wochentag)
-            if (!ft.occursOn(date)) {
-                continue;
-            }
-
-            // Overlap: [start, end)
             if (ft.getStartTime().isBefore(endTime) && startTime.isBefore(ft.getEndTime())) {
                 return true;
             }

@@ -88,7 +88,7 @@ class JwtProviderTest {
         // syntaktisch falscher String
         String invalidToken = "not.a.valid.token";
 
-        // triggert den catch(JwtException e) Block im JwtProvider
+        // triggert den catch Block im JwtProvider
         assertThrows(de.pse.oys.service.auth.InvalidTokenException.class, () -> {
             jwtProvider.extractUserId(invalidToken);
         });

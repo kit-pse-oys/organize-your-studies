@@ -1,14 +1,12 @@
 package de.pse.oys.domain;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 /**
  * Repräsentiert einen berechneten Lernplan für eine spezifische Woche.

@@ -3,7 +3,6 @@ package de.pse.oys.domain;
 import de.pse.oys.domain.enums.RecurrenceType;
 import jakarta.persistence.*;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
