@@ -9,6 +9,12 @@ public class PlanningResponseDTO {
         // Standardkonstruktor für Jackson
     }
 
+    /**
+     * Parameterbehaftetet standardkonstruktor für die Erstellung eines PlanningResponseDTO.
+     * @param id Eindeutige temporäre ID der geplanten Unit.
+     * @param start Start slot der geplanten Unit.
+     * @param end End slot der geplanten Unit.
+     */
     public PlanningResponseDTO(String id, int start, int end) {
         this.id = id;
         this.start = start;
