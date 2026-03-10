@@ -1,123 +1,60 @@
 package de.pse.oys.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.pse.oys.domain.LocalUser;
+import de.pse.oys.BaseIntegrationTest;
 import de.pse.oys.domain.enums.UserType;
 import de.pse.oys.dto.RefreshTokenDTO;
 import de.pse.oys.dto.auth.LoginDTO;
-import de.pse.oys.persistence.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.UUID;
+
+import static de.pse.oys.dto.auth.AuthType.BASIC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * AuthControllerIntegrationTest – Integrationstest für den AuthController und AuthService.
- * Verwendet hierbei den echten Datenbankzugriff um den kompletten Authentifizierungsprozess zu testen.
- *
- * @author uhupo
- * @version 1.0
- */
-@Testcontainers
-@SpringBootTest
-@ActiveProfiles("integration")
-@AutoConfigureMockMvc
-class UserControllerIntegrationTest {
+class UserControllerIntegrationTest extends BaseIntegrationTest {
 
-    // Endpunkt-Pfade, die vom AuthController verwendet werden
     private static final String AUTH_BASE = "/api/v1/users";
     private static final String LOGIN = AUTH_BASE + "/login";
     private static final String REFRESH = AUTH_BASE + "/refresh";
 
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:15")
-                    .withDatabaseName("oys")
-                    .withUsername("oys")
-                    .withPassword("oys");
-
-    @DynamicPropertySource
-    static void overrideProps(DynamicPropertyRegistry r) {
-        r.add("spring.datasource.url", postgres::getJdbcUrl);
-        r.add("spring.datasource.username", postgres::getUsername);
-        r.add("spring.datasource.password", postgres::getPassword);
-    }
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private LocalUser testUser;
     private final String rawPassword = "TestPass123!";
+    private String authHeader;
 
     @BeforeEach
-    void setUp() {
-        // Testuser anlegen
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-        testUser = new LocalUser("integrationTestUser", hashedPassword);
-        userRepository.save(testUser);
+    void setUp() throws Exception {
+        authHeader = getAuthHeader("integrationTestUser", rawPassword);
     }
 
     @AfterEach
     void tearDown() {
-        // Testdaten aus der DB entfernen (sonst Sideeffekte bei weiteren Tests)
         userRepository.deleteAll();
     }
 
     @Test
     void testLocalLoginRequest() throws Exception {
-        // LOGIN Request mit gültigen Anmeldedaten
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
-        loginDTO.setUsername(testUser.getUsername());
+        loginDTO.setAuthType(BASIC);
+        loginDTO.setUsername("integrationTestUser");
         loginDTO.setPassword(rawPassword);
 
-        String loginJson = objectMapper.writeValueAsString(loginDTO);
-        System.out.println("Login JSON: " + loginJson); // Debug-Ausgabe
-
-        // --- Login + Assertions ---
-        MvcResult result = mockMvc.perform(post(LOGIN)
+        mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson))
+                        .content(objectMapper.writeValueAsString(loginDTO)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists())
-                .andReturn();
-
-        System.out.println("Login Response: " + result.getResponse().getContentAsString());
+                .andExpect(jsonPath("$.refreshToken").exists());
     }
 
     @Test
     void testLocalLoginMappingMissingExternalFields() throws Exception {
-        // Test-JSON mit allen erforderlichen Feldern für ein lokales Login, der Client erspart sich es null Felder zu senden
-        // JSON ohne optionales Feld "externalToken" und "authProvider"
         String jsonMissingFields = """
         {
             "username": "integrationTestUser",
@@ -128,20 +65,15 @@ class UserControllerIntegrationTest {
 
         LoginDTO mappedDto = objectMapper.readValue(jsonMissingFields, LoginDTO.class);
 
-        // Assertions
         assertEquals("integrationTestUser", mappedDto.getUsername());
         assertEquals("TestPass123!", mappedDto.getPassword());
-        assertEquals(de.pse.oys.dto.auth.AuthType.BASIC, mappedDto.getAuthType());
-
-        // Felder, die nicht im JSON sind, sollten null sein
+        assertEquals(BASIC, mappedDto.getAuthType());
         assertNull(mappedDto.getExternalToken());
         assertNull(mappedDto.getProvider());
     }
 
     @Test
     void testExternalLoginMappingMissingFields() throws Exception {
-        // JSON nur mit den Pflichtfeldern für ein externes Login bzw. Just-in-time Provisioning.
-        // Auch hier spart sich der Client null Felder zu senden
         String jsonExternal = """
         {
             "authType": "OIDC",
@@ -152,47 +84,150 @@ class UserControllerIntegrationTest {
 
         LoginDTO mappedDto = objectMapper.readValue(jsonExternal, LoginDTO.class);
 
-        // Assertions
         assertEquals(de.pse.oys.dto.auth.AuthType.OIDC, mappedDto.getAuthType());
         assertEquals("xxx", mappedDto.getExternalToken());
         assertEquals(UserType.GOOGLE, mappedDto.getProvider());
-
-
         assertNull(mappedDto.getUsername());
         assertNull(mappedDto.getPassword());
     }
 
-
-
     @Test
     void testRefreshRequest() throws Exception {
-        // LOGIN als Setup für REFRESH (Login wird im eigenen Test bereits getestet)
         LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setAuthType(de.pse.oys.dto.auth.AuthType.BASIC);
-        loginDTO.setUsername(testUser.getUsername());
+        loginDTO.setAuthType(BASIC);
+        loginDTO.setUsername("integrationTestUser");
         loginDTO.setPassword(rawPassword);
 
-        String loginJson = objectMapper.writeValueAsString(loginDTO);
         String loginResponse = mockMvc.perform(post(LOGIN)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson))
+                        .content(objectMapper.writeValueAsString(loginDTO)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andReturn().getResponse().getContentAsString();
 
         String refreshToken = objectMapper.readTree(loginResponse).get("refreshToken").asText();
 
-        // REFRESH SETUP
         RefreshTokenDTO refreshTokenDTO = new RefreshTokenDTO(refreshToken);
-        String refreshJson = objectMapper.writeValueAsString(refreshTokenDTO);
-        System.out.println("Refresh JSON: " + refreshJson);
 
-        // --- Refresh + Assertions ---
         mockMvc.perform(post(REFRESH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(refreshJson))
+                        .content(objectMapper.writeValueAsString(refreshTokenDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists());
+    }
+
+    @Test
+    void testRegisterSuccess() throws Exception {
+        LoginDTO registrationDTO = new LoginDTO();
+        registrationDTO.setUsername("newUser");
+        registrationDTO.setPassword("StrongPass123!");
+        registrationDTO.setAuthType(BASIC);
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accessToken").exists());
+    }
+
+    @Test
+    void testRegisterFailShortUsername() throws Exception {
+        LoginDTO shortUser = new LoginDTO();
+        shortUser.setUsername("ab");
+        shortUser.setPassword("ValidPass123!");
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(shortUser)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testRegisterFailShortPassword() throws Exception {
+        LoginDTO dto = new LoginDTO();
+        dto.setUsername("validUser");
+        dto.setPassword("short");
+        dto.setAuthType(BASIC);
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testRegisterFailUsernameTaken() throws Exception {
+        LoginDTO dto = new LoginDTO();
+        dto.setUsername("integrationTestUser");
+        dto.setPassword("ValidPassword123!");
+        dto.setAuthType(BASIC);
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testDeleteAccountSuccess() throws Exception {
+        UUID userId = userRepository.findByUsernameAndUserType("integrationTestUser", UserType.LOCAL).get().getId();
+
+        mockMvc.perform(delete(AUTH_BASE)
+                        .header("Authorization", authHeader))
+                .andExpect(status().isNoContent());
+
+        org.junit.jupiter.api.Assertions.assertFalse(userRepository.existsById(userId));
+    }
+
+    @Test
+    void testDeleteAccountNotFound() throws Exception {
+        mockMvc.perform(delete(AUTH_BASE)
+                        .header("Authorization", UUID.randomUUID().toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testRegisterFailPasswordNull() throws Exception {
+        // Explizit fehlende Passwort-Feld testen
+        String jsonWithNullPassword = """
+    {
+        "username": "validUser",
+        "password": null,
+        "authType": "BASIC"
+    }
+    """;
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonWithNullPassword))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testRegisterFailUsernameNull() throws Exception {
+        String jsonWithNullUsername = """
+    {
+        "username": null,
+        "password": "ValidPass123!",
+        "authType": "BASIC"
+    }
+    """;
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonWithNullUsername))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testRegisterFailUsernameEmpty() throws Exception {
+        LoginDTO dto = new LoginDTO();
+        dto.setUsername("");
+        dto.setPassword("ValidPass123!");
+        dto.setAuthType(BASIC);
+
+        mockMvc.perform(post(AUTH_BASE + "/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
     }
 }

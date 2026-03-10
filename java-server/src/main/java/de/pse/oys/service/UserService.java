@@ -54,6 +54,7 @@ public class UserService {
      * Nutzt die spezifische Klasse {@link LocalUser}.
      * @param dto Die Registrierungsdaten des neuen Nutzers.
      * @return Die Authentifizierungsantwort mit Tokens und Nutzerinformationen.
+     * @throws IllegalArgumentException wenn die Validierung fehlschlägt oder der Username bereits vergeben ist.
      */
     @Transactional
     public AuthResponseDTO register(LoginDTO dto) throws IllegalArgumentException{

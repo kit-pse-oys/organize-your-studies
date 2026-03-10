@@ -102,4 +102,56 @@ class RatingServiceTest {
 
         assertTrue(ex.getMessage().contains("Es wurde keine Lerneinheit"));
     }
+
+    @Test
+    void markAsMissed_shouldSetStatusToMissed() {
+        // Arrange
+        UUID unitId = UUID.randomUUID();
+        LearningUnit unit = mock(LearningUnit.class); // Mock reicht hier, um Interaktion zu prüfen
+        when(learningUnitRepository.findById(unitId)).thenReturn(Optional.of(unit));
+
+        // Act
+        ratingService.markAsMissed(unitId);
+
+        // Assert
+        verify(unit).markAsMissed();
+        verify(learningUnitRepository).save(unit);
+    }
+
+    @Test
+    void getRateableUnits_shouldFilterCorrectUnits() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+
+        // Einheit 1: Valide (Vergangen, kein Rating, nicht MISSED)
+        LearningUnit validUnit = mock(LearningUnit.class);
+        when(validUnit.getUnitId()).thenReturn(UUID.randomUUID());
+        when(validUnit.getRating()).thenReturn(null);
+        when(validUnit.getStatus()).thenReturn(null); // Default Status
+        when(validUnit.hasPassed()).thenReturn(true);
+
+        // Einheit 2: Bereits bewertet (sollte gefiltert werden)
+        LearningUnit ratedUnit = mock(LearningUnit.class);
+        when(ratedUnit.getRating()).thenReturn(mock(UnitRating.class));
+
+        // Einheit 3: Verpasst (sollte gefiltert werden)
+        LearningUnit missedUnit = mock(LearningUnit.class);
+        when(missedUnit.getRating()).thenReturn(null);
+        when(missedUnit.getStatus()).thenReturn(de.pse.oys.domain.enums.UnitStatus.MISSED);
+
+        // Einheit 4: Noch in der Zukunft (sollte gefiltert werden)
+        LearningUnit futureUnit = mock(LearningUnit.class);
+        when(futureUnit.getRating()).thenReturn(null);
+        when(futureUnit.hasPassed()).thenReturn(false);
+
+        when(learningUnitRepository.findAllByTask_Module_User_UserId(userId))
+                .thenReturn(java.util.List.of(validUnit, ratedUnit, missedUnit, futureUnit));
+
+        // Act
+        java.util.List<UUID> result = ratingService.getRateableUnits(userId);
+
+        // Assert
+        assertEquals(1, result.size(), "Nur eine Einheit sollte übrig bleiben");
+        assertEquals(validUnit.getUnitId(), result.get(0));
+    }
 }

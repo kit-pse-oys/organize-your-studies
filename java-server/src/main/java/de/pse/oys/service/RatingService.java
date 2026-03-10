@@ -48,6 +48,7 @@ public class RatingService {
      *
      * @param learningUnitId Die ID der Lerneinheit.
      * @param ratingDTO das RatingDTO mit den Bewertungen, wird in ein UnitRating umgewandelt.
+     * @throws IllegalArgumentException wenn die Lerneinheit mit der angegebenen ID nicht gefunden wird.
      */
     @Transactional
     public void submitRating(UUID learningUnitId, RatingDTO ratingDTO) throws IllegalArgumentException {
@@ -89,10 +90,10 @@ public class RatingService {
      * Da das "verpasst markieren" nur rückwirkend erfolgt, werden keine neu verlegbaren Zeitslots blockiert.
      *</p>
      * @param unitId Die ID der Lerneinheit, die als verpasst markiert werden soll.
+     * @throws IllegalArgumentException wenn die Lerneinheit mit der angegebenen ID nicht gefunden wird.
      */
     @Transactional
     public void markAsMissed(UUID unitId) throws IllegalArgumentException {
-
         // Falls die Lerneinheit nicht gefunden wird, wird eine Exception geworfen.
         // Das bedeutet, dass die ID ungültig ist.
         LearningUnit unit = learningUnitRepository.findById(unitId)
@@ -102,6 +103,11 @@ public class RatingService {
         learningUnitRepository.save(unit);
     }
 
+    /**
+     *
+     * @param userId
+     * @return
+     */
     public List<UUID> getRateableUnits(UUID userId) {
         Objects.requireNonNull(userId, "userId");
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
@@ -111,5 +117,4 @@ public class RatingService {
                 .map(LearningUnit::getUnitId)
                 .toList();
     }
-
 }
