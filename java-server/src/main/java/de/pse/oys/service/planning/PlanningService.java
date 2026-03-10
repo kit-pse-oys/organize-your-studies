@@ -436,11 +436,8 @@ public class PlanningService {
             List<LearningUnit> existingUnits = task.getLearningUnits();
             if (existingUnits != null) {
                 for (LearningUnit unit : existingUnits) {
-                    LocalDate unitDate = unit.getStartTime().toLocalDate();
                     LocalDateTime unitDateTime = unit.getStartTime();
-                    if (unitDate == null) {
-                        continue;
-                    }
+                    LocalDate unitDate = unitDateTime.toLocalDate();
 
                     boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
                     boolean isInPast = unitDateTime.isBefore(now);
