@@ -35,7 +35,7 @@ import de.pse.oys.domain.enums.TimeSlot;
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class QuestionnaireDTO {
-    private static int DAY_LOAD_LIMIT = 24;
+    private static final int DAY_LOAD_LIMIT = 24;
 
     private static final String ERR_INVALID_QUESTIONNAIRE_DATA = "Ungültige Daten im Fragebogen festgestellt.";
 
@@ -93,7 +93,6 @@ public class QuestionnaireDTO {
      * Setzt alle Werte in einer Single-Choice-Map auf FALSE und den gewünschten Key auf TRUE.
      */
     private static <K> void setSingleChoice(Map<K, Boolean> map, K value) {
-        if (map == null) return;
         map.replaceAll((k, v) -> Boolean.FALSE);
         map.put(value, Boolean.TRUE);
     }
@@ -114,7 +113,7 @@ public class QuestionnaireDTO {
      * Setzt alle Werte in einer Multiple-Choice-Map auf FALSE und die gewünschten Keys auf TRUE.
      */
     private static <K> void setMultipleChoice(Map<K, Boolean> map, Set<K> values) {
-        if (map == null || values == null) return;
+        if (values == null) return;
         map.replaceAll((k, v) -> Boolean.FALSE);
         for (K value : values) {
             map.put(value, Boolean.TRUE);
