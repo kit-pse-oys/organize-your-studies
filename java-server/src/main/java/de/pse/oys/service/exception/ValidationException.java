@@ -1,16 +1,16 @@
 package de.pse.oys.service.exception;
 
+/**
+ * Exception, die geworfen wird, wenn eine Validierung fehlschlägt.
+ */
 public class ValidationException extends RuntimeException {
 
-    public ValidationException() {
-        super("Validierung fehlgeschlagen.");
-    }
-
+    /**
+     * Erstellt eine neue ValidationException mit einer Fehlermeldung.
+     *
+     * @param message die Beschreibung des Validierungsfehlers
+     */
     public ValidationException(String message) {
         super(message);
-    }
-
-    public ValidationException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

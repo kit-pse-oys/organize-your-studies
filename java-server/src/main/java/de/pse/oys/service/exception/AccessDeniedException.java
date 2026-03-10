@@ -1,16 +1,16 @@
 package de.pse.oys.service.exception;
 
+/**
+ * Exception, die geworfen wird, wenn ein Zugriff auf eine Ressource oder Aktion nicht erlaubt ist.
+ */
 public class AccessDeniedException extends RuntimeException {
 
-    public AccessDeniedException() {
-        super("Zugriff verweigert.");
-    }
-
+    /**
+     * Erstellt eine neue AccessDeniedException mit einer Fehlermeldung.
+     *
+     * @param message die Beschreibung des Zugriffsfehlers
+     */
     public AccessDeniedException(String message) {
         super(message);
-    }
-
-    public AccessDeniedException(String message, Throwable cause) {
-        super(message, cause);
     }
 }
