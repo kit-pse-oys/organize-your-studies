@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
- * JwtFilterTest – TODO: Beschreibung ergänzen
+ * JwtFilterTest – Unit-Tests für die JwtFilter-Klasse.
  *
  * @author uhupo
  * @version 1.0

@@ -347,7 +347,7 @@ public class TaskService {
                 OtherTaskDTO dto = new OtherTaskDTO();
                 fillBase(dto, task);
                 dto.setStartTime(ot.getStartTime());
-                dto.setEndTime(ot.getEndTime());
+                dto.setEndTime(ot.getHardDeadline());
                 yield dto;
             }
         };

@@ -98,7 +98,6 @@ public class LearningUnitService {
      */
     public List<WrapperDTO<UnitDTO>> getLearningUnitsByUserId(UUID userId) throws ResourceNotFoundException {
         Objects.requireNonNull(userId, "userId");
-        //requireUserExists(userId);
         return learningUnitRepository.findAllByTask_Module_User_UserId(userId).stream()
                 .map(unit -> new WrapperDTO<>(unit.getUnitId(), unit.toDTO())).toList();
     }
@@ -131,15 +130,12 @@ public class LearningUnitService {
     private void assertNoOverlap(LearningPlan plan, LearningUnit target,
                                  LocalDateTime newStart, LocalDateTime newEnd) {
         for (LearningUnit other : plan.getUnits()) {
-            if (other == null || other.getUnitId() == null) {
-                continue;
-            }
-            if (other.getUnitId().equals(target.getUnitId())) {
+            if (other == null || other.getUnitId() == null
+                    || other.getUnitId().equals(target.getUnitId())) {
                 continue;
             }
 
-            boolean overlap = newStart.isBefore(other.getEndTime()) && newEnd.isAfter(other.getStartTime());
-            if (overlap) {
+            if (newStart.isBefore(other.getEndTime()) && newEnd.isAfter(other.getStartTime())) {
                 throw new ValidationException(MSG_OVERLAP);
             }
         }

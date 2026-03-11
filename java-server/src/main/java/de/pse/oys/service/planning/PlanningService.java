@@ -426,7 +426,7 @@ public class PlanningService {
             int durationExistingUnits = 0;
             if (task.getCategory().equals(TaskCategory.OTHER)) {
                 OtherTask otherTask = (OtherTask) task;
-                LocalDate taskEndDate = otherTask.getEndTime().toLocalDate();
+                LocalDate taskEndDate = otherTask.getHardDeadline().toLocalDate();
                 if (taskEndDate.isBefore(weekStart)) {
                     continue;
                 }

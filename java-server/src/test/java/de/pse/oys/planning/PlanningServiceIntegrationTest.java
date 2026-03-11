@@ -29,11 +29,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * PlanningServiceIntegrationTest – Integrationstest für den PlanningService.
+ * Es wird eine deploy-fähige Testumgebung mit Testcontainers und einer echten PostgreSQL-Datenbank aufgebaut.
+ * Der Test überprüft die End-to-End-Funktionalität der Lernplan-Generierung
+ *
+ */
 @SpringBootTest
 @Transactional
 @Testcontainers
 @Disabled("Integration Test - läuft nur lokal mit manuellem Python Service")
-public class PlanningServiceIntegrationTest {
+class PlanningServiceIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
