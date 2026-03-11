@@ -142,29 +142,28 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testRegisterFailShortPassword() throws Exception {
-        LoginDTO dto = new LoginDTO();
-        dto.setUsername("validUser");
-        dto.setPassword("short");
-        dto.setAuthType(BASIC);
+    void testRegisterFailsForInvalidInputs() throws Exception {
+        // Verschiedene ungültige Kombinationen von Benutzernamen und Passwörtern
+        String[][] testData = {
+                {"validUser", "short"},             // Passwort zu kurz
+                {"integrationTestUser", "Valid1!"}, // Username vergeben
+                {"", "ValidPass123!"}               // Username leer
+        };
 
-        mockMvc.perform(post(AUTH_BASE + "/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
+        for (String[] data : testData) {
+            String username = data[0];
+            String password = data[1];
 
-    @Test
-    void testRegisterFailUsernameTaken() throws Exception {
-        LoginDTO dto = new LoginDTO();
-        dto.setUsername("integrationTestUser");
-        dto.setPassword("ValidPassword123!");
-        dto.setAuthType(BASIC);
+            LoginDTO dto = new LoginDTO();
+            dto.setUsername(username);
+            dto.setPassword(password);
+            dto.setAuthType(BASIC);
 
-        mockMvc.perform(post(AUTH_BASE + "/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+            mockMvc.perform(post(AUTH_BASE + "/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(dto)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Test
@@ -215,19 +214,6 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post(AUTH_BASE + "/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonWithNullUsername))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testRegisterFailUsernameEmpty() throws Exception {
-        LoginDTO dto = new LoginDTO();
-        dto.setUsername("");
-        dto.setPassword("ValidPass123!");
-        dto.setAuthType(BASIC);
-
-        mockMvc.perform(post(AUTH_BASE + "/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
     }
 }

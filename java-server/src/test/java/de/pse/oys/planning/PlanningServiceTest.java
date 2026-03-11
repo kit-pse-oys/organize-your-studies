@@ -169,7 +169,7 @@ class PlanningServiceTest {
         assertFalse(request.getTasks().isEmpty());
 
 
-        assertTrue(request.getPreference_time().contains(TimeSlot.MORNING.toString()));
+        assertTrue(request.getPreferenceTime().contains(TimeSlot.MORNING.toString()));
 
         verify(learningPlanRepository, times(1)).save(any(LearningPlan.class));
     }
@@ -307,7 +307,7 @@ class PlanningServiceTest {
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
         boolean isBlocked = false;
-        for (var block : request.getFixed_blocks()) {
+        for (var block : request.getFixedBlocks()) {
             if (block.getStart() == 144) {
                 isBlocked = true;
                 break;
@@ -385,7 +385,7 @@ class PlanningServiceTest {
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
         boolean oldSlotBlocked = false;
-        for (var block : request.getFixed_blocks()) {
+        for (var block : request.getFixedBlocks()) {
             if (block.getStart() == 120) {
                 oldSlotBlocked = true;
                 break;
@@ -762,7 +762,7 @@ class PlanningServiceTest {
         verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), requestCaptor.capture(), any(ParameterizedTypeReference.class));
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        assertTrue(request.getFixed_blocks().size() > 0, "Weekly free time should be included");
+        assertTrue(request.getFixedBlocks().size() > 0, "Weekly free time should be included");
     }
 
     @Test
@@ -794,7 +794,7 @@ class PlanningServiceTest {
         verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), requestCaptor.capture(), any(ParameterizedTypeReference.class));
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        assertTrue(request.getFixed_blocks().size() > 0, "Single free time inside week should be included");
+        assertTrue(request.getFixedBlocks().size() > 0, "Single free time inside week should be included");
     }
 
     @Test
@@ -824,7 +824,7 @@ class PlanningServiceTest {
         verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), requestCaptor.capture(), any(ParameterizedTypeReference.class));
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        assertNotNull(request.getFixed_blocks());
+        assertNotNull(request.getFixedBlocks());
     }
 
     @Test
@@ -858,7 +858,7 @@ class PlanningServiceTest {
         verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), requestCaptor.capture(), any(ParameterizedTypeReference.class));
         PlanningRequestDTO request = requestCaptor.getValue().getBody();
 
-        assertTrue(request.getBlocked_days().size() > 0, "Should have blocked days");
+        assertTrue(request.getBlockedDays().size() > 0, "Should have blocked days");
     }
 
     @Test
@@ -1020,21 +1020,19 @@ class PlanningServiceTest {
 
     @Test
     void testFetchOpenTasks_OtherTaskCategory_Coverage() {
+        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
-
-        // Erstelle Zeiten, die das aktuelle "Jetzt" sicher umschließen
-        LocalDateTime start = LocalDateTime.now().minusHours(1);
-        LocalDateTime end = LocalDateTime.now().plusHours(1);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         OtherTask otherTask = new OtherTask(
             "Other Task",
-            120,
-                start,
-                end
+            500,
+            weekStart.atTime(14, 30),
+            weekStart.plusDays(2).atTime(16, 30)
         );
+        otherTask.setLearningUnits(new ArrayList<>());
         ReflectionTestUtils.setField(otherTask, "taskId", UUID.randomUUID());
 
         when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(otherTask));

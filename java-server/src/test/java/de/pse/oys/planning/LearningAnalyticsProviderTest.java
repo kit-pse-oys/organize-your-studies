@@ -1,6 +1,5 @@
 package de.pse.oys.planning;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.Module;

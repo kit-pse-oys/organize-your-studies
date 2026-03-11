@@ -137,11 +137,11 @@ class COPSolver:
         4. Zielfunktion (Minimierung der Kosten basierend auf Präferenzen).
         """
         horizon = self.data.get('horizon', DEFAULT_HORIZON)
-        current_slot = self.data.get('current_slot', 0)
+        current_slot = self.data.get('currentSlot', 0)
         tasks = self.data.get('tasks', [])
-        fixed_blocks = self.data.get('fixed_blocks', [])
-        blocked_days = self.data.get("blocked_days", [])
-        pref_time_string = self.data.get('preference_time', '')
+        fixed_blocks = self.data.get('fixedBlocks', [])
+        blocked_days = self.data.get("blockedDays", [])
+        pref_time_string = self.data.get('preferenceTime', '')
 
         all_intervals = []
         all_cost_terms = []

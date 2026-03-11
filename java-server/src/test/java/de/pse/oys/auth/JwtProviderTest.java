@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -67,20 +70,23 @@ class JwtProviderTest {
     }
 
     @Test
-    void expiredToken_shouldFailValidation() throws InterruptedException {
-        // Eigener Provider nur für diesen Test
+    void expiredToken_shouldFailValidation() {
+        long expirationMs = 100;
+
         JwtProvider shortLivedProvider = new JwtProvider(
-                "myDefaultSecretHuber1234567890TestJWTSecretForDevPurposesOnly!!!", //512 Bit erwartet
-                1, // accessTokenExpirationMs
-                1000 // refreshTokenExpirationMs
+                "myDefaultSecretHuber1234567890TestJWTSecretForDevPurposesOnly!!!",
+                expirationMs,
+                1000
         );
+
         User user = new LocalUser("expired_user", "pw");
         userRepository.save(user);
 
         String token = shortLivedProvider.createAccessToken(user);
 
-        Thread.sleep(5); // sicherstellen, dass Token abläuft
-        assertFalse(shortLivedProvider.validateToken(token));
+        await()
+                .atMost(2, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertFalse(shortLivedProvider.validateToken(token)));
     }
 
     @Test

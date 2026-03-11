@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * TaskService kapselt die Geschäftslogik für Aufgaben:
@@ -187,8 +186,7 @@ public class TaskService {
         requireUserExists(userId);
 
         return taskRepository.findAllByModuleUserUserId(userId).stream()
-                .map(task -> new WrapperDTO<>(task.getTaskId(), mapToDto(task)))
-                .collect(Collectors.toList());
+                .map(task -> new WrapperDTO<>(task.getTaskId(), mapToDto(task))).toList();
     }
 
     /**

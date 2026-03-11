@@ -238,8 +238,6 @@ class QuestionnaireDTOTest {
         assertTrue(newDto.getPreferredStudyDays().contains(DayOfWeek.MONDAY));
     }
 
-    // ===== Test false-branches: if (field == null) =====
-
     @Test
     void testSetMaxUnitDuration_DoesNotReinitializeWhenNotNull() throws InvalidDtoException {
         // Setter mit null-Wert, Map wird NICHT neu initialisiert wenn sie bereits existiert
