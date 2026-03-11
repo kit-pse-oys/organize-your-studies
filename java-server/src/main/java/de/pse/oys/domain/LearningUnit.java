@@ -110,7 +110,7 @@ public class LearningUnit {
         }
         boolean isPast = java.time.LocalDateTime.now().isAfter(this.endTime);
         if (this.status == UnitStatus.PLANNED && isPast) {
-            this.status = UnitStatus.COMPLETED;
+            markAsCompleted();
         }
         return isPast;
     }

@@ -109,7 +109,7 @@ public class FreeTimeService {
      * @param freeTimeId ID der Freizeit
      */
     public void deleteFreeTime(UUID userId, UUID freeTimeId) throws ResourceNotFoundException, ValidationException, AccessDeniedException {
-        requireUserExists(userId);
+        User user = requireUserExists(userId);
         requireId(freeTimeId);
 
         FreeTime existing = freeTimeRepository.findById(freeTimeId)
@@ -117,6 +117,7 @@ public class FreeTimeService {
 
         assertOwner(existing, userId);
 
+        user.deleteFreeTime(existing);
         freeTimeRepository.delete(existing);
     }
 
