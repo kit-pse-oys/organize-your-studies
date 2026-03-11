@@ -69,7 +69,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * View for the login screen.
- * Allows the user to login or register and switches between the two.
+ * Allows the user to log in or register and switches between the two.
  * Login/ Register Button only enabled when username and password are not empty and passwords match.
  * @param viewModel the [ILoginViewModel] for this view.
  */
@@ -157,8 +157,7 @@ private fun UsernameTextField(
         value = username,
         onValueChange = onUsernameChanged,
         modifier = Modifier
-            .fillMaxWidth(0.7f)
-            .height(50.dp),
+            .fillMaxWidth(0.7f),
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = LightBlue,
@@ -195,8 +194,7 @@ private fun PasswordTextField(
         value = password,
         onValueChange = onPasswordChanged,
         modifier = Modifier
-            .fillMaxWidth(0.7f)
-            .height(50.dp),
+            .fillMaxWidth(0.7f),
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = LightBlue,

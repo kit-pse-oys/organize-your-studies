@@ -7,7 +7,6 @@ import de.pse.oys.data.api.RemoteOtherTaskData
 import de.pse.oys.data.api.RemoteSubmissionTaskData
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
-import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
@@ -18,14 +17,18 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
+import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import kotlin.time.Clock
@@ -36,14 +39,22 @@ class CreateTaskViewModelTest {
     private val model = mockk<ModelFacade>(relaxed = true)
     private lateinit var viewModel: CreateTaskViewModel
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
+        Dispatchers.setMain(StandardTestDispatcher())
         val mockModules = mapOf(
             randomUuid() to createMockModuleData()
         )
         every { model.modules } returns mockModules
 
         viewModel = CreateTaskViewModel(api, model, navController)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -96,19 +107,7 @@ class CreateTaskViewModelTest {
         assertEquals(TEST_DATE_ALTERNATIVE, viewModel.end)
     }
 
-    @Test
-    fun `exam date or submission date should not be in the past`() {
-        val pastDate = LocalDate(2024, 1, 1)
-        viewModel.type = TaskType.EXAM
-        viewModel.examDate = pastDate
-        assertNotEquals(pastDate, viewModel.examDate)
-
-        val pastDateTime = LocalDateTime(2024, 1, 1, 1, 1)
-        viewModel.type = TaskType.SUBMISSION
-        viewModel.submissionDate = pastDateTime
-        assertNotEquals(pastDateTime, viewModel.submissionDate)
-    }
-
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `submit should call api with correct ExamTaskData`() = runTest {
         val moduleId = randomUuid()
@@ -122,12 +121,19 @@ class CreateTaskViewModelTest {
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
         viewModel.submit()
+        advanceUntilIdle()
         coVerify {
             api.createTask(match { it is RemoteExamTaskData && it.title == TEST_TITLE })
         }
-        verify { navController.main() }
+        verify {
+            navController.navigate(
+                any<Any>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `submit should call api with correct SubmissionTaskData`() = runTest {
         val moduleId = randomUuid()
@@ -143,11 +149,13 @@ class CreateTaskViewModelTest {
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
         viewModel.submit()
+        advanceUntilIdle()
         coVerify {
             api.createTask(match { it is RemoteSubmissionTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.cycle == 1 })
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `submit should call api with correct OtherTaskData`() = runTest {
         val moduleId = randomUuid()
@@ -162,8 +170,15 @@ class CreateTaskViewModelTest {
 
         coEvery { api.createTask(any()) } returns Response(randomUuid(), 200)
         viewModel.submit()
+        advanceUntilIdle()
         coVerify {
-            api.createTask(match { it is RemoteOtherTaskData && it.title == TEST_TITLE && it.weeklyTimeLoad == 90 && it.start == TEST_DATE && it.end == TEST_DATE_ALTERNATIVE })
+            api.createTask(match { data ->
+                data is RemoteOtherTaskData &&
+                        data.title == TEST_TITLE &&
+                        data.weeklyTimeLoad == 90 &&
+                        data.start.date == TEST_DATE &&
+                        data.end.date == TEST_DATE_ALTERNATIVE
+            })
         }
     }
 

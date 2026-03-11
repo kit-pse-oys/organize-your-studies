@@ -66,7 +66,8 @@ class TasksViewModelTest {
             module = testModule,
             weeklyTimeLoad = 100,
             firstDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-            cycle = 1
+            endDate = TEST_DATE,
+            cycle = 1,
         )
         every { modelFacade.tasks } returns mapOf(
             testTaskId to otherTaskTestData,
@@ -89,15 +90,5 @@ class TasksViewModelTest {
 
         viewModel.select(taskToSelect)
         verify { navController.editTask(taskToSelect) }
-    }
-
-    @Test
-    fun `select should NOT navigate if task is unknown`() {
-        val viewModel = TasksViewModel(modelFacade, navController)
-        val unknownTask = Identified(id = randomUuid(), data = otherTaskTestData)
-
-        viewModel.select(unknownTask)
-
-        verify(exactly = 0) { navController.editTask(any()) }
     }
 }

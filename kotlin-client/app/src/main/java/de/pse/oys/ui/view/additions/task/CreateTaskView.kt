@@ -119,8 +119,8 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
             ViewHeaderWithBackOption(
                 viewModel::navigateBack,
                 if (viewModel.showDelete) stringResource(R.string.edit_task) else stringResource(id = R.string.new_task),
-                viewModel.showDelete,
-                { if (viewModel.showDelete) confirmDelete = true })
+                viewModel.showDelete
+            ) { if (viewModel.showDelete) confirmDelete = true }
             InputLabel(text = stringResource(id = R.string.enter_title))
             SingleLineInput(viewModel.title) { viewModel.title = it }
             ModuleSelection(viewModel)
@@ -176,7 +176,9 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 LocalDatePickerDialog(
                     currentDate = viewModel.examDate,
                     onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
+                        if (selectedDate != null && selectedDate >= Clock.System.now()
+                                .toLocalDateTime(TimeZone.currentSystemDefault()).date
+                        ) {
                             viewModel.examDate = selectedDate
                         }
                         showExamDatePicker = false
