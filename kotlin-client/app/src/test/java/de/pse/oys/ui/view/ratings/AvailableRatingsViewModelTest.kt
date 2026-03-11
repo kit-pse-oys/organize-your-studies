@@ -11,6 +11,7 @@ import de.pse.oys.ui.navigation.rating
 import de.pse.oys.ui.view.TestUtils.TEST_COLOR
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_TIME
+import de.pse.oys.ui.view.TestUtils.TEST_TIME_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.randomUuid
 import io.ktor.http.HttpStatusCode
@@ -25,12 +26,10 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.datetime.DayOfWeek
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AvailableRatingsViewModelTest {
@@ -63,7 +62,7 @@ class AvailableRatingsViewModelTest {
             start = TEST_TIME,
             end = TEST_TIME
         )
-        every { model.steps } returns mapOf<DayOfWeek, Map<Uuid, StepData>>(TEST_DATE.dayOfWeek to mapOf(testUuid to testStepData))
+        every { model.steps } returns mapOf(TEST_DATE.dayOfWeek to mapOf(testUuid to testStepData))
 
         coEvery { api.queryRateable() } returns Response(
             status = HttpStatusCode.OK.value,
@@ -102,10 +101,13 @@ class AvailableRatingsViewModelTest {
         val viewModel = AvailableRatingsViewModel(api, model, navController)
         advanceUntilIdle()
 
-        val unknownTarget = RatingTarget(TEST_TITLE, TEST_COLOR)
+        val unknownTarget =
+            RatingTarget(TEST_TITLE, TEST_COLOR, TEST_DATE, TEST_TIME, TEST_TIME_ALTERNATIVE)
         viewModel.selectRating(unknownTarget)
 
-        verify(exactly = 0) { navController.rating(any()) }
+        verify(exactly = 0) {
+            navController.navigate(any<Any>(), any(), any())
+        }
     }
 
     @Test

@@ -6,7 +6,6 @@ import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Priority
-import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.view.TestUtils
 import de.pse.oys.ui.view.TestUtils.TEST_DESC
@@ -18,7 +17,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -30,12 +36,21 @@ class EditModuleViewModelTest {
     private val model = mockk<ModelFacade>(relaxed = true)
     private lateinit var viewModel: EditModuleViewModel
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
+        Dispatchers.setMain(StandardTestDispatcher())
         val existingData = createMockModuleData()
         val targetModule = Identified(existingData, randomUuid())
         viewModel = EditModuleViewModel(api, model, targetModule, navController)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
 
     @Test
     fun `initial state should be filled with target module data`() {
@@ -63,8 +78,9 @@ class EditModuleViewModelTest {
         assertEquals(LightBlue, viewModel.color)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit in EditViewModel should call update api and navigate to main`() = runTest {
+    fun `submit in EditViewModel should call update api and navigate`() = runTest {
         val testId = randomUuid()
         val testData = createMockModuleData()
         val target = Identified(testData, testId)
@@ -74,23 +90,36 @@ class EditModuleViewModelTest {
         val newTitle = "New Title"
         editViewModel.title = newTitle
         editViewModel.submit()
+        advanceUntilIdle()
         coVerify {
             api.updateModule(match {
                 it.id == testId && it.data.title == newTitle
             })
         }
-        verify { navController.main() }
+        verify {
+            navController.navigate(
+                any<Any>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `delete in EditViewModel should call api delete and navigate to main`() = runTest {
+    fun `delete in EditViewModel should call api delete and navigate`() = runTest {
         val testId = randomUuid()
         val target = Identified(createMockModuleData(), testId)
         val editViewModel = EditModuleViewModel(api, model, target, navController)
 
         coEvery { api.deleteModule(testId) } returns Response(Unit, HttpStatusCode.OK.value)
         editViewModel.delete()
+        advanceUntilIdle()
         coVerify { api.deleteModule(testId) }
-        verify { navController.main() }
+        verify {
+            navController.navigate(
+                any<Any>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
     }
 }

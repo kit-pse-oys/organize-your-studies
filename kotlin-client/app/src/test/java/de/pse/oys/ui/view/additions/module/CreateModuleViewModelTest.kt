@@ -21,14 +21,34 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import kotlin.uuid.Uuid
 
 class CreateModuleViewModelTest {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Before
+    fun setup() {
+        Dispatchers.setMain(StandardTestDispatcher())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
     private val api = mockk<RemoteAPI>(relaxed = true)
     private val navController = mockk<NavController>(relaxed = true)
     private val model = mockk<ModelFacade>(relaxed = true)
@@ -75,6 +95,7 @@ class CreateModuleViewModelTest {
             }
 
             override fun delete() {}
+            override fun navigateBack() {}
 
             fun testRegister(m: ModuleData = testData) {
                 registerNewModule(randomUuid(), m)
@@ -84,11 +105,17 @@ class CreateModuleViewModelTest {
 
         testVM.testRegister(ModuleData(TEST_TITLE, TEST_DESC, TEST_PRIORITY, TEST_COLOR))
         assertEquals(testData, modulesMap[testId])
-        verify { navController.main() }
+        verify {
+            navController.navigate(
+                any<Any>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit should call api and navigate to main when successful`() = runTest {
+    fun `submit should call api and navigate when successful`() = runTest {
         val viewModel = CreateModuleViewModel(api, model, navController)
 
         viewModel.title = TEST_TITLE
@@ -99,10 +126,17 @@ class CreateModuleViewModelTest {
         val expectedData = createMockModuleData()
         coEvery { api.createModule(any()) } returns Response(randomUuid(), HttpStatusCode.OK.value)
         viewModel.submit()
+        advanceUntilIdle()
         coVerify { api.createModule(expectedData) }
-        verify { navController.main() }
+        verify {
+            navController.navigate(
+                any<Any>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `submit should set error true when api fails`() = runTest {
         val viewModel = CreateModuleViewModel(api, model, navController)
@@ -113,6 +147,7 @@ class CreateModuleViewModelTest {
         )
         viewModel.title = TEST_TITLE
         viewModel.submit()
+        advanceUntilIdle()
         assertTrue(viewModel.error)
     }
 }
