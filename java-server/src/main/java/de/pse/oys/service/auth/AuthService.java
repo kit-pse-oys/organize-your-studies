@@ -31,8 +31,8 @@ import java.util.UUID;
 @Service
 public class AuthService {
     private static final String ERR_UNSUPPORTED_AUTH_PROVIDER = "Nicht unterstützter Authentifizierungsanbieter: %s";
-    private static final String ERR_LOCAL_USER_INCONSISTENT = "Der Benutzername existiert, " +
-            "findet aber keinen zugehörigen lokalen Benutzer in der Datenbank. ";
+    private static final String ERR_LOCAL_USER_INCONSISTENT = "Der Benutzername existiert, "
+            + "findet aber keinen zugehörigen lokalen Benutzer in der Datenbank. ";
     private static final String ERR_INVALID_LOGIN_CREDENTIALS = "Ungültige Anmeldeinformationen.";
     private static final String ERR_INVALID_EXTERNAL_TOKEN = "Ungültiges externes Token übermittelt.";
     private static final String ERR_INVALID_REFRESH_TOKEN = "Ungültiges Refresh-Token.";
@@ -183,8 +183,8 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException(ERR_USER_NOT_FOUND));
 
         String storedRefreshTokenHash = user.getRefreshTokenHash();
-        if (storedRefreshTokenHash == null ||
-                !passwordEncoder.matches(refreshToken, storedRefreshTokenHash)) {
+        if (storedRefreshTokenHash == null
+                || !passwordEncoder.matches(refreshToken, storedRefreshTokenHash)) {
             throw new IllegalArgumentException(ERR_REFRESH_TOKEN_MATCH);
         }
 

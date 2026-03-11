@@ -38,13 +38,13 @@ public class AuthResponseDTO {
     // Getter
 
     /** @return Der aktuelle Access-Token. */
-    public String getAccessToken() { return accessToken; }
+    public String getAccessToken() {return accessToken; }
 
     /** @return Der aktuelle Refresh-Token. */
-    public String getRefreshToken() { return refreshToken; }
+    public String getRefreshToken() {return refreshToken; }
 
     // Setter
 
     /** @param accessToken Der neue Access-Token. */
-    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+    public void setAccessToken(String accessToken) {this.accessToken = accessToken; }
 }

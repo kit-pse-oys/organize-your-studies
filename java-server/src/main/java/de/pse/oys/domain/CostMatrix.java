@@ -81,9 +81,6 @@ public class CostMatrix {
     /** @return true, wenn die Matrix neu berechnet werden muss. */
     public boolean isOutdated() { return isOutdated; }
 
-    /** @return Den Zeitpunkt der letzten Berechnung. */
-    public LocalDateTime getLastUpdated() { return lastUpdated; }
-
     /** @return Die verknüpfte Aufgabe. */
     public Task getTask() { return task; }
 

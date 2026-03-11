@@ -1,6 +1,7 @@
 package de.pse.oys.dto;
 /**
  * Data Transfer Object (DTO) für Kosteninformationen im Lernplan.
+ * @author uhupo
  */
 public class CostDTO {
     private int t;
@@ -15,7 +16,7 @@ public class CostDTO {
         this.c = c;
     }
     /*** Standardkonstruktor für CostDTO. */
-    public CostDTO(){
+    public CostDTO() {
         // Standardkonstruktor
     }
 /** @return Kostenwert. */
