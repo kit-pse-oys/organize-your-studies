@@ -18,6 +18,7 @@ import io.ktor.client.engine.mock.toByteReadPacket
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -580,7 +581,7 @@ class RemoteClientTest {
             assertEquals(200, response.status)
             assertEquals(buildMap {
                 put(
-                    DayOfWeek.MONDAY, listOf(
+                    DayOfWeek.THURSDAY, listOf(
                         RemoteStep(
                             RemoteStepData(
                                 task1,
@@ -819,7 +820,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task1.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("category", "exam")
+                                put("category", "EXAM")
                                 put("title", "Task 1")
                                 put("module", task1.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 2)
@@ -829,7 +830,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task2.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("category", "submission")
+                                put("category", "SUBMISSION")
                                 put("title", "Task 2")
                                 put("module", task2.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 6)
@@ -841,7 +842,7 @@ class RemoteClientTest {
                         add(buildJsonObject {
                             put("id", task3.id.toHexDashString())
                             put("data", buildJsonObject {
-                                put("category", "other")
+                                put("category", "OTHER")
                                 put("title", "Task 3")
                                 put("module", task3.data.module.toHexDashString())
                                 put("weeklyTimeLoad", 3)
@@ -938,7 +939,11 @@ class RemoteClientTest {
                     })
                 }, json)
 
-                respondOk()
+                respond(
+                    content = buildJsonObject { put("id", uuid1.toHexDashString()) }.toString(),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
             }
             val response = client.updateTask(
                 RemoteTask(

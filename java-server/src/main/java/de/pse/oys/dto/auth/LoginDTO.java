@@ -26,7 +26,9 @@ public class LoginDTO {
     private String externalToken; // nur für oidc Authentifizierung relevant
 
     // ----- Standard-Konstruktor für Jackson -----
-    public LoginDTO() {}
+    public LoginDTO() {
+        // No-Args-Konstruktor für JSON-Deserialisierung
+    }
 
 
     // ----- Getter & Setter -----

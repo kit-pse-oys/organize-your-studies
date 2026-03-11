@@ -93,7 +93,7 @@ public abstract class Task {
      * @param weeklyDurationMinutes Wöchentlicher Aufwand in Minuten.
      * @param category              Fachliche Kategorie der Aufgabe.
      */
-    public Task(String title, int weeklyDurationMinutes, TaskCategory category) {
+    protected Task(String title, int weeklyDurationMinutes, TaskCategory category) {
         this.title = title;
         this.weeklyDurationMinutes = weeklyDurationMinutes;
         this.category = category;

@@ -39,6 +39,7 @@ public class LearningPlanDTO {
      * Standardkonstruktor für die JSON-Deserialisierung.
      */
     public LearningPlanDTO() {
+        // Leerer Konstruktor für Jackson
     }
 
     // Getter

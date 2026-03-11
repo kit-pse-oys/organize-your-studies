@@ -23,7 +23,6 @@ public class LearningAnalyticsProvider {
 
     private static final int MINUTES_PER_HOUR = 60;
     private static final int SLOT_DURATION_MINUTES = 5;
-    private static final String EMPTY_JSON_ARRAY = "[]";
 
     private static final int VAL_CONCENTRATION_VERY_LOW = -2;
     private static final int VAL_CONCENTRATION_LOW = -1;
@@ -113,12 +112,12 @@ public class LearningAnalyticsProvider {
             }
 
         }
-        persist(task, task.getCostMatrix(), costs);
+        persist(task.getCostMatrix(), costs);
 
         return costs;
     }
 
-    private void persist(Task task, CostMatrix costMatrix, List<CostDTO> costs) {
+    private void persist(CostMatrix costMatrix, List<CostDTO> costs) {
         if (costMatrix == null) {
             return;
         }

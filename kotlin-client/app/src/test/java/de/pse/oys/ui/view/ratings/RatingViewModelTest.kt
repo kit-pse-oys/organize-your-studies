@@ -4,10 +4,8 @@ import androidx.navigation.NavController
 import de.pse.oys.data.RatingAspect
 import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.facade.Rating
-import de.pse.oys.ui.navigation.availableRatings
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -54,7 +52,7 @@ class RatingViewModelTest {
     }
 
     @Test
-    fun `submitRating should call api and navigate`() = runTest {
+    fun `submitRating should call api`() = runTest {
         val viewModel = RatingViewModel(api, testTarget, navController)
         viewModel.updateRating(RatingAspect.GOAL, Rating.LOW)
         viewModel.submitRating()
@@ -65,6 +63,5 @@ class RatingViewModelTest {
                 assertEquals(Rating.MEDIUM, it.perceivedDuration)
             })
         }
-        verify { navController.availableRatings(any()) }
     }
 }

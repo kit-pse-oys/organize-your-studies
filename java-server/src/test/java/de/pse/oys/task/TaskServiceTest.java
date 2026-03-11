@@ -717,7 +717,7 @@ class TaskServiceTest {
             assertThat(existing.getTitle()).isEqualTo("Updated Other");
             assertThat(existing.getWeeklyDurationMinutes()).isEqualTo(300);
             assertThat(existing.getStartTime()).isEqualTo(OTHER_START.plusHours(1));
-            assertThat(existing.getEndTime()).isEqualTo(OTHER_END.plusHours(2));
+            assertThat(existing.getHardDeadline()).isEqualTo(OTHER_END.plusHours(2));
             assertThat(existing.getModule()).isNull();
 
             verify(taskRepository).save(existing);
