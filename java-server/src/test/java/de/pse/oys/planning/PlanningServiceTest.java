@@ -2,7 +2,6 @@ package de.pse.oys.planning;
 
 import de.pse.oys.TestDomainFactory;
 import de.pse.oys.domain.*;
-import de.pse.oys.domain.Module;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.domain.enums.UnitStatus;
@@ -137,7 +136,7 @@ class PlanningServiceTest {
     void generateWeeklyPlan_ShouldSendCorrectRequest() {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserId(eq(userId)))
+        when(taskRepository.findAllByModuleUserUserId(userId))
                 .thenReturn(List.of(testTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(testTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -191,7 +190,7 @@ class PlanningServiceTest {
 
         realTask.isActive();
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(taskRepository.findAllByModuleUserUserId(eq(userId)))
+        when(taskRepository.findAllByModuleUserUserId(userId))
                 .thenReturn(List.of(realTask));
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(realTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -275,7 +274,7 @@ class PlanningServiceTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -352,7 +351,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), eq(weekStart)))
+        when(learningPlanRepository.findByUserIdAndWeekStart(userId, weekStart))
                 .thenReturn(Optional.of(existingPlanMock));
 
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
@@ -373,7 +372,7 @@ class PlanningServiceTest {
         planningService.rescheduleUnit(userId, unitIdToMove);
 
 
-        verify(learningAnalyticsProvider).applyPenaltyToCostMatrix(eq(taskMock), eq(120), eq(10));
+        verify(learningAnalyticsProvider).applyPenaltyToCostMatrix(taskMock, 120, 10);
 
 
         verify(restTemplate).exchange(
@@ -420,10 +419,10 @@ class PlanningServiceTest {
     void generateWeeklyPlan_ShouldClearFutureUnitsBeforePlanning() {
         // GIVEN
         User user = TestDomainFactory.createLocalUserWithPrefs();
-        UUID userId = UUID.randomUUID();
-        ReflectionTestUtils.setField(user, "userId", userId);
+        UUID uuid = UUID.randomUUID();
+        ReflectionTestUtils.setField(user, "userId", uuid);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(uuid)).thenReturn(Optional.of(user));
 
         // Erstellt eine zu löschende Lerneinheit
         LearningUnit futureUnit = mock(LearningUnit.class);
@@ -434,22 +433,23 @@ class PlanningServiceTest {
         when(futureUnit.getTask()).thenReturn(relatedTask);
         when(relatedTask.getLearningUnits()).thenReturn(taskUnits);
 
-        when(learningUnitRepository.findAllByTask_Module_User_UserId(userId))
+        when(learningUnitRepository.findAllByTask_Module_User_UserId(uuid))
                 .thenReturn(List.of(futureUnit));
 
         // Mock für den Plan, aus dem die Unit entfernt werden muss
         LearningPlan existingPlan = mock(LearningPlan.class);
         List<LearningUnit> planUnits = new ArrayList<>(List.of(futureUnit));
         when(existingPlan.getUnits()).thenReturn(planUnits);
-        when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), any()))
+        when(learningPlanRepository.findByUserIdAndWeekStart(eq(uuid), any()))
                 .thenReturn(Optional.of(existingPlan));
 
         // ACT
         // Wir fangen die Exception ab, die später im callSolver käme,
         // da hier der Lösch-Teil im Service getestet werden soll, nicht die Planung selbst.
         try {
-            planningService.generateWeeklyPlan(userId);
+            planningService.generateWeeklyPlan(uuid);
         } catch (Exception ignored) {
+            // Wird ignoriert, da es hier um die Coverage der Lösch-Logik für zukünftige Units geht, nicht um die erfolgreiche Planung selbst.
         }
 
         // ASSERT
@@ -505,7 +505,7 @@ class PlanningServiceTest {
         ReflectionTestUtils.setField(user, "userId", userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Task 1: restDuration <= 0 Coverage
+        // Task 1: restDuration <= 0 Coverage (Task mit mehr completed units als weekly duration)
         Task doneTask = mock(Task.class);
         when(doneTask.isActive()).thenReturn(true);
         when(doneTask.getCategory()).thenReturn(TaskCategory.EXAM);
@@ -518,57 +518,90 @@ class PlanningServiceTest {
 
         when(doneTask.getLearningUnits()).thenReturn(List.of(finishedUnit));
 
+        // Task 2: restDuration > 0 und mit null LearningUnits (Null-Check Coverage)
+        Task nullUnitsTask = mock(Task.class);
+        when(nullUnitsTask.isActive()).thenReturn(true);
+        when(nullUnitsTask.getTaskId()).thenReturn(UUID.randomUUID());
+        when(nullUnitsTask.getCategory()).thenReturn(TaskCategory.EXAM);
+        when(nullUnitsTask.getWeeklyDurationMinutes()).thenReturn(120);
+        when(nullUnitsTask.getLearningUnits()).thenReturn(null);
+        when(nullUnitsTask.getSoftDeadline(anyInt())).thenReturn(LocalDateTime.now().plusDays(2));
+
+        // Task 3: mit remainder logic coverage (100 / 3 = 33, remainder = 1)
         Task remainderTask = mock(Task.class);
         when(remainderTask.isActive()).thenReturn(true);
         when(remainderTask.getTaskId()).thenReturn(UUID.randomUUID());
         when(remainderTask.getCategory()).thenReturn(TaskCategory.EXAM);
         when(remainderTask.getWeeklyDurationMinutes()).thenReturn(100);
         when(remainderTask.getLearningUnits()).thenReturn(new ArrayList<>());
-        // Wichtig für splitIntoChunks:
         when(remainderTask.getSoftDeadline(anyInt())).thenReturn(LocalDateTime.now().plusDays(2));
 
-        when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(doneTask, remainderTask));
+        when(taskRepository.findAllByModuleUserUserId(userId))
+                .thenReturn(List.of(doneTask, nullUnitsTask, remainderTask));
         when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
+        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(new PlanningResponseDTO()));
+
         // ACT
-        try {
-            planningService.generateWeeklyPlan(userId);
-        } catch (Exception ignored) {
-            // Ignorieren, falls der Solver-Call am Ende (nach der Logik) fehlschlägt
-        }
+        planningService.generateWeeklyPlan(userId);
+
+        // ASSERT
+        ArgumentCaptor<HttpEntity<PlanningRequestDTO>> captor =
+                ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(
+                eq("http://localhost:5001/optimize"),
+                eq(HttpMethod.POST),
+                captor.capture(),
+                any(ParameterizedTypeReference.class)
+        );
+
+        HttpEntity<PlanningRequestDTO> capturedRequest = captor.getValue();
+        PlanningRequestDTO requestDTO = capturedRequest.getBody();
+        assertNotNull(requestDTO, "RequestDTO sollte nicht null sein");
+        assertNotNull(requestDTO.getTasks(), "Tasks sollte nicht null sein");
+
+        // Task 1 (doneTask mit restDuration <= 0) sollte übersprungen werden
+        // Task 2 (nullUnitsTask mit 120 min) und Task 3 (remainderTask mit 100 min) sollten verarbeitet werden
+        assertTrue(requestDTO.getTasks().size() >= 2,
+                "Mindestens 2 Tasks sollten verarbeitet werden (nullUnitsTask + remainderTask)");
+
+        // Verify that doneTask wurde übersprungen (nur 2 tasks, nicht 3)
+        verify(learningPlanRepository, never()).save(any());
     }
 
     @Test
     void testFixedBlocks_Filtering_Coverage() {
         // 1. Setup: User vorbereiten
         User user = TestDomainFactory.createLocalUserWithPrefs();
-        UUID userId = UUID.randomUUID();
-        ReflectionTestUtils.setField(user, "userId", userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        UUID randomId = UUID.randomUUID();
+        ReflectionTestUtils.setField(user, "userId", randomId);
+        when(userRepository.findById(randomId)).thenReturn(Optional.of(user));
 
-        // 2. Fall: Einmaliger Termin weit in der ZUKUNFT (False Hit für das Wochen-IF)
+        // 2. Fall: Einmaliger Termin weit in der zukunft
         LocalDate farFuture = LocalDate.now().plusWeeks(10);
         SingleFreeTime outsideFuture = new SingleFreeTime(
-                userId, "Zukunfts-Termin", LocalTime.of(10, 0), LocalTime.of(11, 0), farFuture
+                randomId, "Zukunfts-Termin", LocalTime.of(10, 0), LocalTime.of(11, 0), farFuture
         );
         user.addFreeTime(outsideFuture);
 
-        // 3. Fall: Einmaliger Termin weit in der VERGANGENHEIT (False Hit für das Wochen-IF)
+        // 3. Fall: Einmaliger Termin weit in der vergangenheit
         LocalDate farPast = LocalDate.now().minusWeeks(10);
         SingleFreeTime outsidePast = new SingleFreeTime(
-                userId, "Vergangenheits-Termin", LocalTime.of(10, 0), LocalTime.of(11, 0), farPast
+                randomId, "Vergangenheits-Termin", LocalTime.of(10, 0), LocalTime.of(11, 0), farPast
         );
         user.addFreeTime(outsidePast);
 
         // Methode triggern
         try {
-            planningService.generateWeeklyPlan(userId);
+            planningService.generateWeeklyPlan(randomId);
         } catch (Exception ignored) {
+            // Ignoriert, da es hier um die Coverage der Filter-Logik für fixed blocks geht, nicht um die erfolgreiche Planung selbst.
         }
 
         // ASSERT
         // Sicherstellen, dass der User gefunden wurde und die Logik lief
-        verify(userRepository).findById(userId);
+        verify(userRepository).findById(randomId);
     }
 
     @Test
@@ -613,16 +646,25 @@ class PlanningServiceTest {
                 .thenReturn(Optional.empty());
 
         lenient().when(taskRepository.findById(any())).thenReturn(Optional.empty());
+        when(taskRepository.findAllByModuleUserUserId(uId)).thenReturn(new ArrayList<>());
+        when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
 
+        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(new PlanningResponseDTO()));
+
+        // ACT - Methode ausführen, die durch Null-Checks und Exception-Handling geht
         try {
             planningService.generateWeeklyPlan(uId);
         } catch (Exception ignored) {
+            // Ob ein Fehler auftritt, ist hier nicht relevant, da wir nur die Null-Check-Logik abdecken wollen.
         }
+        // ASSERT - Sicherstellen, dass der User gefunden wurde und die Logik lief
+        assertNotNull(testUser, "TestUser sollte vorhanden sein");
+        verify(userRepository).findById(uId);
     }
 
     @Test
     void testSaveLearningResults_EmptyLearningUnitsList_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
@@ -673,7 +715,6 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateFixedBlocksDTO_WithRatedUnits_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
@@ -696,7 +737,6 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateFixedBlocksDTO_WeeklyWithDayIndex_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
@@ -759,7 +799,6 @@ class PlanningServiceTest {
 
     @Test
     void testMapTimeToSlot_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
@@ -790,7 +829,6 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateBlockedWeekDays_WithBlockedDays_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 

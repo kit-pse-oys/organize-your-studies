@@ -94,7 +94,7 @@ public class SubmissionTask extends Task {
         // Von firstDeadline aus in cycleWeeks-Schritten nach vorne springen
         long weeksBetween = ChronoUnit.WEEKS.between(firstDeadline, from);
         long steps = (weeksBetween / cycleWeeks) + 1;
-        LocalDateTime candidate = firstDeadline.plusWeeks(steps * (long) cycleWeeks);
+        LocalDateTime candidate = firstDeadline.plusWeeks(steps * cycleWeeks);
 
         return candidate.isAfter(endTime) ? null : candidate;
     }

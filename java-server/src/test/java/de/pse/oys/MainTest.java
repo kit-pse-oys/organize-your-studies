@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  */
 @SpringBootTest
 @ActiveProfiles("integration")
-public class MainTest extends BaseIntegrationTest {
+class MainTest extends BaseIntegrationTest {
 
     @Test
     void testMain() {

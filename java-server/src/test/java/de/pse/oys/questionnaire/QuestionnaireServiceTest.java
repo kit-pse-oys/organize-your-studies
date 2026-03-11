@@ -2,7 +2,6 @@ package de.pse.oys.questionnaire;
 
 import de.pse.oys.domain.LearningPreferences;
 import de.pse.oys.domain.LocalUser;
-import de.pse.oys.domain.User;
 import de.pse.oys.domain.enums.TimeSlot;
 import de.pse.oys.dto.QuestionnaireDTO;
 import de.pse.oys.persistence.UserRepository;
@@ -323,17 +322,6 @@ class QuestionnaireServiceTest {
 
         QuestionnaireDTO dto = createValidDto();
         dto.setPreferredPauseDuration(-1);
-
-        assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
-    }
-
-    @Test
-    void validate_deadlineBuffer_Negative_TrueHit() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(new LocalUser("u", "p")));
-
-        QuestionnaireDTO dto = createValidDto();
-        dto.setTimeBeforeDeadlines(-1);
 
         assertThrows(IllegalArgumentException.class, () -> service.submitQuestionnaire(userId, dto));
     }

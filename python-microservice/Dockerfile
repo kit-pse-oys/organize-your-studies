@@ -11,11 +11,8 @@ RUN apt-get update && apt-get install -y curl && \
 # 4. Poetry-Dateien kopieren
 COPY pyproject.toml poetry.lock* /app/
 
-# 5. Poetry konfigurieren (keine virtuelle Umgebung im Container)
-RUN poetry config virtualenvs.create false
-
-# 6. Pakete installieren
-RUN poetry install --no-root --only main
+# 5. Poetry konfigurieren (keine virtuelle Umgebung im Container) und Pakete installieren
+RUN poetry config virtualenvs.create false && poetry install --no-root --only main
 
 # 7. Den restlichen Code kopieren
 COPY . /app
