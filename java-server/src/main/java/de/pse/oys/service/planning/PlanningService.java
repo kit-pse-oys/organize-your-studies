@@ -430,7 +430,11 @@ public class PlanningService {
                 if (taskEndDate.isBefore(weekStart)) {
                     continue;
                 }
-                startSlot = mapLocalDateTimeToSlot(otherTask.getStartTime(), weekStart);
+                if (otherTask.getStartTime().isBefore(now)) {
+                    startSlot = calculateCurrentSlot(weekStart, now);
+                } else {
+                    startSlot = mapLocalDateTimeToSlot(otherTask.getStartTime(), weekStart);
+                }
 
             }
             List<LearningUnit> existingUnits = task.getLearningUnits();
