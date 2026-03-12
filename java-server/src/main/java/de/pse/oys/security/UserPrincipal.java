@@ -47,7 +47,7 @@ public class UserPrincipal implements UserDetails {
     public String getPassword() { return password; }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() { return Collections.emptyList(); }
+    public Collection<? extends GrantedAuthority> getAuthorities() { return null; }
 
     // Weitere notwendige Overrides für UserDetails...
     @Override public boolean isAccountNonExpired() { return true; }

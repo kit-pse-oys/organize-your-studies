@@ -1020,17 +1020,20 @@ class PlanningServiceTest {
 
     @Test
     void testFetchOpenTasks_OtherTaskCategory_Coverage() {
-        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
+
+        // Erstelle Zeiten, die das aktuelle "Jetzt" sicher umschließen
+        LocalDateTime start = LocalDateTime.now().minusHours(1);
+        LocalDateTime end = LocalDateTime.now().plusHours(1);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         OtherTask otherTask = new OtherTask(
-            "Other Task",
-            500,
-            weekStart.atTime(14, 30),
-            weekStart.plusDays(2).atTime(16, 30)
+                "Other Task",
+                120,
+                start,
+                end
         );
         otherTask.setLearningUnits(new ArrayList<>());
         ReflectionTestUtils.setField(otherTask, "taskId", UUID.randomUUID());
