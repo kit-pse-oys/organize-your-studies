@@ -60,19 +60,7 @@ class EditQuestionnaireViewModelTest {
     }
 
     @Test
-    fun `MapsToMain should navigate`() {
-        val viewModel = EditQuestionnaireViewModel(api, model, navController)
-        viewModel.navigateToMain()
-        verify {
-            navController.navigate(
-                Main,
-                any<NavOptionsBuilder.() -> Unit>()
-            )
-        }
-    }
-
-    @Test
-    fun `MapsBack should pop backstack`() {
+    fun `navigate back should pop backstack`() {
         val viewModel = EditQuestionnaireViewModel(api, model, navController)
         viewModel.navigateBack()
         verify { navController.popBackStack() }

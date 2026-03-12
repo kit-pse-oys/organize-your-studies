@@ -56,7 +56,7 @@ class FirstQuestionnaireViewModelTest {
     }
 
     @Test
-    fun `MapsBack should hide questionnaire if visible`() {
+    fun `navigate back returns to welcome from first questionnaire`() {
         val viewModel = FirstQuestionnaireViewModel(api, model, navController)
 
         viewModel.showQuestionnaire()
@@ -69,7 +69,7 @@ class FirstQuestionnaireViewModelTest {
     }
 
     @Test
-    fun `MapsBack should pop backstack if welcome is already visible`() {
+    fun `navigate back should pop back stack if on welcome screen`() {
         val viewModel = FirstQuestionnaireViewModel(api, model, navController)
 
         viewModel.navigateBack()

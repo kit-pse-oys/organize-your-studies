@@ -633,7 +633,7 @@ class RemoteClientTest {
                             put("data", buildJsonObject {
                                 put("title", "Module 1")
                                 put("description", "Description 1")
-                                put("priority", "NEUTRAL")
+                                put("priority", "MEDIUM")
                                 put("color", "#FF0000")
                             })
                         })
@@ -678,7 +678,7 @@ class RemoteClientTest {
                 assertEquals(buildJsonObject {
                     put("title", "Module 1")
                     put("description", "Description 1")
-                    put("priority", "NEUTRAL")
+                    put("priority", "MEDIUM")
                     put("color", "#FF0000")
                 }, json)
 
@@ -726,7 +726,7 @@ class RemoteClientTest {
                     put("data", buildJsonObject {
                         put("title", "Module 1")
                         put("description", "Description 1")
-                        put("priority", "NEUTRAL")
+                        put("priority", "MEDIUM")
                         put("color", "#FF0000")
                     })
                 }, json)
@@ -942,7 +942,7 @@ class RemoteClientTest {
                 respond(
                     content = buildJsonObject { put("id", uuid1.toHexDashString()) }.toString(),
                     status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 )
             }
             val response = client.updateTask(

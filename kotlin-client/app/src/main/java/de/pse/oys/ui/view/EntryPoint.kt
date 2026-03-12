@@ -54,7 +54,7 @@ import de.pse.oys.ui.view.menu.MenuViewModel
 import de.pse.oys.ui.view.onboarding.LoginView
 import de.pse.oys.ui.view.onboarding.LoginViewModel
 import de.pse.oys.ui.view.onboarding.QuestionnaireView
-import de.pse.oys.ui.view.onboarding.questionnaireViewModel
+import de.pse.oys.ui.view.onboarding.QuestionnaireViewModel
 import de.pse.oys.ui.view.ratings.AvailableRatingsView
 import de.pse.oys.ui.view.ratings.AvailableRatingsViewModel
 import de.pse.oys.ui.view.ratings.RatingView
@@ -73,13 +73,36 @@ fun EntryPoint(
     NavHost(navController = navController, startDestination = if (startWithLogin) Login else Main) {
         composable<Main> { MainView(viewModel { MainViewModel(api, model, navController) }) }
         composable<Login> { LoginView(viewModel { LoginViewModel(api, context, navController) }) }
-        composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, model, navController) }) }
+        composable<Menu> {
+            MenuView(viewModel {
+                MenuViewModel(
+                    properties,
+                    api,
+                    model,
+                    navController
+                )
+            })
+        }
         composable<AccountSettings> {
-            AccountSettingsView(viewModel { AccountSettingsViewModel(api, model, context, navController) })
+            AccountSettingsView(viewModel {
+                AccountSettingsViewModel(
+                    api,
+                    model,
+                    context,
+                    navController
+                )
+            })
         }
         composable<Questionnaire> { backEntry ->
             val firstTime = backEntry.toRoute<Questionnaire>().firstTime
-            QuestionnaireView(viewModel { questionnaireViewModel(firstTime, api, model, navController) })
+            QuestionnaireView(viewModel {
+                QuestionnaireViewModel(
+                    firstTime,
+                    api,
+                    model,
+                    navController
+                )
+            })
         }
         composable<Rating> { backEntry ->
             val id = backEntry.toRoute<Rating>().step

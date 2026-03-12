@@ -374,7 +374,7 @@ class EditQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navControll
  * @param navController the [NavController] for this view.
  * @return the [BaseQuestionnaireViewModel] for the [QuestionnaireView].
  */
-fun questionnaireViewModel(
+fun QuestionnaireViewModel(
     firstTime: Boolean,
     api: RemoteAPI,
     model: ModelFacade,
