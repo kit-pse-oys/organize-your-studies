@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * TaskService kapselt die Geschäftslogik für Aufgaben:
@@ -49,11 +48,19 @@ public class TaskService {
     private static final String MSG_SUBMISSION_CYCLE_INVALID = "submissionCycle muss >= 1 sein.";
     private static final String MSG_SUBMISSION_RANGE_INVALID = "endTime muss nach firstDeadline liegen.";
     private static final String MSG_OTHER_RANGE_INVALID = "Bei sonstigen Aufgaben muss endTime größer als startTime sein.";
-
+    private static final String USER_ID_STRING = "USER_ID_STRING";
+    
     private final UserRepository userRepository;
     private final ModuleRepository moduleRepository;
     private final TaskRepository taskRepository;
+    
 
+    /**
+     * Standard-Konstruktor mit Dependency Injection für die benötigten Repositories.
+     * @param userRepository Repository für Nutzer
+     * @param moduleRepository Repository für Module
+     * @param taskRepository Repository für Tasks
+     */
     public TaskService(UserRepository userRepository,
                        ModuleRepository moduleRepository,
                        TaskRepository taskRepository) {
@@ -72,12 +79,12 @@ public class TaskService {
      * @param userId ID des Nutzers (darf nicht {@code null} sein)
      * @param dto    Task-Daten als DTO (darf nicht {@code null} sein)
      * @return die gespeicherte Task als DTO
-     * @throws NullPointerException      wenn {@code userId} {@code null} ist
+     * @throws NullPointerException      wenn {@code USER_ID_STRING} {@code null} ist
      * @throws ValidationException       wenn das DTO ungültig ist
      * @throws ResourceNotFoundException wenn Nutzer oder Modul nicht existiert/gehört
      */
     public UUID createTask(UUID userId, TaskDTO dto) {
-        Objects.requireNonNull(userId, "userId");
+        Objects.requireNonNull(userId, USER_ID_STRING);
         validateData(dto);
         requireUserExists(userId);
         Module module = requireOwnedModule(userId, dto.getModuleId());
@@ -97,13 +104,13 @@ public class TaskService {
      * @param taskId ID der zu aktualisierenden Task (darf nicht {@code null} sein)
      * @param dto    neue Task-Daten als DTO (darf nicht {@code null} sein)
      * @return die aktualisierte Task als DTO
-     * @throws NullPointerException      wenn {@code userId} oder {@code taskId} {@code null} ist
+     * @throws NullPointerException      wenn {@code USER_ID_STRING} oder {@code taskId} {@code null} ist
      * @throws ValidationException       wenn das DTO ungültig ist oder die Kategorie geändert würde
      * @throws ResourceNotFoundException wenn Nutzer, Modul oder Task nicht existiert
      * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
     public UUID updateTask(UUID userId, UUID taskId, TaskDTO dto) {
-        Objects.requireNonNull(userId, "userId");
+        Objects.requireNonNull(userId, USER_ID_STRING);
         Objects.requireNonNull(taskId, "taskId");
         validateData(dto);
         requireUserExists(userId);
@@ -145,12 +152,12 @@ public class TaskService {
      *
      * @param userId ID des Nutzers (darf nicht {@code null} sein)
      * @param taskId ID der zu löschenden Task (darf nicht {@code null} sein)
-     * @throws NullPointerException      wenn {@code userId} oder {@code taskId} {@code null} ist
+     * @throws NullPointerException      wenn {@code USER_ID_STRING} oder {@code taskId} {@code null} ist
      * @throws ResourceNotFoundException wenn Nutzer oder Task nicht existiert
      * @throws AccessDeniedException     wenn der Task existiert, aber nicht dem Nutzer gehört
      */
     public void deleteTask(UUID userId, UUID taskId) {
-        Objects.requireNonNull(userId, "userId");
+        Objects.requireNonNull(userId, USER_ID_STRING);
         Objects.requireNonNull(taskId, "taskId");
         requireUserExists(userId);
 
@@ -171,34 +178,24 @@ public class TaskService {
      *
      * @param userId ID des Nutzers, dessen Aufgaben abgefragt werden.
      * @return Liste aller Aufgaben des Nutzers (leer, wenn keine vorhanden sind).
-     * @throws NullPointerException      wenn {@code userId} {@code null} ist.
+     * @throws NullPointerException      wenn {@code USER_ID_STRING} {@code null} ist.
      * @throws ResourceNotFoundException wenn der Nutzer nicht existiert.
      */
     public List<WrapperDTO<TaskDTO>> getTasksByUserId(UUID userId) throws ResourceNotFoundException {
-        Objects.requireNonNull(userId, "userId");
+        Objects.requireNonNull(userId, USER_ID_STRING);
         requireUserExists(userId);
 
         return taskRepository.findAllByModuleUserUserId(userId).stream()
-                .map(task -> new WrapperDTO<>(task.getTaskId(), mapToDto(task)))
-                .collect(Collectors.toList());
+                .map(task -> new WrapperDTO<>(task.getTaskId(), mapToDto(task))).toList();
     }
 
     /**
      * Validiert das DTO auf Pflichtfelder + fachliche Regeln pro Kategorie.
      */
     private void validateData(TaskDTO dto) {
-        if (dto == null
-                || isBlank(dto.getTitle())
-                || dto.getModuleId() == null
-                || dto.getCategory() == null
-                || dto.getWeeklyTimeLoad() == null) {
-            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
-        }
+        checkComplete(dto);
 
-        int weekly = dto.getWeeklyTimeLoad();
-        if (weekly <= 0 || weekly > MINUTES_PER_WEEK) {
-            throw new ValidationException(MSG_WEEKLY_LOAD_INVALID);
-        }
+        checkWeeklyLoad(dto);
 
         switch (dto.getCategory()) {
             case EXAM -> {
@@ -233,6 +230,23 @@ public class TaskService {
                     throw new ValidationException(MSG_OTHER_RANGE_INVALID);
                 }
             }
+        }
+    }
+
+    private static void checkWeeklyLoad(TaskDTO dto) {
+        int weekly = dto.getWeeklyTimeLoad();
+        if (weekly <= 0 || weekly > MINUTES_PER_WEEK) {
+            throw new ValidationException(MSG_WEEKLY_LOAD_INVALID);
+        }
+    }
+
+    private static void checkComplete(TaskDTO dto) {
+        if (dto == null
+                || isBlank(dto.getTitle())
+                || dto.getModuleId() == null
+                || dto.getCategory() == null
+                || dto.getWeeklyTimeLoad() == null) {
+            throw new ValidationException(MSG_REQUIRED_FIELDS_MISSING);
         }
     }
 
@@ -279,7 +293,7 @@ public class TaskService {
     }
 
     /**
-     * Lädt ein Modul anhand (userId, moduleTitle) oder wirft eine Exception,
+     * Lädt ein Modul anhand (USER_ID_STRING, moduleTitle) oder wirft eine Exception,
      * wenn es nicht existiert/ dem User nicht gehört.
      */
     private Module requireOwnedModule(UUID userId, UUID moduleId) {
@@ -289,7 +303,7 @@ public class TaskService {
     }
 
     /**
-     * Lädt einen Task anhand (taskId, userId).
+     * Lädt einen Task anhand (taskId, USER_ID_STRING).
      * Wenn taskId existiert, aber nicht dem User gehört → AccessDenied,
      * wenn taskId nicht existiert → NotFound.
      */

@@ -38,6 +38,7 @@ public class TaskResponseDTO {
      * Standardkonstruktor für die Deserialisierung.
      */
     public TaskResponseDTO() {
+        // Wird für die automatische Deserialisierung benötigt
     }
 
     // Getter

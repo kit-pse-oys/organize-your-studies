@@ -10,7 +10,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 

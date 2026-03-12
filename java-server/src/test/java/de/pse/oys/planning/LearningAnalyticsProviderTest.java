@@ -1,6 +1,5 @@
 package de.pse.oys.planning;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.Module;
@@ -88,7 +87,7 @@ class LearningAnalyticsProviderTest {
     /*** --- TEST 3: Matrix veraltet -> Berechnung aus Ratings und Persistenz ---
      */
     @Test
-    void getCostMatrixForTask_MatrixOutdated_CalculatesFromRatingsAndPersists() throws JsonProcessingException {
+    void getCostMatrixForTask_MatrixOutdated_CalculatesFromRatingsAndPersists() {
 
         Task task = mock(Task.class);
         CostMatrix matrix = new CostMatrix();

@@ -216,8 +216,11 @@ public class FreeTimeService {
         List<FreeTime> candidates = freeTimeRepository.findAllByUserId(userId);
 
         for (FreeTime ft : candidates) {
-            if (ft == null || (excludeId != null && excludeId.equals(ft.getFreeTimeId()))) continue;
-            if (!ft.occursOn(date)) continue;
+            if (ft == null
+                    || (excludeId != null && excludeId.equals(ft.getFreeTimeId()))
+                    || !ft.occursOn(date)) {
+                continue;
+            }
 
             if (ft.getStartTime().isBefore(endTime) && startTime.isBefore(ft.getEndTime())) {
                 return true;

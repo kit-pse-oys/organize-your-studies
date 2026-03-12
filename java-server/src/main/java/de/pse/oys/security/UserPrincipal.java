@@ -3,6 +3,7 @@ package de.pse.oys.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 /**
@@ -17,6 +18,12 @@ public class UserPrincipal implements UserDetails {
     private final String username;
     private final String password;
 
+    /**
+     * Erstellt eine neue Instanz von UserPrincipal mit den angegebenen Benutzerinformationen.
+     * @param userId Die eindeutige UUID des Benutzers, extrahiert aus dem JWT.
+     * @param username Der Benutzername, der für die Authentifizierung verwendet wird.
+     * @param password Das Passwort des Benutzers, das für die Authentifizierung verwendet wird.
+     */
     public UserPrincipal(UUID userId, String username, String password) {
         this.userId = userId;
         this.username = username;

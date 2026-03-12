@@ -34,14 +34,13 @@ class TestMicroservice(unittest.TestCase):
         """
         self.base_data = {
             "horizon": 2016,
-            "current_slot": 0,
+            "currentSlot": 0,
             "tasks": [],
-            "fixed_blocks": [],
-            "blocked_days": [],
-            "preference_time": "neutral"
+            "fixedBlocks": [],
+            "blockedDays": [],
+            "preferenceTime": "neutral"
         }
-        # HIER IST DIE LÖSUNG:
-        # Der TestClient nimmt deine 'app' und erlaubt normale Requests ohne async-Stress.
+        # Der TestClient nimmt die 'app' und erlaubt normale Requests ohne async-Stress.
         self.client = TestClient(app)
 
     def test_data_transformer(self):

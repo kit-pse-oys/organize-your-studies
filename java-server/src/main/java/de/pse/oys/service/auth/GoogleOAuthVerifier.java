@@ -43,7 +43,7 @@ public class GoogleOAuthVerifier {
      * @param idTokenString das zu verifizierende ID-Token als String
      * @return die Payload des verifizierten Tokens oder null bei Ungültigkeit
      */
-    public GoogleIdToken.Payload verifyToken(String idTokenString){
+    public GoogleIdToken.Payload verifyToken(String idTokenString) {
         try {
             GoogleIdToken idToken = verifier.verify(idTokenString);
             if (idToken != null) {

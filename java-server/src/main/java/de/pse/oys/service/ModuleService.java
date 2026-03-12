@@ -138,7 +138,7 @@ public class ModuleService {
 
         return moduleRepository.findAllByUser_UserId(userId).stream()
                 .map(module -> new WrapperDTO<>(module.getModuleId(), toDto(module)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
