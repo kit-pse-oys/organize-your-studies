@@ -15,6 +15,7 @@ __email__ = "uhxch@student.kit.edu"
 
 import json
 import os
+from typing import Annotated
 
 import uvicorn
 from fastapi import FastAPI, Body
@@ -54,7 +55,7 @@ SERVER_PORT = 5001
 
 class DataTransformer:
     """
-    Verantwirtlich für das laden, valedieren und formatieren der Input-Daten.
+    Verantwortlich für das Laden, Validieren und Formatieren der Input-Daten.
     """
 
     @staticmethod
@@ -79,7 +80,7 @@ class DataTransformer:
             try:
                 return json.load(f)
             except json.decoder.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON forat:{str(e)}")
+                raise ValueError(f"Invalid JSON format:{str(e)}")
 
     @staticmethod
     def format_solution(solver, task_vars):
@@ -128,13 +129,7 @@ class COPSolver:
 
     def build_model(self):
         """
-        Konstruiert das Modell.
-
-        Definiert:
-        1. Zeitintervalle für alle Aufgaben.
-        2. Erstellt Blockaden für Nachtruhe, feste Termine und freie Tage.
-        3. Constraints (keine Überlappung, Deadlines).
-        4. Zielfunktion (Minimierung der Kosten basierend auf Präferenzen).
+        Konstruiert das Modell. Orchestriert die einzelnen Schritte zur Reduzierung der Komplexität.
         """
         horizon = self.data.get('horizon', DEFAULT_HORIZON)
         current_slot = self.data.get('currentSlot', 0)
@@ -146,32 +141,67 @@ class COPSolver:
         all_intervals = []
         all_cost_terms = []
 
+
+        self._add_fixed_blocks(fixed_blocks, all_intervals)
+
+
+        self._add_routine_blocks(blocked_days, all_intervals)
+
+
+        base_cost_array = self._build_preference_cost_array(pref_time_string, horizon)
+
+
+        self._process_tasks(tasks, horizon, current_slot, base_cost_array, all_intervals, all_cost_terms)
+
+
+        self.model.AddNoOverlap(all_intervals)
+        self.model.Minimize(sum(all_cost_terms))
+
+    def _add_fixed_blocks(self, fixed_blocks, all_intervals):
         for block in fixed_blocks:
             start = block['start']
             duration = block['duration']
-
             fixed_int = self.model.NewIntervalVar(start, duration, start + duration, f"Block_{start}")
             all_intervals.append(fixed_int)
 
+    def _add_routine_blocks(self, blocked_days, all_intervals):
         for day in range(DAYS_PER_WEEK):
             offset = day * SLOTS_PER_DAY
 
             if day in blocked_days:
-                block_int = self.model.NewIntervalVar(offset, SLOTS_PER_DAY, offset + SLOTS_PER_DAY,
-                                                      f"BlockedDay_{day}")
+                block_int = self.model.NewIntervalVar(offset, SLOTS_PER_DAY, offset + SLOTS_PER_DAY, f"BlockedDay_{day}")
                 all_intervals.append(block_int)
-
                 continue
 
             night_a = self.model.NewIntervalVar(offset, SLOT_MORNING_END, offset + SLOT_MORNING_END, f"NightA_d{day}")
             all_intervals.append(night_a)
 
             night_b_duration = SLOTS_PER_DAY - SLOT_EVENING_START
-            night_b = self.model.NewIntervalVar(offset + SLOT_EVENING_START, night_b_duration, offset + SLOTS_PER_DAY,
-                                                f"NightB_d{day}")
-
+            night_b = self.model.NewIntervalVar(offset + SLOT_EVENING_START, night_b_duration, offset + SLOTS_PER_DAY, f"NightB_d{day}")
             all_intervals.append(night_b)
 
+    def _build_preference_cost_array(self, pref_time_string, horizon):
+        cost_array = [0] * (horizon + 1)
+        selected_prefs = [p.strip() for p in pref_time_string.split(',')]
+
+        time_windows = []
+        if KEY_MORNING in selected_prefs:    time_windows.append((6, 9))
+        if KEY_FORENOON in selected_prefs:   time_windows.append((9, 12))
+        if KEY_NOON in selected_prefs:       time_windows.append((12, 15))
+        if KEY_AFTERNOON in selected_prefs:  time_windows.append((15, 18))
+        if KEY_EVENING in selected_prefs:    time_windows.append((18, 22))
+
+        for (h_start, h_end) in time_windows:
+            for day in range(DAYS_PER_WEEK):
+                s_slot = (day * HOURS_PER_DAY + h_start) * SLOTS_PER_HOUR
+                e_slot = (day * HOURS_PER_DAY + h_end) * SLOTS_PER_HOUR
+                for t in range(s_slot, e_slot):
+                    if t < horizon:
+                        cost_array[t] += COST_BONUS_PREFERENCE
+
+        return cost_array
+
+    def _process_tasks(self, tasks, horizon, current_slot, base_cost_array, all_intervals, all_cost_terms):
         for task in tasks:
             t_id = task['id']
             duration = task['duration']
@@ -190,46 +220,26 @@ class COPSolver:
 
             self.solution_map[t_id] = {'start': start_var, 'duration': duration}
 
-            cost_array = [0] * (horizon + 1)
-
-            selected_prefs = [p.strip() for p in pref_time_string.split(',')]
-
-            time_windows = []
-            if KEY_MORNING in selected_prefs:      time_windows.append((6, 9))
-            if KEY_FORENOON in selected_prefs:   time_windows.append((9, 12))
-            if KEY_NOON in selected_prefs:      time_windows.append((12, 15))
-            if KEY_AFTERNOON in selected_prefs:  time_windows.append((15, 18))
-            if KEY_EVENING in selected_prefs:       time_windows.append((18, 22))
-
-            for (h_start, h_end) in time_windows:
-                for day in range(DAYS_PER_WEEK):
-                    s_slot = (day * HOURS_PER_DAY + h_start) * SLOTS_PER_HOUR
-                    e_slot = (day * HOURS_PER_DAY + h_end) * SLOTS_PER_HOUR
-                    for t in range(s_slot, e_slot):
-                        if t < horizon:
-                            cost_array[t] += COST_BONUS_PREFERENCE
+            task_cost_array = list(base_cost_array)
 
             if 'costs' in task:
                 for c in task['costs']:
                     t_idx = c['t']
                     cost_val = c['c']
                     if 0 <= t_idx < horizon:
-                        cost_array[t_idx] += cost_val
+                        task_cost_array[t_idx] += cost_val
 
             window_cost_array = [0] * (horizon + 1)
             for t in range(len(window_cost_array) - duration):
-                summ = sum(cost_array[t:t + duration])
+                summ = sum(task_cost_array[t:t + duration])
                 window_cost_array[t] = summ
 
-            cost_var = self.model.NewIntVar(COST_MIN_BOUND, COST_MAX_BOUND, f'cost_{t_id}')
+            safe_min_bound = COST_MIN_BOUND * max(1, duration)
+            safe_max_bound = COST_MAX_BOUND * max(1, duration)
+            cost_var = self.model.NewIntVar(safe_min_bound, safe_max_bound, f'cost_{t_id}')
 
             self.model.AddElement(start_var, window_cost_array, cost_var)
-
             all_cost_terms.append(cost_var)
-
-        self.model.AddNoOverlap(all_intervals)
-
-        self.model.Minimize(sum(all_cost_terms))
 
     def solve(self):
         """
@@ -275,7 +285,5 @@ async def optimize(data: dict = Body(...)):
         return []
 
 
-
 if __name__ == '__main__':
-
     uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)

@@ -496,7 +496,7 @@ class PlanningServiceTest {
         when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
                 .thenReturn(ResponseEntity.ok(Collections.emptyList()));
 
-        assertNull(planningService.rescheduleUnit(uId, unId));
+        assertThrows(IllegalStateException.class, () -> planningService.rescheduleUnit(uId, unId));
     }
 
     @Test
