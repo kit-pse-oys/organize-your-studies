@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,9 +34,11 @@ import de.pse.oys.ui.theme.OrganizeYourStudiesTheme
 @Composable
 fun ColorPicker(
     modifier: Modifier = Modifier,
+    initialColor: Color = Color.White,
     onColorChanged: (Color) -> Unit,
 ) {
-    var color by remember { mutableStateOf(HSV.Zero) }
+    val initialHSV = remember { initialColor.toHSV() }
+    var color by remember { mutableStateOf(initialHSV) }
 
     Column {
         Row {
@@ -46,9 +49,11 @@ fun ColorPicker(
                     .background(color.toColor())
             )
             ColorGrid(
-                Modifier
+                modifier = Modifier
                     .weight(2f)
-                    .aspectRatio(2f), color.hue
+                    .aspectRatio(2f),
+                hue = color.hue,
+                initialColor = initialHSV.saturation to color.value
             ) { s, v ->
                 color = color.copy(saturation = s, value = v)
                 onColorChanged(color.toColor())
@@ -56,7 +61,8 @@ fun ColorPicker(
         }
         ColorSlider(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            initialHue = color.hue
         ) { h ->
             color = color.copy(hue = h)
             onColorChanged(color.toColor())
@@ -68,11 +74,12 @@ fun ColorPicker(
 private fun ColorGrid(
     modifier: Modifier = Modifier,
     hue: Float,
+    initialColor: Pair<Float, Float>,
     onColorChanged: (Float, Float) -> Unit
 ) {
     var size by remember { mutableStateOf(Size.Zero) }
     var selectedPoint by remember { mutableStateOf(Offset.Zero) }
-    var selectedColor by remember { mutableStateOf(0f to 0f) }
+    var selectedColor by remember { mutableStateOf(initialColor) }
 
     fun select(offset: Offset) {
         if (selectedPoint != offset) {
@@ -89,7 +96,15 @@ private fun ColorGrid(
     Canvas(
         modifier = modifier
             .onSizeChanged { (w, h) ->
+                val initialize = size == Size.Zero
                 size = Size(w.toFloat(), h.toFloat())
+
+                if (initialize) {
+                    selectedPoint = Offset(
+                        selectedColor.first * size.width,
+                        (1 - selectedColor.second) * size.height
+                    )
+                }
             }
             .pointerInput(onColorChanged) { detectTapGestures(onTap = ::select) }
             .pointerInput(onColorChanged) { detectDragGestures { change, _ -> select(change.position) } }
@@ -129,11 +144,12 @@ private fun ColorGrid(
 @Composable
 private fun ColorSlider(
     modifier: Modifier = Modifier,
+    initialHue: Float,
     onHueChanged: (Float) -> Unit
 ) {
-    var sizeX by remember { mutableStateOf(0f) }
-    var selectedX by remember { mutableStateOf(0f) }
-    var selectedHue by remember { mutableStateOf(0f) }
+    var sizeX by remember { mutableFloatStateOf(0f) }
+    var selectedX by remember { mutableFloatStateOf(0f) }
+    var selectedHue by remember { mutableFloatStateOf(initialHue) }
 
     fun select(offset: Offset) {
         if (selectedX != offset.x) {
@@ -149,7 +165,12 @@ private fun ColorSlider(
             .height(30.dp)
             .padding(10.dp)
             .onSizeChanged { (w, _) ->
+                val initialize = sizeX == 0f
                 sizeX = w.toFloat()
+
+                if (initialize) {
+                    selectedX = (selectedHue / 360f) * sizeX
+                }
             }
             .pointerInput(onHueChanged) { detectTapGestures(onTap = ::select) }
             .pointerInput(onHueChanged) { detectDragGestures { change, _ -> select(change.position) } }
@@ -190,6 +211,9 @@ private fun ColorSlider(
 @Composable
 private fun ColorPickerPreview() {
     OrganizeYourStudiesTheme {
-        ColorPicker(onColorChanged = { Log.i("ColorPicker", "onColorChanged: $it") })
+        ColorPicker(
+            initialColor = Color.Cyan,
+            onColorChanged = { Log.i("ColorPicker", "onColorChanged: $it") }
+        )
     }
 }

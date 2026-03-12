@@ -611,9 +611,11 @@ class MainViewModel(
             _units.map { it.value }.groupBy { it.first }.mapValues { it.value.map { it.second } }
         this.unitsToday = this.units[today.dayOfWeek] ?: listOf()
         this.unitsTomorrow =
-            this.units[DayOfWeek((today.dayOfWeek.isoDayNumber % 7) + 1)]?.let {
-                it.sortedBy { it.start }
-            } ?: listOf()
+            if (today.dayOfWeek != DayOfWeek.SUNDAY) { // No information about next week available
+                this.units[DayOfWeek(today.dayOfWeek.isoDayNumber + 1)]?.let {
+                    it.sortedBy { it.start }
+                } ?: listOf()
+            } else listOf()
     }
 
     private var _freeTimes: Map<PlannedFreeTime, Uuid> = mapOf()

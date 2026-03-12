@@ -8,15 +8,15 @@ espressoCore = "3.7.0"
 kotlinxCoroutinesTest = "1.10.2"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
-composeBom = "2026.02.00"
+composeBom = "2026.02.01"
 mockk = "1.14.9"
 navigation = "2.9.7"
 datastorePreferences = "1.2.0"
 kotlinxSerialization = "1.10.0"
 kotlinxDateTime = "0.7.1"
-ktor = "3.4.0"
-foundationLayout = "1.10.3"
-credentials = "1.6.0-rc01"
+ktor = "3.4.1"
+foundationLayout = "1.10.4"
+credentials = "1.6.0-rc02"
 googleid = "1.2.0"
 slf4j = "2.0.17"
 slf4jAndroid = "2.0.17-0"
@@ -38,7 +38,7 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDateTime" }
 ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktor" }
@@ -51,7 +51,8 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-android = { group = "uk.uuid.slf4j", name = "slf4j-android", version.ref = "slf4jAndroid" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }

@@ -94,7 +94,7 @@ fun CreateModuleView(viewModel: ICreateModuleViewModel) {
                 onSelect = { viewModel.priority = it })
             InputLabel(stringResource(id = R.string.select_color))
             Spacer(modifier = Modifier.padding(10.dp))
-            ColorPicker(onColorChanged = { viewModel.color = it })
+            ColorPicker(initialColor = viewModel.color, onColorChanged = { viewModel.color = it })
             Spacer(modifier = Modifier.weight(1f))
             SubmitButton(
                 if (viewModel.showDelete) stringResource(R.string.save_changes_button) else stringResource(
