@@ -1,6 +1,7 @@
 package de.pse.oys.ui.view.onboarding
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
+import de.pse.oys.BuildConfig
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -347,22 +349,32 @@ class LoginViewModel(
 ) : ViewModel(),
     ILoginViewModel {
     companion object {
-        private const val CLIENT_ID = "549888352558-dciih12ljddu3e7dmksntslk57vevmer"
-        private val GOOGLE_CREDENTIAL_OPTION = GetSignInWithGoogleOption.Builder(CLIENT_ID).build()
+        private fun getGoogleCredentialOption() = 
+            GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_CLIENT_ID).build()
     }
 
     private val credentialManager = CredentialManager.create(context)
+    private val googleCredentialOption = getGoogleCredentialOption()
 
     private suspend fun getOIDCToken(oidcType: OIDCType): String? {
+        val activity = context as? Activity
+        if (activity == null) {
+            Log.e("LoginViewModel", "Context is not an Activity")
+            error = true
+            return null
+        }
+
         val credentialRequest = when (oidcType) {
             OIDCType.GOOGLE -> GetCredentialRequest.Builder()
-                .addCredentialOption(GOOGLE_CREDENTIAL_OPTION).build()
+                .addCredentialOption(googleCredentialOption).build()
         }
 
         val result = try {
-            credentialManager.getCredential(context, credentialRequest)
+            withContext(Dispatchers.Main.immediate) {
+                credentialManager.getCredential(activity, credentialRequest)
+            }
         } catch (e: GetCredentialException) {
-            Log.e("LoginViewModel", "Error getting credential", e)
+            Log.d("LoginViewModel", "Error getting credential (user may have cancelled): ${e.message}")
             return null
         }
 
