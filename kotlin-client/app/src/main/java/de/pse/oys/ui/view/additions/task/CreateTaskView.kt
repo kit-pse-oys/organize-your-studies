@@ -94,10 +94,7 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
-    val submitButtonActive =
-        viewModel.title.isNotBlank() && viewModel.module != ""
-                && viewModel.weeklyTimeLoad >= 0 && (viewModel.type != TaskType.SUBMISSION || viewModel.submissionCycle in 1..<10)
-                && (viewModel.type != TaskType.OTHER || viewModel.start <= viewModel.end)
+    val submitButtonActive = isSubmitButtonActive(viewModel)
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.error) {
@@ -172,55 +169,17 @@ fun CreateTaskView(viewModel: ICreateTaskViewModel) {
                 submitButtonActive
             ) { viewModel.submit() }
 
-            if (showExamDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.examDate,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null && selectedDate >= Clock.System.now()
-                                .toLocalDateTime(TimeZone.currentSystemDefault()).date
-                        ) {
-                            viewModel.examDate = selectedDate
-                        }
-                        showExamDatePicker = false
-                    },
-                    onDismiss = { showExamDatePicker = false }
-                )
-            }
-
-            if (showStartDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.start,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null) {
-                            viewModel.start = selectedDate
-                        }
-                        showStartDatePicker = false
-                    },
-                    onDismiss = { showStartDatePicker = false }
-                )
-            }
-
-            if (showEndDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.end,
-                    onDateSelected = { selectedDate ->
-                        if (selectedDate != null && selectedDate >= viewModel.start) {
-                            viewModel.end = selectedDate
-                        }
-                        showEndDatePicker = false
-                    },
-                    onDismiss = { showEndDatePicker = false }
-                )
-            }
-
-            if (confirmDelete) {
-                DeleteElementDialog(
-                    onDismiss = { confirmDelete = false },
-                    onConfirm = viewModel::delete
-                )
-            }
+            ExamDatePickerDialog(viewModel, showExamDatePicker, onDismiss = { showExamDatePicker = false })
+            OtherTaskDatePickerDialog(viewModel, showStartDatePicker, showEndDatePicker, { showStartDatePicker = false }, { showEndDatePicker = false })
+            ConfirmDeleteDialog(viewModel, confirmDelete, onDismiss = { confirmDelete = false })
         }
     }
+}
+
+private fun isSubmitButtonActive(viewModel: ICreateTaskViewModel): Boolean {
+    return (viewModel.title.isNotBlank() && viewModel.module != ""
+            && viewModel.weeklyTimeLoad >= 0 && (viewModel.type != TaskType.SUBMISSION || viewModel.submissionCycle in 1..<10)
+            && (viewModel.type != TaskType.OTHER || viewModel.start <= viewModel.end))
 }
 
 /**
@@ -479,6 +438,62 @@ private fun TaskTypeChip(
     )
 }
 
+@Composable
+private fun ExamDatePickerDialog(viewModel: ICreateTaskViewModel, showExamDatePicker: Boolean, onDismiss: () -> Unit) {
+    if (showExamDatePicker) {
+        LocalDatePickerDialog(
+            currentDate = viewModel.examDate,
+            onDateSelected = { selectedDate ->
+                if (selectedDate != null && selectedDate >= Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault()).date
+                ) {
+                    viewModel.examDate = selectedDate
+                }
+                onDismiss()
+            },
+            onDismiss = { onDismiss() }
+        )
+    }
+}
+
+@Composable
+private fun OtherTaskDatePickerDialog(viewModel: ICreateTaskViewModel, showStartDatePicker: Boolean, showEndDatePicker: Boolean, onDismissStartPicker: () -> Unit, onDismissEndPicker: () -> Unit) {
+    if (showStartDatePicker) {
+        LocalDatePickerDialog(
+            currentDate = viewModel.start,
+            onDateSelected = { selectedDate ->
+                if (selectedDate != null) {
+                    viewModel.start = selectedDate
+                }
+                onDismissStartPicker()
+            },
+            onDismiss = { onDismissStartPicker() }
+        )
+    }
+    if (showEndDatePicker) {
+        LocalDatePickerDialog(
+            currentDate = viewModel.end,
+            onDateSelected = { selectedDate ->
+                if (selectedDate != null && selectedDate >= viewModel.start) {
+                    viewModel.end = selectedDate
+                }
+                onDismissEndPicker()
+            },
+            onDismiss = { onDismissEndPicker() }
+        )
+    }
+}
+
+@Composable
+private fun ConfirmDeleteDialog(viewModel: ICreateTaskViewModel, confirmDelete: Boolean, onDismiss: () -> Unit) {
+    if (confirmDelete) {
+        DeleteElementDialog(
+            onDismiss = { onDismiss() },
+            onConfirm = viewModel::delete
+        )
+    }
+}
+
 /**
  * Type of task.
  */
@@ -537,7 +552,7 @@ abstract class BaseCreateTaskViewModel(
     task: TaskData? = null
 ) : ViewModel(), ICreateTaskViewModel {
     init {
-        require(model.modules != null)
+        requireNotNull(model.modules)
     }
 
     override var error: Boolean by mutableStateOf(false)

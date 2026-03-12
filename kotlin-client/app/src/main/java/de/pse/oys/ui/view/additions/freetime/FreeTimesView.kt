@@ -151,7 +151,7 @@ class FreeTimesViewModel(
     override var freeTimes: List<FreeTime> by mutableStateOf(listOf())
 
     init {
-        require(model.freeTimes != null)
+        requireNotNull(model.freeTimes)
         freeTimes = model.freeTimes!!.map { FreeTime(it.value, it.key) }
     }
 

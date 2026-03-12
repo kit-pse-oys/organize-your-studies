@@ -6,6 +6,7 @@ import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.Priority
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.theme.LightBlue
 import de.pse.oys.ui.view.TestUtils
 import de.pse.oys.ui.view.TestUtils.TEST_DESC
@@ -80,7 +81,7 @@ class EditModuleViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit in EditViewModel should call update api and navigate`() = runTest {
+    fun `submit in EditViewModel should call update api and navigate to main`() = runTest {
         val testId = randomUuid()
         val testData = createMockModuleData()
         val target = Identified(testData, testId)
@@ -98,7 +99,7 @@ class EditModuleViewModelTest {
         }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
@@ -106,7 +107,7 @@ class EditModuleViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `delete in EditViewModel should call api delete and navigate`() = runTest {
+    fun `delete in EditViewModel should call api delete and navigate to main`() = runTest {
         val testId = randomUuid()
         val target = Identified(createMockModuleData(), testId)
         val editViewModel = EditModuleViewModel(api, model, target, navController)
@@ -117,7 +118,7 @@ class EditModuleViewModelTest {
         coVerify { api.deleteModule(testId) }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

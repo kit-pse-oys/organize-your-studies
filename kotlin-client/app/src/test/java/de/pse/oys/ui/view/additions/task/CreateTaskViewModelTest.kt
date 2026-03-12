@@ -7,6 +7,7 @@ import de.pse.oys.data.api.RemoteOtherTaskData
 import de.pse.oys.data.api.RemoteSubmissionTaskData
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
@@ -109,7 +110,7 @@ class CreateTaskViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit should call api with correct ExamTaskData`() = runTest {
+    fun `submit should call api with correct ExamTaskData and navigate to main`() = runTest {
         val moduleId = randomUuid()
         every { model.modules } returns mapOf(moduleId to createMockModuleData())
 
@@ -127,7 +128,7 @@ class CreateTaskViewModelTest {
         }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

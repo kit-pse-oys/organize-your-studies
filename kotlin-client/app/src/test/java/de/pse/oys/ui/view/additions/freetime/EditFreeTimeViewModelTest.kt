@@ -5,6 +5,7 @@ import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TIME
@@ -83,7 +84,7 @@ class EditFreeTimeViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit in EditViewModel should call update api and navigate`() = runTest {
+    fun `submit in EditViewModel should call update api and navigate to main`() = runTest {
         val testId = randomUuid()
         val testData = createMockFreeTimeData()
         val target = Identified(testData, testId)
@@ -101,7 +102,7 @@ class EditFreeTimeViewModelTest {
         }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
@@ -109,7 +110,7 @@ class EditFreeTimeViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `delete in EditViewModel should call api delete and navigate`() = runTest {
+    fun `delete in EditViewModel should call api delete and navigate to main`() = runTest {
         val testId = randomUuid()
         val target = Identified(createMockFreeTimeData(), testId)
         val editViewModel = EditFreeTimeViewModel(api, model, target, navController)
@@ -120,7 +121,7 @@ class EditFreeTimeViewModelTest {
         coVerify { api.deleteFreeTime(testId) }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

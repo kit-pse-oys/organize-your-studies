@@ -122,7 +122,7 @@ suspend fun ModelFacade.ensureUnits(api: RemoteAPI): Response<Map<DayOfWeek, Map
 }
 
 suspend fun <T> Response<T>.defaultHandleError(navController: NavController, error: () -> Unit): T? {
-    if (!HttpStatusCode.fromValue(status).isSuccess()) {
+    return if (!HttpStatusCode.fromValue(status).isSuccess()) {
         if (status == HttpStatusCode.Unauthorized.value) {
             withContext(Dispatchers.Main.immediate) {
                 navController.login(dontGoBack = Main)
@@ -132,8 +132,8 @@ suspend fun <T> Response<T>.defaultHandleError(navController: NavController, err
             error()
         }
 
-        return null
+        null
     } else {
-        return response ?: error("No response with successful status")
+        response ?: error("No response with successful status")
     }
 }
