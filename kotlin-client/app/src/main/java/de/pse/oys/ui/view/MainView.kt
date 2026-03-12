@@ -207,116 +207,128 @@ fun MainView(viewModel: IMainViewModel) {
             }
 
             if (!weeklyCalendar) {
-                Text(
-                    stringResource(R.string.upcoming_units_header),
-                    modifier = Modifier
-                        .padding(start = 30.dp)
-                        .padding(top = 10.dp, bottom = 6.dp),
-                    style = typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                LazyColumn(
-                    Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (viewModel.unitsTomorrow.isEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.no_upcomig_units_available),
-                                style = typography.bodySmall,
-                                color = Color.Gray,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 30.dp)
-                            )
-                        }
-                    } else {
-                        items(viewModel.unitsToday) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                val now = Clock.System.now()
-                                    .toLocalDateTime(TimeZone.currentSystemDefault()).time
-                                if (it.start > now) {
-                                    UpcomingUnitField(
-                                        it.title,
-                                        it.start.toString(),
-                                        it.end.toString(),
-                                        it.date.toFormattedString()
-                                    )
-                                }
-                            }
-                        }
-                        items(viewModel.unitsTomorrow) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                UpcomingUnitField(
-                                    it.title,
-                                    it.start.toString(),
-                                    it.end.toString(),
-                                    it.date.toFormattedString()
-                                )
-                            }
-                        }
-                    }
-                }
+                UpcomingUnitsList(viewModel, modifier = Modifier.weight(1f))
             }
         }
 
-        clickedEvent?.let { unit ->
-            Dialog({ clickedEvent = null }) {
-                Box(
+        OnEventClick(viewModel, clickedEvent) {
+            clickedEvent = null
+        }
+    }
+}
+
+@Composable
+private fun UpcomingUnitsList(viewModel: IMainViewModel, modifier: Modifier = Modifier) {
+    Text(
+        stringResource(R.string.upcoming_units_header),
+        modifier = Modifier
+            .padding(start = 30.dp)
+            .padding(top = 10.dp, bottom = 6.dp),
+        style = typography.titleMedium,
+        fontWeight = FontWeight.Bold
+    )
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (viewModel.unitsTomorrow.isEmpty()) {
+            item {
+                Text(
+                    stringResource(R.string.no_upcomig_units_available),
+                    style = typography.bodySmall,
+                    color = Color.Gray,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
-                        .background(
-                            color = Blue,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color.White,
-                            shape = RoundedCornerShape(20.dp)
-                        )
+                        .fillMaxWidth()
+                        .padding(top = 30.dp)
+                )
+            }
+        } else {
+            items(viewModel.unitsToday) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        val start = unit.date.atTime(unit.start)
-                        val end = unit.date.atTime(unit.end)
-                        val now = Clock.System.now()
-                            .toLocalDateTime(TimeZone.currentSystemDefault())
-                        Text(
-                            unit.title,
-                            style = typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                    val now = Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault()).time
+                    if (it.start > now) {
+                        UpcomingUnitField(
+                            it.title,
+                            it.start.toString(),
+                            it.end.toString(),
+                            it.date.toFormattedString()
                         )
-                        Text(
-                            unit.start.toString() + " - " + unit.end.toString(),
-                            style = typography.bodySmall,
-                            color = Color.White
-                        )
-                        if (end > now) {
-                            SimpleButtonSmall(stringResource(R.string.move_automatically_button)) {
-                                viewModel.moveUnitAutomatically(unit)
-                                clickedEvent = null
-                            }
+                    }
+                }
+            }
+            items(viewModel.unitsTomorrow) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    UpcomingUnitField(
+                        it.title,
+                        it.start.toString(),
+                        it.end.toString(),
+                        it.date.toFormattedString()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnEventClick(viewModel: IMainViewModel, clickedEvent: PlannedUnit?, onDismiss: () -> Unit) {
+    clickedEvent?.let { unit ->
+        Dialog({ onDismiss }) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = Blue,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .border(
+                        width = 2.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(20.dp)
+                    )
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val start = unit.date.atTime(unit.start)
+                    val end = unit.date.atTime(unit.end)
+                    val now = Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                    Text(
+                        unit.title,
+                        style = typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        unit.start.toString() + " - " + unit.end.toString(),
+                        style = typography.bodySmall,
+                        color = Color.White
+                    )
+                    if (end > now) {
+                        SimpleButtonSmall(stringResource(R.string.move_automatically_button)) {
+                            viewModel.moveUnitAutomatically(unit)
+                            onDismiss()
                         }
-                        if (now > end) {
-                            SimpleButtonSmall(stringResource(R.string.mark_as_missed_button)) {
-                                viewModel.marksAsMissed(unit)
-                                clickedEvent = null
-                            }
+                    }
+                    if (now > end) {
+                        SimpleButtonSmall(stringResource(R.string.mark_as_missed_button)) {
+                            viewModel.marksAsMissed(unit)
+                            onDismiss()
                         }
-                        if (now in start..end) {
-                            SimpleButtonSmall(stringResource(R.string.mark_as_finished_early_button)) {
-                                viewModel.marksAsFinished(unit)
-                                clickedEvent = null
-                            }
+                    }
+                    if (now in start..end) {
+                        SimpleButtonSmall(stringResource(R.string.mark_as_finished_early_button)) {
+                            viewModel.marksAsFinished(unit)
+                            onDismiss
                         }
                     }
                 }

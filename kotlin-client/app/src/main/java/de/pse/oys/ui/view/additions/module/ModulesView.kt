@@ -147,7 +147,7 @@ class ModulesViewModel(
     override var modules: List<Module> by mutableStateOf(listOf())
 
     init {
-        require(model.modules != null)
+        requireNotNull(model.modules)
         modules = model.modules!!.map { Module(it.value, it.key) }
     }
 

@@ -6,6 +6,7 @@ import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ExamTaskData
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockModuleData
@@ -86,7 +87,7 @@ class EditTaskViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit should call update api and navigate`() = runTest {
+    fun `submit should call update api and navigate to main`() = runTest {
         coEvery { api.updateTask(any()) } returns Response(randomUuid(), 200)
 
 
@@ -98,7 +99,7 @@ class EditTaskViewModelTest {
         }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
@@ -114,7 +115,7 @@ class EditTaskViewModelTest {
         coVerify { api.deleteTask(testTaskId) }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

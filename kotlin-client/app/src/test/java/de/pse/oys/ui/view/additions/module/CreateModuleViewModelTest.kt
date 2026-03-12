@@ -7,6 +7,7 @@ import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.theme.Blue
 import de.pse.oys.ui.view.TestUtils.TEST_COLOR
@@ -80,7 +81,7 @@ class CreateModuleViewModelTest {
     }
 
     @Test
-    fun `registerNewModule should update model and navigate`() {
+    fun `registerNewModule should update model and navigate to main`() {
         val testId = Uuid.random()
         val testData = createMockModuleData()
 
@@ -107,7 +108,7 @@ class CreateModuleViewModelTest {
         assertEquals(testData, modulesMap[testId])
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
@@ -115,7 +116,7 @@ class CreateModuleViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit should call api and navigate when successful`() = runTest {
+    fun `submit should call api and navigate to main when successful`() = runTest {
         val viewModel = CreateModuleViewModel(api, model, navController)
 
         viewModel.title = TEST_TITLE
@@ -130,7 +131,7 @@ class CreateModuleViewModelTest {
         coVerify { api.createModule(expectedData) }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

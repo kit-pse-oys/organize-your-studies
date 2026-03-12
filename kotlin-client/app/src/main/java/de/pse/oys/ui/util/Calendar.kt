@@ -1,13 +1,11 @@
 package de.pse.oys.ui.util
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -28,11 +25,9 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.pse.oys.R
-import de.pse.oys.ui.theme.OrganizeYourStudiesTheme
 import de.pse.oys.ui.theme.Typography
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalTime
@@ -269,94 +264,4 @@ interface CalendarEvent {
 
     @Composable
     fun Draw(modifier: Modifier = Modifier)
-}
-
-// --- PREVIEWS ---
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 600)
-@Composable
-private fun CalendarWeekPreview() {
-    OrganizeYourStudiesTheme {
-        CalendarWeek(
-            events = mapOf(
-                DayOfWeek.MONDAY to listOf(
-                    PreviewEvent(LocalTime(10, 0), LocalTime(11, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(14, 0), LocalTime(15, 0), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(16, 15), LocalTime(17, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.TUESDAY to listOf(
-                    PreviewEvent(LocalTime(12, 0), LocalTime(13, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(15, 0), LocalTime(18, 0), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(18, 15), LocalTime(18, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.WEDNESDAY to listOf(
-                    PreviewEvent(LocalTime(6, 0), LocalTime(8, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(10, 0), LocalTime(10, 30), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(13, 30), LocalTime(14, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.THURSDAY to listOf(
-                    PreviewEvent(LocalTime(10, 0), LocalTime(11, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(15, 0), LocalTime(16, 0), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(16, 15), LocalTime(17, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.FRIDAY to listOf(
-                    PreviewEvent(LocalTime(6, 0), LocalTime(8, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(10, 0), LocalTime(10, 30), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(18, 15), LocalTime(18, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.SATURDAY to listOf(
-                    PreviewEvent(LocalTime(10, 0), LocalTime(11, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(13, 30), LocalTime(14, 45), "Event 3", Color.Green),
-                ),
-                DayOfWeek.SUNDAY to listOf(
-                    PreviewEvent(LocalTime(12, 0), LocalTime(13, 30), "Event 1", Color.Blue),
-                    PreviewEvent(LocalTime(15, 0), LocalTime(18, 0), "Event 2", Color.Red),
-                    PreviewEvent(LocalTime(18, 15), LocalTime(18, 45), "Event 3", Color.Green),
-                )
-            )
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 600)
-@Composable
-private fun CalendarDayPreview() {
-    OrganizeYourStudiesTheme {
-        CalendarDay(
-            events = listOf(
-                PreviewEvent(LocalTime(10, 0), LocalTime(11, 30), "Event 1", Color.Blue),
-                PreviewEvent(LocalTime(14, 0), LocalTime(15, 0), "Event 2", Color.Red),
-                PreviewEvent(LocalTime(16, 15), LocalTime(17, 45), "Event 3", Color.Green),
-            )
-        )
-    }
-}
-
-private data class PreviewEvent(
-    override val start: LocalTime,
-    override val end: LocalTime,
-    val title: String,
-    val color: Color
-) : CalendarEvent {
-    @Composable
-    override fun Draw(modifier: Modifier) {
-        Row(
-            modifier = modifier
-                .background(color.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
-                .padding(4.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(color, RoundedCornerShape(2.dp))
-            )
-            Text(
-                text = title,
-                style = Typography.bodySmall,
-                color = Color.Black,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-        }
-    }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme.typography
@@ -38,6 +39,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -105,17 +109,7 @@ fun LoginView(viewModel: ILoginViewModel) {
                 viewModel.username,
                 onUsernameChanged = { viewModel.username = it })
             Spacer(Modifier.height(6.dp))
-            PasswordTextField(
-                viewModel.password,
-                onPasswordChanged = { viewModel.password = it })
-            if (registering) {
-                Spacer(Modifier.height(6.dp))
-                PasswordTextField(
-                    confirmPassword,
-                    confirm = true,
-                    isError = viewModel.password.isNotBlank() && viewModel.password != confirmPassword
-                ) { confirmPassword = it }
-            }
+            PasswordInput(viewModel, registering, confirmPassword) { confirmPassword = it }
             Spacer(Modifier.height(10.dp))
             LoginButton(
                 registering,
@@ -173,6 +167,26 @@ private fun UsernameTextField(
         label = { Text(stringResource(R.string.username_field)) })
 }
 
+@Composable
+private fun PasswordInput(
+    viewModel: ILoginViewModel,
+    registering: Boolean,
+    confirmPassword: String,
+    onPasswordConfirmed: (String) -> Unit
+) {
+    PasswordTextField(
+        viewModel.password,
+        onPasswordChanged = { viewModel.password = it })
+    if (registering) {
+        Spacer(Modifier.height(6.dp))
+        PasswordTextField(
+            confirmPassword,
+            confirm = true,
+            isError = viewModel.password.isNotBlank() && viewModel.password != confirmPassword
+        ) { onPasswordConfirmed(it) }
+    }
+}
+
 /**
  * Text field for the password, character limit is 20.
  * @param password the current password.
@@ -205,6 +219,7 @@ private fun PasswordTextField(
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Gray
         ),
+
         singleLine = true,
         isError = isError || invalidSize,
         label = {
@@ -214,7 +229,16 @@ private fun PasswordTextField(
                 )
             )
         },
-        visualTransformation = PasswordVisualTransformation()
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Unspecified,
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Unspecified,
+            platformImeOptions = null,
+            showKeyboardOnFocus = null,
+            hintLocales = null
+        )
     )
 }
 
@@ -366,7 +390,7 @@ class LoginViewModel(
             return null
         }
 
-        when (val credential = result.credential) {
+        return when (val credential = result.credential) {
             is CustomCredential if oidcType == OIDCType.GOOGLE
                     && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
                 try {
@@ -376,12 +400,12 @@ class LoginViewModel(
                 }
 
                 error = true
-                return null
+                null
             }
 
             else -> {
                 error = true
-                return null
+                null
             }
         }
     }
