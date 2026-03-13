@@ -285,5 +285,5 @@ async def optimize(data: dict = Body(...)):
         return []
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': #pragma: no cover
     uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT)
