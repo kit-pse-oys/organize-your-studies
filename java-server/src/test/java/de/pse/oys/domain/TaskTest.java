@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Konsolidierte Testklasse für die Geschäftslogik der Task-Domänenobjekte.
  * Deckt ExamTask, OtherTask, SubmissionTask und die Basisklasse Task ab.
  */
-class TaskDomainTest {
+class TaskTest {
 
     // --- Tests für ExamTask ---
 

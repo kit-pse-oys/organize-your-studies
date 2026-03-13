@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
  * Testklasse zur Maximierung der Coverage für die Klasse LearningUnit.
  * Konzentriert sich auf die Methoden hasPassed und toDTO.
  */
-class LearningUnitCoverageTest {
+class LearningUnitTest {
 
     private Task mockTask;
     private UUID taskId;
