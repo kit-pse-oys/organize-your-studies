@@ -140,4 +140,5 @@
     <string name="move_automatically_button">Move automatically</string>
     <string name="mark_as_finished_early_button">Mark as finished early</string>
     <string name="mark_as_missed_button">Mark as missed</string>
+    <string name="go_back_button">Go Back</string>
 </resources>
