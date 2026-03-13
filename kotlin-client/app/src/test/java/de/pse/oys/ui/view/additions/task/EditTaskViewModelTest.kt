@@ -23,11 +23,14 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Clock
 
 class EditTaskViewModelTest {
     private val api = mockk<RemoteAPI>(relaxed = true)
@@ -119,5 +122,21 @@ class EditTaskViewModelTest {
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
+    }
+
+    @Test
+    fun `initial state should correctly identify SubmissionTask`() {
+        val subData = de.pse.oys.data.facade.SubmissionTaskData(
+            title = TEST_TITLE,
+            module = Identified(createMockModuleData(), randomUuid()),
+            weeklyTimeLoad = 20,
+            firstDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+            cycle = 7,
+            endDate = TEST_DATE
+        )
+        val vm = EditTaskViewModel(api, model, Identified(subData, randomUuid()), navController)
+
+        assertEquals(TaskType.SUBMISSION, vm.type)
+        assertEquals(7, vm.submissionCycle)
     }
 }

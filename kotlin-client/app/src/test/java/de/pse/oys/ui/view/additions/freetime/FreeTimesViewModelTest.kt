@@ -53,4 +53,17 @@ class FreeTimesViewModelTest {
 
         verify(exactly = 0) { navController.editFreeTime(unknownFreeTime) }
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `init should throw exception if freeTimes is null`() {
+        every { modelFacade.freeTimes } returns null
+        FreeTimesViewModel(modelFacade, navController)
+    }
+
+    @Test
+    fun `MapsBack should call popBackStack`() {
+        val viewModel = FreeTimesViewModel(modelFacade, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }

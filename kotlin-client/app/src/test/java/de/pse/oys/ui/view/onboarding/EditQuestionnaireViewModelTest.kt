@@ -20,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -78,9 +79,31 @@ class EditQuestionnaireViewModelTest {
         verify { model.steps = null }
         verify {
             navController.navigate(
-                Main,
-                any<NavOptionsBuilder.() -> Unit>()
+                Main, any<NavOptionsBuilder.() -> Unit>()
             )
         }
+    }
+
+    @Test
+    fun `init updates flows with fetched data`() = runTest {
+        val question = de.pse.oys.data.Questions[0]
+        val answer = question.answers[0]
+        val mockState = QuestionState().apply { select(question, answer) }
+        coEvery { api.getQuestionnaire() } returns Response(mockState, 200)
+
+        val viewModel = EditQuestionnaireViewModel(api, model, navController)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.selected(question, answer).value)
+    }
+
+    @Test
+    fun `error on init sets error state`() = runTest {
+        coEvery { api.getQuestionnaire() } returns Response(null, 500)
+
+        val viewModel = EditQuestionnaireViewModel(api, model, navController)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.error)
     }
 }

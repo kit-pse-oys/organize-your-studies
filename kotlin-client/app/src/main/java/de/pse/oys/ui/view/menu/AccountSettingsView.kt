@@ -38,7 +38,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * View for the account settings.
- * Allows the user to logout and delete their account.
+ * Allows the user to log out and delete their account.
  * @param viewModel the [IAccountSettingsViewModel] for this view.
  */
 @Composable
@@ -135,12 +135,11 @@ class AccountSettingsViewModel(
     private val api: RemoteAPI,
     private val model: ModelFacade,
     context: Context,
-    private val navController: NavController
+    private val navController: NavController,
+    private val credentialManager: CredentialManager = CredentialManager.create(context)
 ) : ViewModel(),
     IAccountSettingsViewModel {
     override var error: Boolean by mutableStateOf(false)
-
-    private val credentialManager = CredentialManager.create(context)
 
     private fun resetModel() {
         model.modules = null

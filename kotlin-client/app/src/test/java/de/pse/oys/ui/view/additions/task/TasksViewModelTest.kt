@@ -11,6 +11,7 @@ import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
 import de.pse.oys.ui.view.TestUtils.createMockModuleData
 import de.pse.oys.ui.view.TestUtils.randomUuid
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -90,5 +91,34 @@ class TasksViewModelTest {
 
         viewModel.select(taskToSelect)
         verify { navController.editTask(taskToSelect) }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `init should throw exception if tasks in model is null`() {
+        every { modelFacade.tasks } returns null
+        TasksViewModel(modelFacade, navController)
+    }
+
+    @Test
+    fun `select should NOT navigate if task is not in the list`() {
+        val viewModel = TasksViewModel(modelFacade, navController)
+        val unknownTask = Identified(id = randomUuid(), data = otherTaskTestData)
+
+        viewModel.select(unknownTask)
+
+        verify(exactly = 0) {
+            navController.navigate(
+                any<String>(),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
+        confirmVerified(navController)
+    }
+
+    @Test
+    fun `MapsBack should call popBackStack`() {
+        val viewModel = TasksViewModel(modelFacade, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
     }
 }

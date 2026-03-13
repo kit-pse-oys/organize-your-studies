@@ -3,9 +3,13 @@ package de.pse.oys.ui.view.ratings
 import androidx.navigation.NavController
 import de.pse.oys.data.RatingAspect
 import de.pse.oys.data.api.RemoteAPI
+import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Rating
+import de.pse.oys.ui.navigation.AvailableRatings
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -63,5 +67,42 @@ class RatingViewModelTest {
                 assertEquals(Rating.MEDIUM, it.perceivedDuration)
             })
         }
+    }
+
+    @Test
+    fun `submitMissed should call correct api and navigate`() = runTest {
+        coEvery { api.rateUnitMissed(testTarget) } returns Response(Unit, 200)
+
+        val viewModel = RatingViewModel(api, testTarget, navController)
+
+        viewModel.submitMissed()
+        advanceUntilIdle()
+
+        coVerify { api.rateUnitMissed(testTarget) }
+
+        verify {
+            navController.navigate(
+                eq(AvailableRatings),
+                any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
+            )
+        }
+    }
+
+    @Test
+    fun `submitRating error should set error state`() = runTest {
+        coEvery { api.rateUnit(any(), any()) } returns Response(null, 500)
+        val viewModel = RatingViewModel(api, testTarget, navController)
+
+        viewModel.submitRating()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.error)
+    }
+
+    @Test
+    fun `navigateBack calls popBackStack`() {
+        val viewModel = RatingViewModel(api, testTarget, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
     }
 }
