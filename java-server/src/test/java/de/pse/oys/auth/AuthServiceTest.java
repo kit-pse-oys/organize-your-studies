@@ -65,6 +65,7 @@ class AuthServiceTest {
         when(user.getId()).thenReturn(UUID.randomUUID());
         when(userRepository.findByUsernameAndUserType(username, UserType.LOCAL))
                 .thenReturn(Optional.of(user));
+        when(userRepository.existsByUsername(username)).thenReturn(Boolean.TRUE);
         when(passwordEncoder.matches(password, hashedPassword)).thenReturn(true);
         when(jwtProvider.createAccessToken(user)).thenReturn("access-token");
         when(jwtProvider.createRefreshToken(user)).thenReturn("refresh-token");
@@ -98,6 +99,7 @@ class AuthServiceTest {
         when(googleOAuthVerifier.verifyToken(token)).thenReturn(payload);
         when(userRepository.findByExternalSubjectIdAndUserType(googleSub, UserType.GOOGLE))
                 .thenReturn(Optional.empty());
+        when(userRepository.save(any(ExternalUser.class))).thenAnswer(i -> i.getArguments()[0]);
 
         // Captor für neuen User
         ArgumentCaptor<ExternalUser> userCaptor = ArgumentCaptor.forClass(ExternalUser.class);
@@ -117,7 +119,7 @@ class AuthServiceTest {
         assertEquals("refresh-token", response.getRefreshToken());
 
         // Prüfen, dass ein neuer User gespeichert wurde
-        verify(userRepository).save(userCaptor.capture());
+        verify(userRepository, times(2)).save(userCaptor.capture());
         ExternalUser savedUser = userCaptor.getValue();
         assertEquals(googleSub, savedUser.getExternalSubjectId());
         assertEquals(UserType.GOOGLE, savedUser.getUserType());
@@ -220,6 +222,8 @@ class AuthServiceTest {
         when(googleOAuthVerifier.verifyToken(token)).thenReturn(payload);
         when(userRepository.findByExternalSubjectIdAndUserType(anyString(), any()))
                 .thenReturn(Optional.empty());
+        when(userRepository.save(any(ExternalUser.class))).thenAnswer(i -> i.getArguments()[0]);
+
 
         // Captor um den gespeicherten User zu prüfen
         ArgumentCaptor<ExternalUser> userCaptor = ArgumentCaptor.forClass(ExternalUser.class);
@@ -231,7 +235,7 @@ class AuthServiceTest {
 
         authService.login(dto);
 
-        verify(userRepository).save(userCaptor.capture());
+        verify(userRepository, times(2)).save(userCaptor.capture());
         assertEquals("Google User", userCaptor.getValue().getUsername());
     }
 
@@ -246,6 +250,8 @@ class AuthServiceTest {
 
         when(userRepository.findByUsernameAndUserType(username, UserType.LOCAL))
                 .thenReturn(Optional.empty());
+
+        when(userRepository.existsByUsername(username)).thenReturn(Boolean.TRUE);
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
