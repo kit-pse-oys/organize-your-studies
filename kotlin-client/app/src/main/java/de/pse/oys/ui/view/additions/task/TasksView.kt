@@ -163,7 +163,7 @@ class TasksViewModel(
     override var tasks: List<Task> by mutableStateOf(listOf())
 
     init {
-        require(model.tasks != null)
+        requireNotNull(model.tasks)
         tasks = model.tasks!!.map { Task(it.value, it.key) }
     }
 

@@ -90,8 +90,8 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
                 if (viewModel.showDelete) stringResource(R.string.edit_freetime) else stringResource(
                     id = R.string.new_freetime
                 ),
-                viewModel.showDelete,
-                { if (viewModel.showDelete) confirmDelete = true })
+                viewModel.showDelete
+            ) { if (viewModel.showDelete) confirmDelete = true }
             InputLabel(text = stringResource(id = R.string.enter_title))
             SingleLineInput(viewModel.title) { viewModel.title = it }
             DateSelectionRow(stringResource(id = R.string.select_Date), dateText) {
@@ -128,38 +128,16 @@ fun CreateFreeTimeView(viewModel: ICreateFreeTimeViewModel) {
                 submitButtonActive
             ) { viewModel.submit() }
 
-            if (showDatePicker) {
-                LocalDatePickerDialog(
-                    currentDate = viewModel.date,
-                    onDateSelected = {
-                        if (it != null) {
-                            viewModel.date = it
-                        }
-                    },
-                    onDismiss = { showDatePicker = false }
+            DatePickerDialog(viewModel, showDatePicker, onDismiss = { showDatePicker = false })
+            TimePickerDialog(
+                viewModel,
+                showStartTimePicker,
+                showEndTimePicker,
+                onStartTimeDismiss = { showStartTimePicker = false },
+                onEndTimeDismiss = { showEndTimePicker = false }
                 )
-            }
-            if (showStartTimePicker) {
-                LocalTimePickerDialog(
-                    initialTime = viewModel.start,
-                    onTimeSelected = { viewModel.start = it },
-                    onDismiss = { showStartTimePicker = false }
-                )
-            }
-            if (showEndTimePicker) {
-                LocalTimePickerDialog(
-                    initialTime = viewModel.end,
-                    onTimeSelected = { if (it >= viewModel.start) viewModel.end = it },
-                    onDismiss = { showEndTimePicker = false }
-                )
-            }
 
-            if (confirmDelete) {
-                DeleteElementDialog(
-                    onDismiss = { confirmDelete = false },
-                    onConfirm = viewModel::delete
-                )
-            }
+            ConfirmDeleteDialog(viewModel, confirmDelete, onDismiss = { confirmDelete = false })
         }
     }
 }
@@ -180,6 +158,49 @@ private fun TimePickerButton(label: String, time: LocalTime, onClick: () -> Unit
         ) {
             Text(time.toFormattedString())
         }
+    }
+}
+
+@Composable
+private fun DatePickerDialog(viewModel: ICreateFreeTimeViewModel, showDatePicker: Boolean, onDismiss: () -> Unit) {
+    if (showDatePicker) {
+        LocalDatePickerDialog(
+            currentDate = viewModel.date,
+            onDateSelected = {
+                if (it != null) {
+                    viewModel.date = it
+                }
+            },
+            onDismiss = { onDismiss() }
+        )
+    }
+}
+
+@Composable
+private fun TimePickerDialog(viewModel: ICreateFreeTimeViewModel, showStartTimePicker: Boolean, showEndTimePicker: Boolean, onStartTimeDismiss: () -> Unit, onEndTimeDismiss: () -> Unit) {
+    if (showStartTimePicker) {
+    LocalTimePickerDialog(
+        initialTime = viewModel.start,
+        onTimeSelected = { viewModel.start = it },
+        onDismiss = { onStartTimeDismiss() }
+    )
+    }
+    if (showEndTimePicker) {
+        LocalTimePickerDialog(
+            initialTime = viewModel.end,
+            onTimeSelected = { if (it >= viewModel.start) viewModel.end = it },
+            onDismiss = { onEndTimeDismiss() }
+        )
+    }
+}
+
+@Composable
+private fun ConfirmDeleteDialog(viewModel: ICreateFreeTimeViewModel, confirmDelete: Boolean, onDismiss: () -> Unit) {
+    if (confirmDelete) {
+        DeleteElementDialog(
+            onDismiss = { onDismiss() },
+            onConfirm = viewModel::delete
+        )
     }
 }
 

@@ -195,7 +195,7 @@ class AvailableRatingsViewModel(
     }
 
     init {
-        require(model.steps != null)
+        requireNotNull(model.steps)
 
         viewModelScope.launch {
             model.ensureUnits(api).defaultHandleError(navController) { error = true }

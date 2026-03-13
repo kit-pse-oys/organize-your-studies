@@ -5,6 +5,7 @@ import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TIME_ALTERNATIVE
@@ -86,7 +87,7 @@ class CreateFreeTimeViewModelTest {
     }
 
     @Test
-    fun `registerNewFreeTime should update model and navigate`() {
+    fun `registerNewFreeTime should update model and navigate to main`() {
         val testId = randomUuid()
         val testData = createMockFreeTimeData()
 
@@ -115,7 +116,7 @@ class CreateFreeTimeViewModelTest {
         assertEquals(testData, freeTimesMap[testId])
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
@@ -123,7 +124,7 @@ class CreateFreeTimeViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `submit should call api and navigate when successful`() = runTest {
+    fun `submit should call api and navigate to main when successful`() = runTest {
         val viewModel = CreateFreeTimeViewModel(api, model, navController)
         val testData = FreeTimeData(
             TEST_TITLE, TEST_DATE_ALTERNATIVE, TEST_TIME_ALTERNATIVE, TEST_TIME_ALTERNATIVE, false
@@ -141,7 +142,7 @@ class CreateFreeTimeViewModelTest {
         coVerify { api.createFreeTime(testData) }
         verify {
             navController.navigate(
-                any<Any>(),
+                Main,
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }

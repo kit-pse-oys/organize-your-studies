@@ -3,6 +3,7 @@ package de.pse.oys.ui.view.onboarding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -85,32 +86,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
         val scroll = rememberScrollState()
         if (viewModel.showWelcome) {
-            Column(
-                Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(stringResource(R.string.welcome_header))
-                Text(
-                    stringResource(R.string.welcome_name),
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-                )
-                Spacer(Modifier.height(20.dp))
-                Text(stringResource(R.string.welcome_explanation), textAlign = TextAlign.Center)
-                Button(
-                    onClick = viewModel::showQuestionnaire,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Blue)
-                ) {
-                    Text(stringResource(R.string.welcome_start))
-                }
-                Text(
-                    stringResource(R.string.welcome_hint),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            WelcomeView(viewModel, innerPadding)
         } else {
             Column(
                 Modifier
@@ -160,7 +136,7 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
                                                 Text(
                                                     text = answer.localisation(),
                                                     textAlign = TextAlign.Center,
-                                                    color = if (selected) Color.White else Color.DarkGray
+                                                    color = Color.DarkGray
                                                 )
                                             },
                                             colors = FilterChipDefaults.filterChipColors(
@@ -192,6 +168,36 @@ fun QuestionnaireView(viewModel: IQuestionnaireViewModel) {
     }
 }
 
+@Composable
+private fun WelcomeView(viewModel: IQuestionnaireViewModel, innerPadding: PaddingValues) {
+    Column(
+        Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(stringResource(R.string.welcome_header))
+        Text(
+            stringResource(R.string.welcome_name),
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+        )
+        Spacer(Modifier.height(20.dp))
+        Text(stringResource(R.string.welcome_explanation), textAlign = TextAlign.Center)
+        Button(
+            onClick = viewModel::showQuestionnaire,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Blue)
+        ) {
+            Text(stringResource(R.string.welcome_start))
+        }
+        Text(
+            stringResource(R.string.welcome_hint),
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
 /**
  * Interface for the view model of the [QuestionnaireView].
  * @property showWelcome whether the welcome screen should be shown.
@@ -202,7 +208,7 @@ interface IQuestionnaireViewModel {
     val isValid: Boolean
 
     /**
-     * Returns a observable state whether the given answer is currently selected for a question.
+     * Returns an observable state whether the given answer is currently selected for a question.
      * @param question the question to check.
      * @param answer the answer to check.
      * @return a [StateFlow] emitting true if selected, false otherwise.
@@ -301,11 +307,15 @@ abstract class BaseQuestionnaireViewModel(
 }
 
 /**
- * View model for the [QuestionnaireView] for when its a users first time using the app.
+ * View model for the [QuestionnaireView] for when it's a users first time using the app.
  * @param api the [RemoteAPI] for this view.
  * @param navController the [NavController] for this view.
  */
-class FirstQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navController: NavController) :
+class FirstQuestionnaireViewModel(
+    api: RemoteAPI,
+    model: ModelFacade,
+    navController: NavController
+) :
     BaseQuestionnaireViewModel(api, model, navController) {
     override var showWelcome by mutableStateOf(true)
 
@@ -344,7 +354,9 @@ class EditQuestionnaireViewModel(api: RemoteAPI, model: ModelFacade, navControll
     }
 
     override val showWelcome = false
-    override fun showQuestionnaire() {}
+    override fun showQuestionnaire() {
+        // No implementation needed: Edit mode starts directly with the questions.
+    }
 
     override fun navigateToMain() {
         navController.main()
