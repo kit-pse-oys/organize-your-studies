@@ -112,7 +112,10 @@ public class AuthService {
             Optional<ExternalUser> optionalUser = userRepository.findByExternalSubjectIdAndUserType(googleSub, UserType.GOOGLE);
 
             // 4. Benutzer laden, falls nicht existiert, neuen Benutzer anlegen (Just-in-Time-Provisioning).
-            User user = optionalUser.orElseGet(() -> new ExternalUser(name, googleSub, UserType.GOOGLE));
+            User user = optionalUser.orElseGet(() -> {
+                ExternalUser newUser = new ExternalUser(name, googleSub, UserType.GOOGLE);
+                return userRepository.save(newUser); // Erzeugt die UUID in der Datenbank, returned nur aus der Lambda
+            });
 
             // 5. JWT und Refresh-Token generieren.
             String accessToken = jwtProvider.createAccessToken(user);
