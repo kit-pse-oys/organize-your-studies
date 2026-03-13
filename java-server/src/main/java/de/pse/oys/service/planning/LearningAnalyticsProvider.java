@@ -16,6 +16,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 
+/**
+ * LearningAnalyticsProvider – Service zur Berechnung und Verwaltung von Kostenmatrizen für Lernaufgaben.
+ * Kernfunktionen:
+ * - Kostenberechnung: Berechnet Kosten basierend auf Konzentrations- und Leistungsbewertungen der Lerneinheiten.
+ * - Heuristische Kostenableitung: Leitet Kosten von ähnlichen Aufgaben im selben Modul ab, wenn keine aktuellen Bewertungen vorliegen.
+ * - Kostenaktualisierung: Ermöglicht die Aktualisierung der Kostenmatrix mit Strafkosten für bestimmte Zeit-Slots.
+ * @author uhxch
+ */
 @Service
 public class LearningAnalyticsProvider {
     private static final double CONCENTRATION_WEIGHT = 1.5;
@@ -38,11 +46,33 @@ public class LearningAnalyticsProvider {
     private static final int VAL_ACHIEVEMENT_EXCELLENT = 2;
     private static final int VAL_ACHIEVEMENT_DEFAULT = 1;
 
+    private static final Map<ConcentrationLevel, Integer> CONCENTRATION_MAP = Map.ofEntries(
+            Map.entry(ConcentrationLevel.VERY_LOW, VAL_CONCENTRATION_VERY_LOW),
+            Map.entry(ConcentrationLevel.LOW, VAL_CONCENTRATION_LOW),
+            Map.entry(ConcentrationLevel.MEDIUM, VAL_CONCENTRATION_MEDIUM),
+            Map.entry(ConcentrationLevel.HIGH, VAL_CONCENTRATION_HIGH),
+            Map.entry(ConcentrationLevel.VERY_HIGH, VAL_CONCENTRATION_VERY_HIGH)
+    );
+
+    private static final Map<AchievementLevel, Integer> ACHIEVEMENT_MAP = Map.ofEntries(
+            Map.entry(AchievementLevel.NONE, VAL_ACHIEVEMENT_NONE),
+            Map.entry(AchievementLevel.POOR, VAL_ACHIEVEMENT_POOR),
+            Map.entry(AchievementLevel.PARTIAL, VAL_ACHIEVEMENT_PARTIAL),
+            Map.entry(AchievementLevel.GOOD, VAL_ACHIEVEMENT_GOOD),
+            Map.entry(AchievementLevel.EXCELLENT, VAL_ACHIEVEMENT_EXCELLENT)
+    );
+
     private final CostMatrixRepository costMatrixRepository;
     private final ObjectMapper objectMapper;
     private final TaskRepository taskRepository;
 
 
+    /**
+     * Konstruktor mit Dependency Injection.
+     * @param costMatrixRepository das Repository für den Zugriff auf CostMatrix-Entitäten in der Datenbank.
+     * @param objectMapper die Jackson ObjectMapper-Instanz für die JSON-Verarbeitung von Kosten-Daten.
+     * @param taskRepository das Repository für den Zugriff auf Task-Entitäten, benötigt für die Persistierung von Änderungen.
+     */
     public LearningAnalyticsProvider(CostMatrixRepository costMatrixRepository, ObjectMapper objectMapper,
                                      TaskRepository taskRepository) {
         this.costMatrixRepository = costMatrixRepository;
@@ -50,6 +80,11 @@ public class LearningAnalyticsProvider {
         this.taskRepository = taskRepository;
     }
 
+    /**
+     * Gibt die Kostenmatrix für eine gegebene Task zurück.
+     * @param task Die Task, für die die Kostenmatrix abgerufen werden soll. Darf nicht null sein.
+     * @return Eine Liste von CostDTOs, die die Kosten für die Task repräsentieren.
+     */
     public List<CostDTO> getCostMatrixForTask(Task task) {
         if (task == null) {
             throw new IllegalArgumentException("Error: Task darf nicht null sein");
@@ -135,41 +170,17 @@ public class LearningAnalyticsProvider {
 
 
     private int mapConcentrationToValue(ConcentrationLevel level) {
-        if (level == null) return VAL_CONCENTRATION_DEFAULT; // Fallback
-
-        switch (level) {
-            case VERY_LOW:
-                return VAL_CONCENTRATION_VERY_LOW;
-            case LOW:
-                return VAL_CONCENTRATION_LOW;
-            case MEDIUM:
-                return VAL_CONCENTRATION_MEDIUM;
-            case HIGH:
-                return VAL_CONCENTRATION_HIGH;
-            case VERY_HIGH:
-                return VAL_CONCENTRATION_VERY_HIGH;
-            default:
-                return VAL_CONCENTRATION_DEFAULT;
+        if (level == null) {
+            return VAL_CONCENTRATION_DEFAULT;
         }
+        return CONCENTRATION_MAP.getOrDefault(level, VAL_CONCENTRATION_DEFAULT);
     }
 
     private int mapAchievementToValue(AchievementLevel level) {
-        if (level == null) return VAL_ACHIEVEMENT_DEFAULT; // Fallback
-
-        switch (level) {
-            case NONE:
-                return VAL_ACHIEVEMENT_NONE;
-            case POOR:
-                return VAL_ACHIEVEMENT_POOR;
-            case PARTIAL:
-                return VAL_ACHIEVEMENT_PARTIAL;
-            case GOOD:
-                return VAL_ACHIEVEMENT_GOOD;
-            case EXCELLENT:
-                return VAL_ACHIEVEMENT_EXCELLENT;
-            default:
-                return VAL_ACHIEVEMENT_DEFAULT;
+        if (level == null) {
+            return VAL_ACHIEVEMENT_DEFAULT;
         }
+        return ACHIEVEMENT_MAP.getOrDefault(level, VAL_ACHIEVEMENT_DEFAULT);
     }
 
     private List<CostDTO> calculateHeuristiksFromTask(Task currentTask) {
@@ -199,6 +210,12 @@ public class LearningAnalyticsProvider {
     }
 
 
+    /**
+     * Fügt der Kostenmatrix einer Task Strafkosten hinzu oder aktualisiert sie, wenn bereits Kosten für den Slot existieren.
+     * @param task Die Task, deren Kostenmatrix aktualisiert werden soll. Darf nicht null sein.
+     * @param penaltySlot Der Zeit-Slot welcher bestraft werden soll.
+     * @param penaltyCost Die Höhe der Strafkosten, die zum bestehenden Wert addiert werden sollen. Kann positiv oder negativ sein.
+     */
     public void applyPenaltyToCostMatrix(Task task, int penaltySlot, int penaltyCost) {
         if (task == null) {
             throw new IllegalArgumentException("Error: Task darf nicht null sein");
