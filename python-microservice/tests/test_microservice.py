@@ -131,7 +131,7 @@ class TestMicroservice(unittest.TestCase):
         solver.build_model()
         solution = solver.solve()
 
-        if not solution:
+        if not solution: # pragma: no cover
             self.fail("Sollte eine Lösung finden, hat aber keine gefunden.")
 
         start_1 = solution.Value(solver.solution_map["test_1"]["start"])
