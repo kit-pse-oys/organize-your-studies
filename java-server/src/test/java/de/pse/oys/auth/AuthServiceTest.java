@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -240,6 +241,25 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_userNotExists_shouldThrowIllegalArgumentException() {
+        // Arrange
+        String username = "nonexistent";
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setAuthType(AuthType.BASIC);
+        loginDTO.setUsername(username);
+        loginDTO.setPassword("password");
+
+        when(userRepository.existsByUsername(username)).thenReturn(Boolean.FALSE);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authService.login(loginDTO)
+        );
+
+        assertEquals("Ungültige Anmeldeinformationen.", exception.getMessage());
+    }
+
+    @Test
     void login_localUserNotFound_shouldThrowIllegalStateException() {
         // Arrange
         String username = "nonexistent";
@@ -283,6 +303,38 @@ class AuthServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 authService.login(loginDTO)
+        );
+
+        assertEquals("Ungültige Anmeldeinformationen.", exception.getMessage());
+    }
+
+    @Test
+    void login_wrongPassword_withRealPasswordEncoder_shouldThrowException() {
+        // Arrange - mit echtem BCryptPasswordEncoder statt Mock
+        PasswordEncoder realPasswordEncoder = new BCryptPasswordEncoder();
+        String correctPassword = "correctPassword123";
+        String wrongPassword = "wrongPassword";
+        String hashedPassword = realPasswordEncoder.encode(correctPassword);
+
+        LocalUser user = mock(LocalUser.class);
+        when(user.getId()).thenReturn(UUID.randomUUID());
+        when(user.getHashedPassword()).thenReturn(hashedPassword);
+
+        when(userRepository.findByUsernameAndUserType("testuser", UserType.LOCAL))
+                .thenReturn(Optional.of(user));
+        when(userRepository.existsByUsername("testuser")).thenReturn(Boolean.TRUE);
+
+        // Nutze den echten PasswordEncoder
+        AuthService serviceWithRealEncoder = new AuthService(userRepository, realPasswordEncoder, jwtProvider, googleOAuthVerifier);
+
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setAuthType(AuthType.BASIC);
+        loginDTO.setUsername("testuser");
+        loginDTO.setPassword(wrongPassword);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                serviceWithRealEncoder.login(loginDTO)
         );
 
         assertEquals("Ungültige Anmeldeinformationen.", exception.getMessage());

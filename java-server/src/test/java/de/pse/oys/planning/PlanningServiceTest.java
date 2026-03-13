@@ -1,6 +1,6 @@
 package de.pse.oys.planning;
 
-import de.pse.oys.TestDomainFactory;
+import de.pse.oys.TestUserFactory;
 import de.pse.oys.domain.*;
 import de.pse.oys.domain.enums.TaskCategory;
 import de.pse.oys.domain.enums.TimeSlot;
@@ -418,7 +418,7 @@ class PlanningServiceTest {
     @Test
     void generateWeeklyPlan_ShouldClearFutureUnitsBeforePlanning() {
         // GIVEN
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         UUID uuid = UUID.randomUUID();
         ReflectionTestUtils.setField(user, "userId", uuid);
 
@@ -469,7 +469,7 @@ class PlanningServiceTest {
         assertThrows(IllegalArgumentException.class, () -> planningService.rescheduleUnit(uId, unId));
 
         // Fall 2: Plan null
-        User user = TestDomainFactory.createLocalUserWithPrefs(); // Mit Prefs für BreakDuration
+        User user = TestUserFactory.createLocalUserWithPrefs(); // Mit Prefs für BreakDuration
         when(userRepository.findById(uId)).thenReturn(Optional.of(user));
         when(learningPlanRepository.findByUserIdAndWeekStart(eq(uId), any())).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> planningService.rescheduleUnit(uId, unId));
@@ -501,7 +501,7 @@ class PlanningServiceTest {
 
     @Test
     void testFetchOpenTasks_LogicAndRemainder_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -573,7 +573,7 @@ class PlanningServiceTest {
     @Test
     void testFixedBlocks_Filtering_Coverage() {
         // 1. Setup: User vorbereiten
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         UUID randomId = UUID.randomUUID();
         ReflectionTestUtils.setField(user, "userId", randomId);
         when(userRepository.findById(randomId)).thenReturn(Optional.of(user));
@@ -665,7 +665,7 @@ class PlanningServiceTest {
 
     @Test
     void testSaveLearningResults_EmptyLearningUnitsList_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -689,7 +689,7 @@ class PlanningServiceTest {
     @Test
     void testCalculateFeedbackFactor_NoRatedUnits_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -715,7 +715,7 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateFixedBlocksDTO_WithRatedUnits_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -737,7 +737,7 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateFixedBlocksDTO_WeeklyWithDayIndex_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         RecurringFreeTime weeklyFreeTime = new RecurringFreeTime(
@@ -768,7 +768,7 @@ class PlanningServiceTest {
     @Test
     void testCalculateFixedBlocksDTO_SingleFreeTimeWithDayIndex_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         LocalDate eventDate = weekStart.plusDays(3);
@@ -799,7 +799,7 @@ class PlanningServiceTest {
 
     @Test
     void testMapTimeToSlot_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         RecurringFreeTime timeBasedFreeTime = new RecurringFreeTime(
@@ -829,7 +829,7 @@ class PlanningServiceTest {
 
     @Test
     void testCalculateBlockedWeekDays_WithBlockedDays_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         Set<DayOfWeek> preferredDays = new HashSet<>();
@@ -864,7 +864,7 @@ class PlanningServiceTest {
     @Test
     void testCalculateFeedbackFactor_WithRating_ReturnAverage_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -895,7 +895,7 @@ class PlanningServiceTest {
     @Test
     void testSplitIntoChunks_VerySmallDuration_N_Becomes_One_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -922,7 +922,7 @@ class PlanningServiceTest {
     @Test
     void testSplitIntoChunks_WithRemainder_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -953,7 +953,7 @@ class PlanningServiceTest {
     @Test
     void testCalculateFeedbackFactor_RatedUnit_WithRating_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -986,7 +986,7 @@ class PlanningServiceTest {
     @Test
     void testFetchOpenTasks_MissedUnit_DeleteAndPenalty_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -1020,7 +1020,7 @@ class PlanningServiceTest {
 
     @Test
     void testFetchOpenTasks_OtherTaskCategory_Coverage() {
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         // Erstelle Zeiten, die das aktuelle "Jetzt" sicher umschließen
@@ -1060,7 +1060,7 @@ class PlanningServiceTest {
     @Test
     void testFetchOpenTasksAsDTOs_OtherTaskFutureStart_Coverage() {
         // GIVEN
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -1108,7 +1108,7 @@ class PlanningServiceTest {
     @Test
     void testSplitIntoChunks_WithRemainderDuration_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        User user = TestDomainFactory.createLocalUserWithPrefs();
+        User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
