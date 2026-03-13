@@ -1058,6 +1058,54 @@ class PlanningServiceTest {
     }
 
     @Test
+    void testFetchOpenTasksAsDTOs_OtherTaskFutureStart_Coverage() {
+        // GIVEN
+        User user = TestDomainFactory.createLocalUserWithPrefs();
+        ReflectionTestUtils.setField(user, "userId", userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Erstelle einen Mock für OtherTask
+        OtherTask otherTask = mock(OtherTask.class);
+        LocalDateTime futureStart = LocalDateTime.now().plusHours(2);
+        LocalDateTime futureEnd = LocalDateTime.now().plusDays(2);
+        UUID generatedTaskId = UUID.randomUUID();
+        when(otherTask.getTaskId()).thenReturn(generatedTaskId);
+
+        // Simuliere, dass der Task aktiv ist, obwohl der Start in der Zukunft liegt
+        when(otherTask.isActive()).thenReturn(true);
+        when(otherTask.getCategory()).thenReturn(TaskCategory.OTHER);
+        when(otherTask.getStartTime()).thenReturn(futureStart);
+        when(otherTask.getHardDeadline()).thenReturn(futureEnd);
+        when(otherTask.getWeeklyDurationMinutes()).thenReturn(60);
+        when(otherTask.getLearningUnits()).thenReturn(new ArrayList<>());
+        when(otherTask.getSoftDeadline(anyInt())).thenReturn(futureEnd.minusDays(1));
+
+        // Repository-Mock konfiguriert
+        when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(otherTask));
+        when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
+
+        // Mock für Solver-Antwort (leere Liste reicht für diesen Coverage-Test)
+        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        // ACT
+        // Der Aufruf von generateWeeklyPlan triggert intern fetchOpenTasksAsDTOs
+        planningService.generateWeeklyPlan(userId);
+
+        // ASSERT
+        ArgumentCaptor<HttpEntity<PlanningRequestDTO>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(anyString(), any(), captor.capture(), any(ParameterizedTypeReference.class));
+
+        PlanningRequestDTO request = captor.getValue().getBody();
+        assertNotNull(request);
+        assertFalse(request.getTasks().isEmpty());
+
+        // In Zeile 430 sollte mapLocalDateTimeToSlot(futureStart, weekStart) aufgerufen worden sein
+        // Wir prüfen indirekt, ob der Task im Request gelandet ist
+        assertEquals(1, request.getTasks().size());
+    }
+
+    @Test
     void testSplitIntoChunks_WithRemainderDuration_Coverage() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         User user = TestDomainFactory.createLocalUserWithPrefs();
@@ -1086,5 +1134,102 @@ class PlanningServiceTest {
         planningService.generateWeeklyPlan(userId);
 
         verify(learningPlanRepository).save(any(LearningPlan.class));
+    }
+
+    @Test
+    void testSplitIntoChunks_Remainder_Coverage() {
+        // GIVEN
+        // WICHTIG: Nutze den testUser-Mock aus dem setUp, da dieser mit testPreferences verknüpft ist
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+        // Wir erzwingen eine Ziel-Dauer von exakt 40 Minuten
+        when(testPreferences.getMinUnitDurationMinutes()).thenReturn(40);
+        when(testPreferences.getMaxUnitDurationMinutes()).thenReturn(40);
+
+        // Task mit 100 Minuten Gesamtdauer
+        // n = round(100 / 40) = 3 Chunks.
+        // baseChunkDuration = 100 / 3 = 33.
+        // remainder = 100 % 3 = 1.
+        Task remainderTask = mock(Task.class);
+        UUID remTaskId = UUID.randomUUID();
+        when(remainderTask.getTaskId()).thenReturn(remTaskId);
+        when(remainderTask.isActive()).thenReturn(true);
+        when(remainderTask.getCategory()).thenReturn(TaskCategory.EXAM);
+        when(remainderTask.getWeeklyDurationMinutes()).thenReturn(100);
+        when(remainderTask.getLearningUnits()).thenReturn(new ArrayList<>());
+        when(remainderTask.getSoftDeadline(anyInt())).thenReturn(LocalDateTime.now().plusDays(2));
+
+        when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(remainderTask));
+        when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
+
+        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        // ACT
+        planningService.generateWeeklyPlan(userId);
+
+        // ASSERT
+        ArgumentCaptor<HttpEntity<PlanningRequestDTO>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(anyString(), any(), captor.capture(), any(ParameterizedTypeReference.class));
+
+        PlanningRequestDTO request = captor.getValue().getBody();
+        assertNotNull(request);
+
+        // Wir erwarten 3 Chunks
+        assertEquals(3, request.getTasks().size(), "Es müssen 3 Chunks erstellt werden, damit ein Rest entstehen kann.");
+
+        // Da i=0 < remainder=1, wurde die Dauer des ersten Chunks im Service um +1 erhöht.
+        // Dies deckt die gewünschte Zeile 504 (duration += 1) ab.
+    }
+
+    @Test
+    void testCalculateFeedbackFactor_WithRatedUnits_FullCoverage() {
+        // GIVEN
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+        // 1. Task Mock erstellen
+        Task ratedTask = mock(Task.class);
+        UUID rTaskId = UUID.randomUUID();
+        when(ratedTask.getTaskId()).thenReturn(rTaskId);
+        when(ratedTask.isActive()).thenReturn(true);
+        when(ratedTask.getCategory()).thenReturn(TaskCategory.EXAM);
+        when(ratedTask.getWeeklyDurationMinutes()).thenReturn(120);
+        when(ratedTask.getSoftDeadline(anyInt())).thenReturn(LocalDateTime.now().plusDays(7));
+
+        // 2. Mock-Hierarchie für das Feedback aufbauen
+        LearningUnit ratedUnit = mock(LearningUnit.class);
+        UnitRating rating = mock(UnitRating.class);
+
+        // WICHTIG: Die Zeit-Stubbings hinzufügen, um die NPE in Zeile 438 zu verhindern
+        // Wir setzen die Einheit in die Vergangenheit, damit sie als "bereits bearbeitet" zählt
+        when(ratedUnit.getStartTime()).thenReturn(LocalDateTime.now().minusDays(1));
+        when(ratedUnit.getActualDurationMinutes()).thenReturn(60);
+        when(ratedUnit.getStatus()).thenReturn(UnitStatus.COMPLETED);
+
+        // Feedback-Logik stubben (Zeile 551)
+        de.pse.oys.domain.enums.PerceivedDuration durationPerception = de.pse.oys.domain.enums.PerceivedDuration.TOO_SHORT;
+
+        when(ratedUnit.isRated()).thenReturn(true);
+        when(ratedUnit.getRating()).thenReturn(rating);
+        when(rating.getPerceivedDuration()).thenReturn(durationPerception);
+
+        // Verknüpfe die Unit mit dem Task
+        when(ratedTask.getLearningUnits()).thenReturn(List.of(ratedUnit));
+
+        // 3. Repository-Mocks konfigurieren
+        when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(ratedTask));
+        when(learningAnalyticsProvider.getCostMatrixForTask(any())).thenReturn(Collections.emptyList());
+
+        // Mock für den Solver (Microservice-Call)
+        when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        // ACT
+        planningService.generateWeeklyPlan(userId);
+
+        // ASSERT
+        // Verifizierung, dass die Feedback-Logik durchlaufen wurde
+        verify(ratedUnit, atLeastOnce()).isRated();
+        verify(rating, atLeastOnce()).getPerceivedDuration();
     }
 }
