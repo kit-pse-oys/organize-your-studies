@@ -41,6 +41,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+      - GOOGLE_OAUTH2_CLIENT_ID=${GOOGLE_OAUTH2_CLIENT_ID}
       - TZ=Europe/Berlin
     depends_on:
       - db  # Wartet, bis der Datenbank-Container gestartet ist
