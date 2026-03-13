@@ -112,7 +112,10 @@ public class AuthService {
             Optional<ExternalUser> optionalUser = userRepository.findByExternalSubjectIdAndUserType(googleSub, UserType.GOOGLE);
 
             // 4. Benutzer laden, falls nicht existiert, neuen Benutzer anlegen (Just-in-Time-Provisioning).
-            User user = optionalUser.orElseGet(() -> new ExternalUser(name, googleSub, UserType.GOOGLE));
+            User user = optionalUser.orElseGet(() -> {
+                ExternalUser newUser = new ExternalUser(name, googleSub, UserType.GOOGLE);
+                return userRepository.save(newUser); // Erzeugt die UUID in der Datenbank
+            });
 
             // 5. JWT und Refresh-Token generieren.
             String accessToken = jwtProvider.createAccessToken(user);
@@ -135,6 +138,10 @@ public class AuthService {
         String username = loginDTO.getUsername();
 
         // 1. Überprüfen, ob der Benutzer existiert und entsprechend den User abrufen.
+        if (!userRepository.existsByUsername(username)) {
+            // Hier kannst du ERR_INVALID_LOGIN_CREDENTIALS oder ERR_USER_NOT_FOUND nutzen
+            throw new IllegalArgumentException(ERR_INVALID_LOGIN_CREDENTIALS);
+        }
 
         Optional<User> optionalUser = userRepository.findByUsernameAndUserType(username, de.pse.oys.domain.enums.UserType.LOCAL);
 
