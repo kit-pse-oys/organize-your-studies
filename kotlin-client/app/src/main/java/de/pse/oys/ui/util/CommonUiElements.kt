@@ -87,7 +87,7 @@ fun BackButton(onClick: () -> Unit) {
     ) {
         Icon(
             painter = painterResource(id = R.drawable.outline_arrow_back_24),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.go_back_button),
             modifier = Modifier.size(34.dp),
             tint = Blue
         )

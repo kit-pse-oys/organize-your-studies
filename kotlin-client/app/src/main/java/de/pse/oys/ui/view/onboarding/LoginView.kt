@@ -378,7 +378,6 @@ class LoginViewModel(
     }
 
     private val credentialManager = CredentialManager.create(context)
-    private val googleCredentialOption = getGoogleCredentialOption()
 
     private suspend fun getOIDCToken(oidcType: OIDCType): String? {
         val activity = context as? Activity
@@ -390,7 +389,7 @@ class LoginViewModel(
 
         val credentialRequest = when (oidcType) {
             OIDCType.GOOGLE -> GetCredentialRequest.Builder()
-                .addCredentialOption(googleCredentialOption).build()
+                .addCredentialOption(getGoogleCredentialOption()).build()
         }
 
         val result = try {

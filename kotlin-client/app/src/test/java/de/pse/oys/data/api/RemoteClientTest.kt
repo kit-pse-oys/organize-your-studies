@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import de.pse.oys.data.Answer
 import de.pse.oys.data.Question
 import de.pse.oys.data.QuestionState
+import de.pse.oys.data.Questions
 import de.pse.oys.data.facade.FreeTime
 import de.pse.oys.data.facade.FreeTimeData
 import de.pse.oys.data.facade.Module
@@ -13,6 +14,7 @@ import de.pse.oys.data.facade.Rating
 import de.pse.oys.data.facade.UnitRatings
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.respondError
 import io.ktor.client.engine.mock.respondOk
 import io.ktor.client.engine.mock.toByteReadPacket
 import io.ktor.http.ContentType
@@ -32,6 +34,7 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -55,7 +58,7 @@ class RemoteClientTest {
             }
         }
 
-        class TrackUsage : SessionStore {
+        class TrackUsage(var session: Session = MockSessionStore.session) : SessionStore {
             var getSessionCalled = false
                 private set
             var setSessionCalled = false
@@ -255,6 +258,79 @@ class RemoteClientTest {
             }
             val response = client.deleteAccount()
             assertEquals(200, response.status)
+        }
+    }
+
+    @Test
+    fun `refreshToken and getQuestionnaire`() {
+        runBlocking {
+            val invalidSession = Session("INVALID_ACCESS_TOKEN", "REFRESH_TOKEN")
+            val sessionStore = MockSessionStore.TrackUsage(invalidSession)
+            val (engine, client) = createClient(sessionStore)
+
+            engine += { request ->
+                assertEquals("/api/v1/questionnaire", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${invalidSession.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respondError(HttpStatusCode.Unauthorized)
+            }
+
+            engine += { request ->
+                assertEquals("/api/v1/users/refresh", request.url.encodedPath)
+                assertEquals(HttpMethod.Post, request.method)
+                assertEquals(ContentType.Application.Json, request.body.contentType)
+
+                val json = Json.parseToJsonElement(request.body.toByteReadPacket().readString())
+                assertEquals(buildJsonObject {
+                    put("refreshToken", invalidSession.refreshToken)
+                }, json)
+
+                sessionStore.session = MockSessionStore.session
+                respond(
+                    buildJsonObject {
+                        put("accessToken", MockSessionStore.session.accessToken)
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+
+            engine += { request ->
+                assertEquals("/api/v1/questionnaire", request.url.encodedPath)
+                assertEquals(HttpMethod.Get, request.method)
+                assertEquals(
+                    "Bearer ${MockSessionStore.session.accessToken}",
+                    request.headers[HttpHeaders.Authorization]
+                )
+
+                respond(
+                    buildJsonObject {
+                        put(Questions.first().id, buildJsonObject {
+                            put(Questions.first().answers.first().id, true)
+                        })
+                    }.toString(),
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString()
+                    )
+                )
+            }
+
+            val response = client.getQuestionnaire()
+            assertEquals(200, response.status)
+            assertTrue(sessionStore.getSessionCalled)
+            assertTrue(sessionStore.setSessionCalled)
+            assertEquals(MockSessionStore.session, sessionStore.newSession)
+
+            assertArrayEquals(QuestionState().apply {
+                select(Questions.first(), Questions.first().answers.first())
+            }.answers, response.response?.answers)
         }
     }
 

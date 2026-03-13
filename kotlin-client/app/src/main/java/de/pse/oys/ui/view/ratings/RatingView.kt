@@ -132,7 +132,6 @@ fun RatingView(viewModel: IRatingViewModel) {
  * @param question the question itself.
  * @param currentRating the current rating of the question.
  * @param labels the labels on each step of the slider.
- * @param selectedMissed whether the user has selected that the unit was missed.
  * @param onRatingChange the function to be called when the rating is changed.
  */
 @Composable

@@ -1,9 +1,7 @@
 package de.pse.oys.data.api
 
-import de.pse.oys.data.facade.UnitRatings
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import kotlin.time.Duration
 import kotlin.uuid.Uuid
 
 object Routes {
