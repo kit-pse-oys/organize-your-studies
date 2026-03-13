@@ -88,6 +88,7 @@ public class PlanningService {
      * @param userRepository der UserRepository
      * @param learningAnalyticsProvider der LearningAnalyticsProvider
      * @param restTemplate der RestTemplate für HTTP-Anfragen
+     * @param learningUnitRepository das LearningUnitRepository
      */
     public PlanningService(TaskRepository taskRepository,
                            LearningPlanRepository learningPlanRepository,
@@ -154,6 +155,8 @@ public class PlanningService {
      * @param userId             Die ID des Benutzers.
      * @param unitIdToReschedule Die ID der Lerneinheit, die neu terminiert werden soll.
      * @throws IllegalArgumentException wenn der Benutzer, Lernplan oder Lerneinheit nicht gefunden wird.
+     * @throws IllegalStateException wenn der Solver kein Ergebnis zurückgibt.
+     * @return die aktualisierte Lerneinheit als UnitDTO nach erfolgreichem Rescheduling.
      */
 
     @Transactional
@@ -190,13 +193,13 @@ public class PlanningService {
         applyPenaltyToCostMatrix(parentTask, unitToReschedule, weekStart);
 
         int unitDurationMinutes = (int) ChronoUnit.MINUTES.between(unitToReschedule.getStartTime(),
-                unitToReschedule.getEndTime() ) + user.getPreferences().getBreakDurationMinutes();
+                unitToReschedule.getEndTime()) + user.getPreferences().getBreakDurationMinutes();
         int durationSlots = (int) Math.ceil(unitDurationMinutes / (double) SLOT_DURATION_MINUTES);
         String chunkId = parentTask.getTaskId().toString() + RESCHEDULE_SUFFIX;
         LocalDateTime softDeadline = parentTask.getSoftDeadline(user.getPreferences().getDeadlineBufferDays());
         int deadlineSlot = mapLocalDateTimeToSlot(softDeadline, weekStart);
         List<CostDTO> costs = learningAnalyticsProvider.getCostMatrixForTask(parentTask);
-        PlanningTaskDTO planningTaskDTO = new PlanningTaskDTO(chunkId, durationSlots, currentSlot, deadlineSlot,costs);
+        PlanningTaskDTO planningTaskDTO = new PlanningTaskDTO(chunkId, durationSlots, currentSlot, deadlineSlot, costs);
         List<PlanningTaskDTO> planningTaskDTOS = new ArrayList<>();
         planningTaskDTOS.add(planningTaskDTO);
 
@@ -416,62 +419,85 @@ public class PlanningService {
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
         for (Task task : openTasks) {
-            int startSlot = calculateCurrentSlot(weekStart, now);
-            int durationExistingUnits = 0;
-            if (task.getCategory().equals(TaskCategory.OTHER)) {
-                OtherTask otherTask = (OtherTask) task;
-                LocalDate taskEndDate = otherTask.getHardDeadline().toLocalDate();
-                if (taskEndDate.isBefore(weekStart)) {
-                    continue;
-                }
-                if (otherTask.getStartTime().isBefore(now)) {
-                    startSlot = calculateCurrentSlot(weekStart, now);
-                } else {
-                    startSlot = mapLocalDateTimeToSlot(otherTask.getStartTime(), weekStart);
-                }
+            int startSlot = calculateStartSlot(task, now, weekStart);
 
-            }
-            List<LearningUnit> existingUnits = task.getLearningUnits();
-            if (existingUnits != null) {
-                for (LearningUnit unit : existingUnits) {
-                    LocalDateTime unitDateTime = unit.getStartTime();
-                    LocalDate unitDate = unitDateTime.toLocalDate();
+            if (startSlot >= 0) {
+                int durationExistingUnits = calculateExistingDuration(task, now, weekStart, endOfWeek);
+                int restDuration = task.getWeeklyDurationMinutes() - durationExistingUnits;
 
-                    boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
-                    boolean isInPast = unitDateTime.isBefore(now);
-                    boolean isMissed = unit.getStatus() == UnitStatus.MISSED;
-
-                    if (isInCurrentWeek && isInPast && !isMissed) {
-                        long minutes = unit.getActualDurationMinutes();
-                        durationExistingUnits += (int) minutes;
-                    }
-                    if (isMissed){
-                        applyPenaltyToCostMatrix(unit.getTask(), unit, weekStart);
-                        learningUnitRepository.delete(unit);
-                    }
-
-
+                if (restDuration > 0) {
+                    int targetUnitDuration = calculateTargetUnitDuration(userPreferences, task);
+                    List<PlanningTaskDTO> unitChunks = splitIntoChunks(task, restDuration,
+                            targetUnitDuration, startSlot, userPreferences.getBreakDurationMinutes(),
+                            userPreferences.getDeadlineBufferDays(), weekStart);
+                    planningTaskDTOS.addAll(unitChunks);
                 }
             }
-
-            int restDuration = task.getWeeklyDurationMinutes() - durationExistingUnits;
-
-
-            if (restDuration <= 0) {
-                continue;
-            }
-
-            int targetUnitDuration = calculateTargetUnitDuration(userPreferences, task);
-
-
-            List<PlanningTaskDTO> unitChunks = splitIntoChunks(task, restDuration,
-                    targetUnitDuration,startSlot, userPreferences.getBreakDurationMinutes(),
-                    userPreferences.getDeadlineBufferDays(), weekStart);
-            planningTaskDTOS.addAll(unitChunks);
-
         }
 
         return planningTaskDTOS;
+    }
+
+    /**
+     * Berechnet den Start-Slot für eine Aufgabe.
+     * Für OtherTasks wird der Aufgabenstart berücksichtigt, ansonsten wird der aktuelle Slot verwendet.
+     *
+     * @param task      Die Aufgabe.
+     * @param now       Das aktuelle Datum und Uhrzeit.
+     * @param weekStart Das Startdatum der Woche.
+     * @return Der berechnete Start-Slot, oder -1 wenn die Task außerhalb der Woche liegt.
+     */
+    private int calculateStartSlot(Task task, LocalDateTime now, LocalDate weekStart) {
+        if (task.getCategory().equals(TaskCategory.OTHER)) {
+            OtherTask otherTask = (OtherTask) task;
+            LocalDate taskEndDate = otherTask.getHardDeadline().toLocalDate();
+            if (taskEndDate.isBefore(weekStart)) {
+                return -1; // Task ist bereits vorbei
+            }
+            if (otherTask.getStartTime().isBefore(now)) {
+                return calculateCurrentSlot(weekStart, now);
+            } else {
+                return mapLocalDateTimeToSlot(otherTask.getStartTime(), weekStart);
+            }
+        }
+        return calculateCurrentSlot(weekStart, now);
+    }
+
+    /**
+     * Berechnet die bereits geleistete Dauer aus bestehenden Lerneinheiten.
+     * Löscht auch verpasste Einheiten.
+     *
+     * @param task      Die Aufgabe.
+     * @param now       Das aktuelle Datum und Uhrzeit.
+     * @param weekStart Das Startdatum der Woche.
+     * @param endOfWeek Das Enddatum der Woche.
+     * @return Die Summe der bereits geleisteten Minuten.
+     */
+    private int calculateExistingDuration(Task task, LocalDateTime now, LocalDate weekStart, LocalDate endOfWeek) {
+        int durationExistingUnits = 0;
+        List<LearningUnit> existingUnits = task.getLearningUnits();
+
+        if (existingUnits == null) {
+            return 0;
+        }
+
+        for (LearningUnit unit : existingUnits) {
+            LocalDateTime unitDateTime = unit.getStartTime();
+            LocalDate unitDate = unitDateTime.toLocalDate();
+
+            boolean isInCurrentWeek = !unitDate.isBefore(weekStart) && !unitDate.isAfter(endOfWeek);
+            boolean isInPast = unitDateTime.isBefore(now);
+            boolean isMissed = unit.getStatus() == UnitStatus.MISSED;
+
+            if (isMissed) {
+                applyPenaltyToCostMatrix(unit.getTask(), unit, weekStart);
+                learningUnitRepository.delete(unit);
+            } else if (isInCurrentWeek && isInPast) {
+                durationExistingUnits += unit.getActualDurationMinutes();
+            }
+        }
+
+        return durationExistingUnits;
     }
 
     /**
@@ -518,7 +544,8 @@ public class PlanningService {
 
     }
 
-    /*** Berechnet die Ziel-Dauer für Lerneinheiten basierend auf Nutzerpräferenzen und Feedback.
+    /**
+     * Berechnet die Ziel-Dauer für Lerneinheiten basierend auf Nutzerpräferenzen und Feedback.
      *
      * @param prefs Die Lernpräferenzen des Nutzers.
      * @param task  Die Aufgabe, für die die Ziel-Dauer berechnet werden soll.

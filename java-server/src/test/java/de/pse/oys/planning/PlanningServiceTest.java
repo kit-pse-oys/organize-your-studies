@@ -1023,7 +1023,7 @@ class PlanningServiceTest {
         User user = TestUserFactory.createLocalUserWithPrefs();
         ReflectionTestUtils.setField(user, "userId", userId);
 
-        // Erstelle Zeiten, die das aktuelle "Jetzt" sicher umschließen
+        // Erstellt Zeiten, die das aktuelle "Jetzt" sicher umschließen
         LocalDateTime start = LocalDateTime.now().minusHours(1);
         LocalDateTime end = LocalDateTime.now().plusHours(1);
 
@@ -1064,14 +1064,14 @@ class PlanningServiceTest {
         ReflectionTestUtils.setField(user, "userId", userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Erstelle einen Mock für OtherTask
+        // Mock für OtherTask
         OtherTask otherTask = mock(OtherTask.class);
         LocalDateTime futureStart = LocalDateTime.now().plusHours(2);
         LocalDateTime futureEnd = LocalDateTime.now().plusDays(2);
         UUID generatedTaskId = UUID.randomUUID();
         when(otherTask.getTaskId()).thenReturn(generatedTaskId);
 
-        // Simuliere, dass der Task aktiv ist, obwohl der Start in der Zukunft liegt
+        // Task aktiv ist, obwohl der Start in der Zukunft liegt (provoziert den notwendigen Fehler)
         when(otherTask.isActive()).thenReturn(true);
         when(otherTask.getCategory()).thenReturn(TaskCategory.OTHER);
         when(otherTask.getStartTime()).thenReturn(futureStart);
@@ -1100,8 +1100,6 @@ class PlanningServiceTest {
         assertNotNull(request);
         assertFalse(request.getTasks().isEmpty());
 
-        // In Zeile 430 sollte mapLocalDateTimeToSlot(futureStart, weekStart) aufgerufen worden sein
-        // Wir prüfen indirekt, ob der Task im Request gelandet ist
         assertEquals(1, request.getTasks().size());
     }
 
@@ -1139,7 +1137,6 @@ class PlanningServiceTest {
     @Test
     void testSplitIntoChunks_Remainder_Coverage() {
         // GIVEN
-        // WICHTIG: Nutze den testUser-Mock aus dem setUp, da dieser mit testPreferences verknüpft ist
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
         // Wir erzwingen eine Ziel-Dauer von exakt 40 Minuten
@@ -1179,7 +1176,6 @@ class PlanningServiceTest {
         assertEquals(3, request.getTasks().size(), "Es müssen 3 Chunks erstellt werden, damit ein Rest entstehen kann.");
 
         // Da i=0 < remainder=1, wurde die Dauer des ersten Chunks im Service um +1 erhöht.
-        // Dies deckt die gewünschte Zeile 504 (duration += 1) ab.
     }
 
     @Test
@@ -1187,7 +1183,7 @@ class PlanningServiceTest {
         // GIVEN
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-        // 1. Task Mock erstellen
+        // 1. Task Mock
         Task ratedTask = mock(Task.class);
         UUID rTaskId = UUID.randomUUID();
         when(ratedTask.getTaskId()).thenReturn(rTaskId);
@@ -1196,12 +1192,11 @@ class PlanningServiceTest {
         when(ratedTask.getWeeklyDurationMinutes()).thenReturn(120);
         when(ratedTask.getSoftDeadline(anyInt())).thenReturn(LocalDateTime.now().plusDays(7));
 
-        // 2. Mock-Hierarchie für das Feedback aufbauen
+        // 2. Mock für das Feedback
         LearningUnit ratedUnit = mock(LearningUnit.class);
         UnitRating rating = mock(UnitRating.class);
 
-        // WICHTIG: Die Zeit-Stubbings hinzufügen, um die NPE in Zeile 438 zu verhindern
-        // Wir setzen die Einheit in die Vergangenheit, damit sie als "bereits bearbeitet" zählt
+        // Einheit in die Vergangenheit, damit sie als "bereits bearbeitet" zählt
         when(ratedUnit.getStartTime()).thenReturn(LocalDateTime.now().minusDays(1));
         when(ratedUnit.getActualDurationMinutes()).thenReturn(60);
         when(ratedUnit.getStatus()).thenReturn(UnitStatus.COMPLETED);
@@ -1231,5 +1226,46 @@ class PlanningServiceTest {
         // Verifizierung, dass die Feedback-Logik durchlaufen wurde
         verify(ratedUnit, atLeastOnce()).isRated();
         verify(rating, atLeastOnce()).getPerceivedDuration();
+    }
+
+    @Test
+    void testGenerateWeeklyPlan_OtherTaskWithPastDeadline_ShouldBeSkipped() {
+        // ARRANGE
+        LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        // OtherTask mit Deadline VOR dieser Woche
+        OtherTask pastTask = mock(OtherTask.class);
+        LocalDate pastDeadline = weekStart.minusDays(1); // Ein Tag vor Wochenbeginn
+
+        when(pastTask.isActive()).thenReturn(true);
+        when(pastTask.getCategory()).thenReturn(TaskCategory.OTHER);
+        when(pastTask.getHardDeadline()).thenReturn(pastDeadline.atStartOfDay());
+
+        // User und Preferences - mit lenient() da die Task früh gefiltert wird
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        lenient().when(testUser.getId()).thenReturn(userId);
+        lenient().when(testUser.getPreferences()).thenReturn(testPreferences);
+        lenient().when(testUser.getFreeTimes()).thenReturn(Collections.emptyList());
+
+        when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(pastTask));
+        lenient().when(learningUnitRepository.findAllByTask_Module_User_UserId(userId)).thenReturn(Collections.emptyList());
+        lenient().when(learningPlanRepository.findByUserIdAndWeekStart(eq(userId), any())).thenReturn(Optional.empty());
+
+        // Mock für den Solver - mit lenient() da keine Tasks gesendet werden
+        lenient().when(restTemplate.exchange(anyString(), any(), any(), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        // ACT
+        planningService.generateWeeklyPlan(userId);
+
+        // ASSERT
+        // Die Past-Task sollte nicht an den Solver gesendet werden, da ihre Deadline vorbei ist
+        ArgumentCaptor<HttpEntity<PlanningRequestDTO>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(anyString(), any(), captor.capture(), any(ParameterizedTypeReference.class));
+
+        PlanningRequestDTO request = captor.getValue().getBody();
+        assertNotNull(request, "Request sollte nicht null sein");
+        assertNotNull(request.getTasks(), "Tasks sollten nicht null sein");
+        assertTrue(request.getTasks().isEmpty(), "Past task sollte nicht im Solver-Request enthalten sein");
     }
 }
