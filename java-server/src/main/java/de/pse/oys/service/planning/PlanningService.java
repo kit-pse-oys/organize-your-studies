@@ -145,10 +145,6 @@ public class PlanningService {
         if (planningResults != null && !planningResults.isEmpty()) {
             int breakDuration = userPreferences.getBreakDurationMinutes();
             saveLearningResults(planningResults, weekStart, breakDuration, user);
-            System.out.println("Planungsergebnisse erfolgreich gespeichert.");
-        } else {
-            System.out.println("Keine Planungsergebnisse empfangen.");
-
         }
     }
 
@@ -230,8 +226,7 @@ public class PlanningService {
             return unitToReschedule.toDTO();
 
         } else {
-            System.out.println("Keine Planungsergebnisse für Rescheduling empfangen.");
-            return null;
+            throw new IllegalStateException("No planning result received from solver for rescheduling");
         }
     }
 
@@ -323,7 +318,6 @@ public class PlanningService {
             );
             return responseEntity.getBody();
         } catch (Exception e) {
-            System.err.println("Fehler bei der Kommunikation mit dem Solver: " + e.getMessage());
             return Collections.emptyList();
         }
     }

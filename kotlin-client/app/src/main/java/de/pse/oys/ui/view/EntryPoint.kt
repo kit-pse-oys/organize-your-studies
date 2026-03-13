@@ -72,17 +72,10 @@ fun EntryPoint(
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = if (startWithLogin) Login else Main) {
         composable<Main> { MainView(viewModel { MainViewModel(api, model, navController) }) }
-        composable<Login> { LoginView(viewModel { LoginViewModel(api, context, navController) }) }
-        composable<Menu> {
-            MenuView(viewModel {
-                MenuViewModel(
-                    properties,
-                    api,
-                    model,
-                    navController
-                )
-            })
+        composable<Login> { 
+            LoginView(viewModel<LoginViewModel> { LoginViewModel(api, context, navController) }) 
         }
+        composable<Menu> { MenuView(viewModel { MenuViewModel(properties, api, model, navController) }) }
         composable<AccountSettings> {
             AccountSettingsView(viewModel {
                 AccountSettingsViewModel(

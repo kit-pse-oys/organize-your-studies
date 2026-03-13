@@ -46,11 +46,13 @@ android {
             signingConfig = signingConfigs.getByName("release")
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"549888352558-q3ihg5grkr288qvn7krd8plmgjbkk0hr.apps.googleusercontent.com\"")
         }
         release {
             isMinifyEnabled = true
             isDebuggable = false
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"549888352558-q3ihg5grkr288qvn7krd8plmgjbkk0hr.apps.googleusercontent.com\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -63,6 +65,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

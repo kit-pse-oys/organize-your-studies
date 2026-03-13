@@ -14,6 +14,7 @@ __email__ = "uhxch@student.kit.edu"
 import os
 import sys
 import unittest
+from unittest.mock import patch, mock_open
 
 # WICHTIG: TestClient von FastAPI importieren
 from fastapi.testclient import TestClient
@@ -64,6 +65,59 @@ class TestMicroservice(unittest.TestCase):
         self.assertEqual(result[0]['end'], 200)
         self.assertEqual(len(result), 1)
 
+    def test_data_transformer_exceptions(self):
+        """
+        Testet die Fehlerbehandlung beim Laden von JSON-Dateien (ohne echte Dateien zu schreiben).
+        """
+        # Test 1: Datei existiert wirklich nicht
+        with self.assertRaises(FileNotFoundError):
+            DataTransformer.load_json_file("gibt_es_garantiert_nicht_12345.json")
+
+        with patch('os.path.exists', return_value=True):
+            with patch('builtins.open', mock_open(read_data="{ kaputtes JSON, hier fehlt was ]")):
+                with self.assertRaises(ValueError):
+                    DataTransformer.load_json_file("dummy.json")
+
+    def test_interval_cost_optimization(self):
+        """
+        Testet, ob der Solver die Kosten über die GESAMTE Dauer der Aufgabe summiert (Sliding Window).
+        """
+        self.base_data["currentSlot"] = 72
+        self.base_data["horizon"] = 100
+
+        self.base_data["tasks"] = [
+            {
+                "id": "cost_task",
+                "duration": 3,
+                "deadline": 100,
+                "costs": [{"t": 74, "c": 1000}]
+            }
+        ]
+
+        solver = COPSolver(self.base_data)
+        solver.build_model()
+        solution = solver.solve()
+
+        self.assertIsNotNone(solution, "Sollte eine Lösung finden")
+        start_val = solution.Value(solver.solution_map["cost_task"]["start"])
+
+
+        self.assertEqual(start_val, 75, "Der Solver ignoriert Strafen mitten im Intervall! Er sollte erst bei 75 starten.")
+    def test_api_endpoint_no_solution(self):
+        """
+        Testet, wie die API reagiert, wenn keine Lösung möglich ist.
+        """
+        self.base_data["tasks"].append({
+            "id": "impossible_api_task",
+            "duration": 50,
+            "deadline": 10
+        })
+
+        response = self.client.post('/optimize', json=self.base_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [], "Antwort sollte eine leere Liste sein, wenn keine Lösung möglich ist")
+
     def test_assertNoOverlap(self):
         """
         Testet, ob der Solver verhindert, dass sich zwei Aufgaben überschneiden.
@@ -77,7 +131,6 @@ class TestMicroservice(unittest.TestCase):
         solver.build_model()
         solution = solver.solve()
 
-        # Check, ob überhaupt eine Lösung da ist, sonst crasht Value()
         if not solution:
             self.fail("Sollte eine Lösung finden, hat aber keine gefunden.")
 
@@ -102,6 +155,27 @@ class TestMicroservice(unittest.TestCase):
         solver.build_model()
         solution = solver.solve()
         self.assertIsNone(solution, "Es gibt eine unmögliche Loesung")
+
+    def test_solver_with_preferences_and_blocks(self):
+        """
+        Testet festen Blöcken, geblockten Tagen und allen
+        Zeitpräferenzen..
+        """
+        self.base_data["preferenceTime"] = "MORNING, FORENOON, NOON, AFTERNOON, EVENING"
+
+        self.base_data["blockedDays"] = [2, 3]
+
+        self.base_data["fixedBlocks"] = [{"start": 100, "duration": 20}]
+
+        self.base_data["tasks"] = [
+            {"id": "coverage_task", "duration": 10, "deadline": 500}
+        ]
+
+        solver = COPSolver(self.base_data)
+        solver.build_model()
+        solution = solver.solve()
+
+        self.assertIsNotNone(solution, "Sollte auch mit Constraints eine Lösung finden")
 
     def test_assertHappyPath(self):
         """
@@ -140,5 +214,5 @@ class TestMicroservice(unittest.TestCase):
         self.assertEqual(response_data[0]['id'], "api_task")
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     unittest.main()
