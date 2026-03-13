@@ -5,6 +5,7 @@ import de.pse.oys.data.api.RemoteAPI
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.Identified
 import de.pse.oys.data.facade.ModelFacade
+import de.pse.oys.data.facade.ModuleData
 import de.pse.oys.data.facade.Priority
 import de.pse.oys.ui.navigation.Main
 import de.pse.oys.ui.theme.LightBlue
@@ -16,6 +17,7 @@ import de.pse.oys.ui.view.TestUtils.randomUuid
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -27,9 +29,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.uuid.Uuid
 
 class EditModuleViewModelTest {
     private val api = mockk<RemoteAPI>(relaxed = true)
@@ -122,5 +126,41 @@ class EditModuleViewModelTest {
                 any<androidx.navigation.NavOptionsBuilder.() -> Unit>()
             )
         }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `delete should set error true when api fails`() = runTest {
+        coEvery { api.deleteModule(any()) } returns Response(
+            Unit, HttpStatusCode.InternalServerError.value
+        )
+
+        viewModel.delete()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.error)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `registerNewModule should remove entry from model when module is null`() = runTest {
+        val testId = randomUuid()
+        val testData = createMockModuleData()
+        var modulesMap = mapOf(testId to testData)
+
+        every { model.modules } answers { modulesMap }
+        every { model.modules = any() } answers {
+            modulesMap = firstArg<Map<Uuid, ModuleData>>()
+        }
+
+        val target = Identified(testData, testId)
+        val editVM = EditModuleViewModel(api, model, target, navController)
+
+        coEvery { api.deleteModule(testId) } returns Response(Unit, HttpStatusCode.OK.value)
+
+        editVM.delete()
+        advanceUntilIdle()
+        assertFalse("Die ID sollte aus der Map im Model entfernt worden sein", modulesMap.containsKey(testId))
+        verify { model.modules = any() }
     }
 }

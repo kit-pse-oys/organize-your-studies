@@ -31,4 +31,10 @@ class AdditionsViewModelTest {
         viewModel.navigateToCreateFreeTime()
         verify { navController.createFreeTime() }
     }
+
+    @Test
+    fun `navigateBack calls popBackStack on navController`() {
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }

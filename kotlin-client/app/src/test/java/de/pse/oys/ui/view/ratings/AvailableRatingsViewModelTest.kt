@@ -122,4 +122,21 @@ class AvailableRatingsViewModelTest {
 
         assertEquals(0, viewModel.available.size)
     }
+
+    @Test
+    fun `error state should be set if queryRateable fails`() = runTest {
+        coEvery { api.queryRateable() } returns Response(null, 500)
+
+        val viewModel = AvailableRatingsViewModel(api, model, navController)
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.error)
+    }
+
+    @Test
+    fun `navigateBack calls popBackStack`() {
+        val viewModel = AvailableRatingsViewModel(api, model, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }

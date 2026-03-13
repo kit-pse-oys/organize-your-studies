@@ -8,6 +8,7 @@ import de.pse.oys.data.api.RemoteSubmissionTaskData
 import de.pse.oys.data.api.Response
 import de.pse.oys.data.facade.ModelFacade
 import de.pse.oys.ui.navigation.Main
+import de.pse.oys.ui.navigation.main
 import de.pse.oys.ui.view.TestUtils.TEST_DATE
 import de.pse.oys.ui.view.TestUtils.TEST_DATE_ALTERNATIVE
 import de.pse.oys.ui.view.TestUtils.TEST_TITLE
@@ -30,6 +31,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.time.Clock
@@ -186,5 +188,25 @@ class CreateTaskViewModelTest {
     @Test(expected = IllegalStateException::class)
     fun `delete in CreateViewModel should throw error`() {
         viewModel.delete()
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `init should throw exception if modules in model is null`() {
+        every { model.modules } returns null
+        CreateTaskViewModel(api, model, navController)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `submit should set error true when api fails`() = runTest {
+        coEvery { api.createTask(any()) } returns Response(null, 500)
+
+        viewModel.title = "Fail Task"
+        viewModel.module = TEST_TITLE
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.error)
+        verify(exactly = 0) { navController.main() }
     }
 }

@@ -126,4 +126,21 @@ class EditFreeTimeViewModelTest {
             )
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `delete should set error true when api fails`() = runTest {
+        coEvery { api.deleteFreeTime(any()) } returns Response(Unit, HttpStatusCode.InternalServerError.value)
+
+        viewModel.delete()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.error)
+    }
+
+    @Test
+    fun `navigate back should pop back stack`() {
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }

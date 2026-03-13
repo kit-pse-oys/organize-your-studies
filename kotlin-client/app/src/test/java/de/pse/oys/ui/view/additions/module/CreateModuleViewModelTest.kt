@@ -151,4 +151,17 @@ class CreateModuleViewModelTest {
         advanceUntilIdle()
         assertTrue(viewModel.error)
     }
+
+    @Test(expected = IllegalStateException::class)
+    fun `delete should throw error in CreateViewModel`() {
+        val viewModel = CreateModuleViewModel(api, model, navController)
+        viewModel.delete()
+    }
+
+    @Test
+    fun `navigateBack should call popBackStack`() {
+        val viewModel = CreateModuleViewModel(api, model, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }

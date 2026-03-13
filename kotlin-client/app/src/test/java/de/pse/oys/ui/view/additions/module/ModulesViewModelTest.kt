@@ -53,4 +53,17 @@ class ModulesViewModelTest {
 
         verify(exactly = 0) { navController.editModule(unknownModule) }
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `init should throw exception if modules in model is null`() {
+        every { modelFacade.modules } returns null
+        ModulesViewModel(modelFacade, navController)
+    }
+
+    @Test
+    fun `navigateBack should call popBackStack`() {
+        val viewModel = ModulesViewModel(modelFacade, navController)
+        viewModel.navigateBack()
+        verify { navController.popBackStack() }
+    }
 }
