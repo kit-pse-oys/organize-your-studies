@@ -750,4 +750,95 @@ class LearningAnalyticsProviderTest {
         assertNotNull(matrix.getCosts());
         assertTrue(matrix.getCosts().contains("\"t\":100"));
     }
+
+    @Test
+    void makeCostDTOList_InvalidJson_HandlesException() throws Exception {
+        // ARRANGE - Invalid JSON String
+        String invalidJson = "{invalid json}";
+
+        // ACT - rufe private Methode auf via ReflectionTestUtils
+        List<CostDTO> result = (List<CostDTO>) ReflectionTestUtils.invokeMethod(
+                provider,
+                "makeCostDTOList",
+                invalidJson
+        );
+
+        // ASSERT - sollte leer sein, Exception wurde abgefangen
+        assertNotNull(result);
+        assertTrue(result.isEmpty(), "Invalid JSON sollte Collections.emptyList() returnen");
+    }
+
+    @Test
+    void makeCostDTOList_MalformedJsonArray_HandlesException() throws Exception {
+        // ARRANGE - JSON Array mit ungültigem Inhalt
+        String malformedJson = "[{\"t\": \"notAnInt\", \"c\": 10}]";
+
+        // ACT
+        List<CostDTO> result = (List<CostDTO>) ReflectionTestUtils.invokeMethod(
+                provider,
+                "makeCostDTOList",
+                malformedJson
+        );
+
+        // ASSERT - Exception bei Deserialisierung
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void persist_RepositoryThrowsException_HandlesGracefully() throws Exception {
+        // ARRANGE
+        CostMatrix matrix = mock(CostMatrix.class);
+        List<CostDTO> costs = List.of(new CostDTO(10, -5));
+
+        // Mock Repository wirft Exception beim save
+        doThrow(new RuntimeException("Database error")).when(costMatrixRepository).save(any());
+
+        // ACT - ruft persist via reflection auf
+        ReflectionTestUtils.invokeMethod(
+                provider,
+                "persist",
+                matrix,
+                costs
+        );
+
+        // ASSERT - Exception wurde abgefangen
+        verify(costMatrixRepository).save(any());
+    }
+
+    @Test
+    void applyPenaltyToCostMatrix_RepositorySaveThrowsException_HandlesGracefully() throws Exception {
+        // ARRANGE
+        Task task = mock(Task.class);
+        CostMatrix matrix = new CostMatrix("[{\"t\":50, \"c\":-3}]", task);
+
+        when(task.getCostMatrix()).thenReturn(matrix);
+
+        // Mock Repository wirft Exception beim save
+        doThrow(new RuntimeException("DB connection lost")).when(costMatrixRepository).save(any());
+
+        // ACT - sollte keine Exception werfen, Exception wird abgefangen
+        provider.applyPenaltyToCostMatrix(task, 100, -7);
+
+        // ASSERT - verify wurde aufgerufen, aber kein Error
+        verify(costMatrixRepository).save(any());
+    }
+
+    @Test
+    void applyPenaltyToCostMatrix_TaskRepositorySaveThrowsException_HandlesGracefully() throws Exception {
+        // ARRANGE
+        Task task = mock(Task.class);
+        CostMatrix matrix = null;
+
+        when(task.getCostMatrix()).thenReturn(matrix);
+
+        // Mock TaskRepository wirft Exception beim save (newMatrix = true)
+        doThrow(new RuntimeException("Task save failed")).when(taskRepository).save(any());
+
+        // ACT - newMatrix ist true, also wird taskRepository.save() aufgerufen und wirft Exception
+        provider.applyPenaltyToCostMatrix(task, 100, -7);
+
+        // ASSERT - Exception wurde abgefangen
+        verify(taskRepository).save(any());
+    }
 }

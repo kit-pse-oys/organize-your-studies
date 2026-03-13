@@ -143,7 +143,7 @@ public class PlanningService {
         );
         List<PlanningResponseDTO> planningResults = callSolver(planningInput);
 
-        if (planningResults != null && !planningResults.isEmpty()) {
+        if (!planningResults.isEmpty()) {
             int breakDuration = userPreferences.getBreakDurationMinutes();
             saveLearningResults(planningResults, weekStart, breakDuration, user);
         }
@@ -212,7 +212,7 @@ public class PlanningService {
                 planningTaskDTOS
         );
         List<PlanningResponseDTO> planningResults = callSolver(planningInput);
-        if (planningResults != null && !planningResults.isEmpty()) {
+        if (!planningResults.isEmpty()) {
 
             PlanningResponseDTO planningResult = planningResults.get(0);
 
@@ -319,7 +319,8 @@ public class PlanningService {
                     new ParameterizedTypeReference<>() {
                     }
             );
-            return responseEntity.getBody();
+            List<PlanningResponseDTO> body = responseEntity.getBody();
+            return body != null ? body : Collections.emptyList();
         } catch (Exception e) {
             return Collections.emptyList();
         }
@@ -575,7 +576,7 @@ public class PlanningService {
         int ratedUnitsCount = 0;
 
         for (LearningUnit unit : units) {
-            if (unit.isRated() && unit.getRating() != null && unit.getRating().getPerceivedDuration() != null) {
+            if (unit.isRated()) { //  Stellt sicher dass rating != null und werte gesetzt sind
                 ratedUnitsCount++;
                 totalRating += unit.getRating().getPerceivedDuration().getAdjustmentValue();
             }
@@ -595,7 +596,7 @@ public class PlanningService {
     private List<FixedBlockDTO> calculateFixedBlocksDTO(List<FreeTime> freeTimes, LocalDate weekStart) {
         List<FixedBlockDTO> dtos = new ArrayList<>();
 
-        if (freeTimes == null || freeTimes.isEmpty()) {
+        if (freeTimes.isEmpty()) {
             return dtos;
         }
 
@@ -607,7 +608,7 @@ public class PlanningService {
             if (type == RecurrenceType.WEEKLY) {
                 RecurringFreeTime weekly = (RecurringFreeTime) freeTime;
                 dayIndex = weekly.getDayOfWeek().getValue() - 1;
-            } else if (type == RecurrenceType.ONCE) {
+            } else {
                 SingleFreeTime single = (SingleFreeTime) freeTime;
                 LocalDate date = single.getDate();
                 if (!date.isBefore(weekStart) && !date.isAfter(weekEnd)) {
