@@ -138,6 +138,10 @@ public class AuthService {
         String username = loginDTO.getUsername();
 
         // 1. Überprüfen, ob der Benutzer existiert und entsprechend den User abrufen.
+        if (!userRepository.existsByUsername(username)) {
+            // Hier kannst du ERR_INVALID_LOGIN_CREDENTIALS oder ERR_USER_NOT_FOUND nutzen
+            throw new IllegalArgumentException(ERR_INVALID_LOGIN_CREDENTIALS);
+        }
 
         Optional<User> optionalUser = userRepository.findByUsernameAndUserType(username, de.pse.oys.domain.enums.UserType.LOCAL);
 
