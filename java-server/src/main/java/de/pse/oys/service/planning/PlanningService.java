@@ -419,7 +419,11 @@ public class PlanningService {
         LearningPreferences userPreferences = user.getPreferences();
         LocalDate endOfWeek = weekStart.plusDays(DAYS_IN_WEEK_OFFSET);
 
-        for (Task task : openTasks) {
+        for (Task rawTask : openTasks) {
+            // LÖSUNG: Hibernate-Proxy in das echte Objekt (z.B. OtherTask) entpacken
+            Task task = (Task) org.hibernate.Hibernate.unproxy(rawTask);
+
+            // Ab hier ist "task" garantiert die echte Unterklasse und der Cast in calculateStartSlot funktioniert!
             int startSlot = calculateStartSlot(task, now, weekStart);
 
             if (startSlot >= 0) {
