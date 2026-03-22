@@ -281,7 +281,7 @@ private fun UpcomingUnitsList(viewModel: IMainViewModel, modifier: Modifier = Mo
 @Composable
 private fun OnEventClick(viewModel: IMainViewModel, clickedEvent: PlannedUnit?, onDismiss: () -> Unit) {
     clickedEvent?.let { unit ->
-        Dialog({ onDismiss }) {
+        Dialog({ onDismiss() }) {
             Box(
                 modifier = Modifier
                     .background(
@@ -328,7 +328,7 @@ private fun OnEventClick(viewModel: IMainViewModel, clickedEvent: PlannedUnit?, 
                     if (now in start..end) {
                         SimpleButtonSmall(stringResource(R.string.mark_as_finished_early_button)) {
                             viewModel.marksAsFinished(unit)
-                            onDismiss
+                            onDismiss()
                         }
                     }
                 }
