@@ -608,7 +608,7 @@ class PlanningServiceTest {
     void testSaveLearningResults_BreakPadding() {
         LocalDate weekStart = LocalDate.now().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
 
-        ExamTask realTask = new ExamTask("Exam task", 120, weekStart.plusDays(5));
+        ExamTask realTask = new ExamTask("Exam task", 120, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(realTask, "taskId", taskId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
@@ -694,7 +694,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Test Task", 120, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Test Task", 120, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
         when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(task));
@@ -869,7 +869,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Test Task With Feedback", 120, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Test Task With Feedback", 120, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
 
@@ -900,7 +900,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Tiny Task", 5, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Tiny Task", 5, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
         when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(task));
@@ -927,7 +927,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Task With Remainder", 100, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Task With Remainder", 100, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
         when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(task));
@@ -958,7 +958,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Rated Task", 120, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Rated Task", 120, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
         LearningUnit unit1 = new LearningUnit(task, weekStart.atTime(10, 0), weekStart.atTime(11, 0));
@@ -991,7 +991,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Task with Missed Unit", 120, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Task with Missed Unit", 120, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
 
@@ -1111,7 +1111,7 @@ class PlanningServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        ExamTask task = new ExamTask("Task with Remainder", 65, weekStart.plusDays(5));
+        ExamTask task = new ExamTask("Task with Remainder", 65, weekStart.plusWeeks(4));
         ReflectionTestUtils.setField(task, "taskId", UUID.randomUUID());
 
         when(taskRepository.findAllByModuleUserUserId(userId)).thenReturn(List.of(task));
